@@ -1,5 +1,9 @@
 package com.mytv.mymusic.ui.library
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
+
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.activity.compose.PredictiveBackHandler
@@ -217,9 +221,9 @@ fun LibraryScreen(
 
     if (createOpen) {
         InputDialog(
-            title = "新建歌单",
-            label = "歌单名称",
-            confirmLabel = "创建",
+            title = stringResource(R.string.library_new_playlist),
+            label = stringResource(R.string.library_playlist_name),
+            confirmLabel = stringResource(R.string.library_create),
             onConfirm = actions::createPlaylist,
             onDismiss = { createOpen = false },
         )
@@ -257,13 +261,13 @@ private fun PhoneLibrary(
     val conflictIds = sync.conflicts.map { it.playlistId }.toSet()
     Box(Modifier.fillMaxSize()) {
         PageScaffold(
-            title = "我的",
+            title = stringResource(R.string.library_title),
             subtitle = syncHeadline(sync),
             actions = {
                 SyncCloudButton(sync, nav.openSync)
                 if (phone) {
                     IconButton(onClick = nav.openSettings, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Icon(Icons.Filled.Settings, "设置")
+                        Icon(Icons.Filled.Settings, stringResource(R.string.library_settings))
                     }
                 } else {
                     NewPlaylistSplitButton(menu, Modifier.padding(end = 8.dp))
@@ -300,7 +304,10 @@ private fun PhoneLibrary(
                 }
                 item(key = "sync", contentType = "card") { SyncStatusCard(sync, nav.openSync, Modifier.padding(top = 12.dp)) }
                 item(key = "plHead", contentType = "section") {
-                    SectionLabel("自建歌单", trailing = { CountTag("${playlists.size} 个") })
+                    SectionLabel(
+                        stringResource(R.string.library_own_playlists),
+                        trailing = { CountTag(stringResource(R.string.library_playlist_count, playlists.size)) },
+                    )
                 }
                 playlistItems(playlists, covers, sync, conflictIds, settled, null, onOpen = nav.openPlaylist, onCreate = menu.onCreate, providers = providers)
             }
@@ -338,9 +345,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.playlistItems(
             } else {
                 EmptyState(
                     icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                    title = "还没有自建歌单",
-                    message = "新建歌单后可以添加歌曲、调整顺序，并同步到 GitHub Gist、Gitee 或 WebDAV。",
-                    actionLabel = "新建歌单",
+                    title = stringResource(R.string.library_empty_title),
+                    message = stringResource(R.string.library_empty_message),
+                    actionLabel = stringResource(R.string.library_new_playlist),
                     onAction = onCreate,
                 )
             }
@@ -366,9 +373,10 @@ private fun androidx.compose.foundation.lazy.LazyListScope.playlistItems(
 }
 
 internal fun playlistRowSummary(playlist: LocalPlaylistSummary, providers: List<ProviderInfo>): String {
-    val time = relativeTime(playlist.updatedAt).ifBlank { "刚创建" }
-    if (!playlist.bound) return "${playlist.trackCount} 首 · $time"
-    return "${playlist.trackCount} 首 · 已绑定${providerName(providers, playlist.linkProvider)} · $time"
+    val time = relativeTime(playlist.updatedAt).ifBlank { "just created" }
+    val songs = if (playlist.trackCount == 1) "1 song" else "${playlist.trackCount} songs"
+    if (!playlist.bound) return "$songs · $time"
+    return "$songs · Linked to ${providerName(providers, playlist.linkProvider)} · $time"
 }
 
 // ---------------- 平板 ≥840dp：列表 + 详情 ----------------
@@ -411,7 +419,11 @@ private fun TabletLibrary(
                 item(key = "head", contentType = "header") {
                     Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("我的", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
+                            Text(
+                                stringResource(R.string.library_title),
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
                             Text(
                                 syncHeadline(sync),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -461,7 +473,7 @@ private fun TabletLibrary(
                 }
                 item(key = "sync", contentType = "card") { SyncStatusCard(sync, nav.openSync, Modifier.padding(top = 12.dp)) }
                 item(key = "plHead", contentType = "section") {
-                    SectionLabel("自建歌单", trailing = { NewPlaylistSplitButton(menu) })
+                    SectionLabel(stringResource(R.string.library_own_playlists), trailing = { NewPlaylistSplitButton(menu) })
                 }
                 playlistItems(playlists, covers, sync, conflictIds, settled, selected, onOpen = { selectedId = it }, onCreate = menu.onCreate, providers = providers)
             }
@@ -485,9 +497,9 @@ private fun TabletLibrary(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         EmptyState(
                             icon = Icons.Filled.LibraryMusic,
-                            title = "选择或新建一个歌单",
-                            message = "歌单内容会显示在这里，不用跳页。",
-                            actionLabel = "新建歌单",
+                            title = stringResource(R.string.library_choose_or_create),
+                            message = stringResource(R.string.library_choose_or_create_message),
+                            actionLabel = stringResource(R.string.library_new_playlist),
                             onAction = menu.onCreate,
                         )
                     }
@@ -524,7 +536,7 @@ private fun TvLibrary(
     }
     TvDefaultFocus(first)
     PageScaffold(
-        title = "我的",
+        title = stringResource(R.string.library_title),
         subtitle = syncHeadline(sync),
         actions = { SyncCloudButton(sync, nav.openSync) },
     ) { padding ->
@@ -551,9 +563,9 @@ private fun TvLibrary(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             HeartBadge(48.dp)
                             // 大数字和“首喜欢的歌”分开读会变成“0，首喜欢的歌”
-                            Column(Modifier.clearAndSetSemantics { contentDescription = "喜欢的歌，${stats.favorites} 首" }) {
+                            Column(Modifier.clearAndSetSemantics { contentDescription = "Liked songs, ${stats.favorites} songs" }) {
                                 Text(stats.favorites.toString(), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
-                                Text("首喜欢的歌", style = MaterialTheme.typography.bodyMedium)
+                                Text(stringResource(R.string.library_liked_songs), style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -563,7 +575,11 @@ private fun TvLibrary(
                         content = MaterialTheme.colorScheme.onPrimaryContainer,
                         onClick = nav.openWelfare,
                     ) {
-                        Text("汽水天天送会员", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.library_soda),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(welfareHeadline(soda, listen.todayMinutes), style = MaterialTheme.typography.bodyMedium)
                     }
                     TvTile(
@@ -572,7 +588,11 @@ private fun TvLibrary(
                         content = MaterialTheme.colorScheme.onSecondaryContainer,
                         onClick = nav.openKugouWelfare,
                     ) {
-                        Text("酷狗概念版领会员", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.library_kugou),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(kugouWelfareHeadline(kugou), style = MaterialTheme.typography.bodyMedium)
                     }
                     TvTile(
@@ -581,7 +601,11 @@ private fun TvLibrary(
                         content = MaterialTheme.colorScheme.onTertiaryContainer,
                         onClick = nav.openHistory,
                     ) {
-                        Text("最近播放", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.library_recent),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(stats.historyLabel, style = MaterialTheme.typography.bodyMedium)
                     }
                     TvTile(
@@ -590,7 +614,11 @@ private fun TvLibrary(
                         content = MaterialTheme.colorScheme.onSecondaryContainer,
                         onClick = nav.openDownloads,
                     ) {
-                        Text("下载", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.library_downloads),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(stats.downloadLabel, style = MaterialTheme.typography.bodyMedium)
                     }
                     TvTile(
@@ -599,13 +627,17 @@ private fun TvLibrary(
                         content = MaterialTheme.colorScheme.onSecondaryContainer,
                         onClick = nav.openLocalMusic,
                     ) {
-                        Text("本地音乐", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.library_local),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(rememberLocalEntrySummary(), style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                     }
                 }
             }
             item(key = "playlists", contentType = "row") {
-                TvRow("自建歌单") {
+                TvRow(stringResource(R.string.library_own_playlists)) {
                     item(key = "new", contentType = "card") {
                         TvNewCard(onClick = { newOpen = true })
                     }
@@ -618,7 +650,10 @@ private fun TvLibrary(
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     if (playlist.bound) {
                                         Tag(
-                                            "已绑定${providerName(state.providers, playlist.linkProvider)}",
+                                            stringResource(
+                                                R.string.library_bound_to,
+                                                providerName(state.providers, playlist.linkProvider),
+                                            ),
                                             MaterialTheme.colorScheme.primaryContainer,
                                             MaterialTheme.colorScheme.onPrimaryContainer,
                                             Icons.Filled.Link,
@@ -633,7 +668,7 @@ private fun TvLibrary(
             }
             if (history.isNotEmpty()) {
                 item(key = "recent", contentType = "row") {
-                    TvRow("最近播放") {
+                    TvRow(stringResource(R.string.library_recent)) {
                         items(recent, key = { "recent:${it.key}" }, contentType = { "song" }) { song ->
                             TvCard(
                                 title = song.title,
@@ -651,12 +686,16 @@ private fun TvLibrary(
     if (newOpen) {
         val focus = remember { FocusRequester() }
         TvDefaultFocus(focus)
-        AdaptiveSheet(onDismiss = { newOpen = false }, title = "新建", subtitle = "选择创建方式") {
+        AdaptiveSheet(
+            onDismiss = { newOpen = false },
+            title = stringResource(R.string.library_new),
+            subtitle = stringResource(R.string.library_choose_method),
+        ) {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
                 val rows = listOf(
-                    Triple(Icons.AutoMirrored.Filled.PlaylistAdd, "新建歌单", menu.onCreate),
-                    Triple(Icons.Filled.Link, "导入歌单链接", menu.onLink),
-                    Triple(Icons.Filled.FileOpen, "从文件导入", menu.onFile),
+                    Triple(Icons.AutoMirrored.Filled.PlaylistAdd, stringResource(R.string.library_new_playlist), menu.onCreate),
+                    Triple(Icons.Filled.Link, stringResource(R.string.library_import_link), menu.onLink),
+                    Triple(Icons.Filled.FileOpen, stringResource(R.string.library_import_file), menu.onFile),
                 )
                 rows.forEachIndexed { index, (icon, label, action) ->
                     ListRow(
@@ -670,7 +709,7 @@ private fun TvLibrary(
                     )
                 }
                 Text(
-                    "“从文件导入”认得本应用歌单、整库备份和洛雪 .lxmc；没有文件选择器时用手机扫码传。",
+                    stringResource(R.string.library_import_note),
                     Modifier.padding(start = 4.dp, top = 12.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -733,9 +772,16 @@ private fun TvNewCard(onClick: () -> Unit) {
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             contentColor = MaterialTheme.colorScheme.primary,
         ) {
-            Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.Add, "新建", Modifier.size(48.dp)) }
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.Add, stringResource(R.string.library_new), Modifier.size(48.dp))
+            }
         }
-        Text("新建", Modifier.padding(top = 10.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(R.string.library_new),
+            Modifier.padding(top = 10.dp),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -758,7 +804,7 @@ private fun TvCard(
                 // 标题在可点区域外面，读屏要靠这里读出是哪张卡片
                 .semantics {
                     contentDescription = listOf(title, subtitle).filter { it.isNotBlank() }.joinToString("，")
-                    if (playing) stateDescription = "正在播放"
+                    if (playing) stateDescription = "Playing"
                 }
                 .clickable(onClick = onClick),
         ) { art() }
@@ -791,15 +837,15 @@ internal class LibraryStats(
     val downloadBytes: Long,
 ) {
     val historyLabel: String get() = when {
-        historyToday > 0 -> "今天 $historyToday 首"
-        historyTotal > 0 -> "共 $historyTotal 首"
-        else -> "还没有记录"
+        historyToday > 0 -> "$historyToday played today"
+        historyTotal > 0 -> "$historyTotal played"
+        else -> "No history yet"
     }
     val downloadLabel: String get() = when {
-        downloadsActive > 0 -> "$downloadsActive 首下载中"
-        downloadsFailed > 0 -> "$downloadsFailed 首下载失败"
-        downloadsDone > 0 -> "$downloadsDone 首 · ${formatBytes(downloadBytes)}"
-        else -> "还没有下载"
+        downloadsActive > 0 -> "$downloadsActive downloading"
+        downloadsFailed > 0 -> "$downloadsFailed failed"
+        downloadsDone > 0 -> "$downloadsDone · ${formatBytes(downloadBytes)}"
+        else -> "No downloads yet"
     }
 }
 
@@ -872,14 +918,14 @@ private fun LibraryBento(
                     Column(
                         Modifier
                             .padding(end = if (onPlayFavorites != null) 44.dp else 0.dp)
-                            .clearAndSetSemantics { contentDescription = "喜欢的歌，${stats.favorites} 首" },
+                            .clearAndSetSemantics { contentDescription = "Liked songs, ${stats.favorites} songs" },
                     ) {
                         Text(
                             stats.favorites.toString(),
                             style = if (compact) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.ExtraBold,
                         )
-                        Text("首喜欢的歌", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.library_liked_songs), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
                 if (onPlayFavorites != null) {
@@ -890,13 +936,13 @@ private fun LibraryBento(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,
                         ),
-                    ) { Icon(Icons.Filled.PlayArrow, "播放喜欢的歌") }
+                    ) { Icon(Icons.Filled.PlayArrow, stringResource(R.string.library_play_favorites)) }
                 }
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SmallTile(
-                title = if (compact) "最近" else "最近播放",
+                title = if (compact) stringResource(R.string.library_recent_short) else stringResource(R.string.library_recent),
                 detail = stats.historyLabel,
                 container = MaterialTheme.colorScheme.tertiaryContainer,
                 content = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -904,7 +950,7 @@ private fun LibraryBento(
                 modifier = Modifier.weight(1f).heightIn(min = tileHeight),
             )
             SmallTile(
-                title = "下载",
+                title = stringResource(R.string.library_downloads),
                 detail = stats.downloadLabel,
                 container = MaterialTheme.colorScheme.secondaryContainer,
                 content = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -968,9 +1014,9 @@ private fun LibraryBentoRow(
                 ) {
                     HeartBadge(28.dp)
                     // 大数字和“首喜欢的歌”分开读会变成“0，首喜欢的歌”
-                    Column(Modifier.clearAndSetSemantics { contentDescription = "喜欢的歌，${stats.favorites} 首" }) {
+                    Column(Modifier.clearAndSetSemantics { contentDescription = "Liked songs, ${stats.favorites} songs" }) {
                         Text(stats.favorites.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
-                        Text("首喜欢的歌", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.library_liked_songs), style = MaterialTheme.typography.labelMedium)
                     }
                 }
                 if (onPlayFavorites != null) {
@@ -981,16 +1027,16 @@ private fun LibraryBentoRow(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,
                         ),
-                    ) { Icon(Icons.Filled.PlayArrow, "播放喜欢的歌") }
+                    ) { Icon(Icons.Filled.PlayArrow, stringResource(R.string.library_play_favorites)) }
                 }
             }
         }
         MiniTile(
-            title = "最近",
+            title = stringResource(R.string.library_recent_short),
             detail = when {
-                stats.historyToday > 0 -> "今天 ${stats.historyToday} 首"
-                stats.historyTotal > 0 -> "共 ${stats.historyTotal} 首"
-                else -> "暂无记录"
+                stats.historyToday > 0 -> "${stats.historyToday} played today"
+                stats.historyTotal > 0 -> "${stats.historyTotal} played"
+                else -> "No history yet"
             },
             container = MaterialTheme.colorScheme.tertiaryContainer,
             content = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -998,12 +1044,12 @@ private fun LibraryBentoRow(
             shape = shape,
         )
         MiniTile(
-            title = "下载",
+            title = stringResource(R.string.library_downloads),
             detail = when {
-                stats.downloadsActive > 0 -> "${stats.downloadsActive} 首下载中"
-                stats.downloadsFailed > 0 -> "${stats.downloadsFailed} 首下载失败"
-                stats.downloadsDone > 0 -> "${stats.downloadsDone} 首"
-                else -> "暂无下载"
+                stats.downloadsActive > 0 -> "${stats.downloadsActive} downloading"
+                stats.downloadsFailed > 0 -> "${stats.downloadsFailed} failed"
+                stats.downloadsDone > 0 -> "${stats.downloadsDone} songs"
+                else -> "No downloads yet"
             },
             container = MaterialTheme.colorScheme.secondaryContainer,
             content = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -1053,13 +1099,13 @@ internal fun HeartBadge(size: Dp) {
 // ---------------- 同步状态 ----------------
 
 internal fun syncHeadline(sync: SyncUiState): String {
-    val account = sync.account ?: return "本机音乐库 · 未连接同步"
+    val account = sync.account ?: return "Local library · Sync not connected"
     return when {
-        sync.status == SyncStatus.Syncing -> "正在同步到 ${sync.providerLabel}…"
-        sync.conflicts.isNotEmpty() -> "${sync.providerLabel} · ${sync.conflicts.size} 个冲突待处理"
-        sync.error.isNotBlank() -> "${sync.providerLabel} · 上次同步失败"
-        account.lastSyncedAt <= 0 -> "已连接 ${sync.providerLabel} · 尚未同步"
-        else -> "已同步到 ${sync.providerLabel} · ${relativeTime(account.lastSyncedAt)}"
+        sync.status == SyncStatus.Syncing -> "Syncing to ${sync.providerLabel}…"
+        sync.conflicts.isNotEmpty() -> "${sync.providerLabel} · ${sync.conflicts.size} conflicts to resolve"
+        sync.error.isNotBlank() -> "${sync.providerLabel} · Last sync failed"
+        account.lastSyncedAt <= 0 -> "Connected to ${sync.providerLabel} · Not synced yet"
+        else -> "Synced to ${sync.providerLabel} · ${relativeTime(account.lastSyncedAt)}"
     }
 }
 
@@ -1078,7 +1124,7 @@ private fun SyncCloudButton(sync: SyncUiState, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .tvFocusRing(CircleShape)
-            .semantics { contentDescription = "音乐库同步：${syncHeadline(sync)}" },
+            .semantics { contentDescription = "Library sync: ${syncHeadline(sync)}" },
     ) {
         BadgedBox(badge = { if (attention) Badge() }) {
             Icon(if (sync.account == null) Icons.Outlined.Cloud else syncIcon(sync), null)
@@ -1091,13 +1137,17 @@ private fun SyncCloudButton(sync: SyncUiState, onClick: () -> Unit) {
 private fun SyncStatusCard(sync: SyncUiState, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val (title, summary, tone) = when {
         sync.conflicts.isNotEmpty() -> Triple(
-            "${sync.conflicts.size} 个歌单有冲突",
-            "本机和云端都改过，处理前不会上传",
+            "${sync.conflicts.size} playlists in conflict",
+            "Changed both here and in the cloud; nothing uploads until you resolve it",
             IconTone.Error,
         )
-        sync.account != null && sync.error.isNotBlank() -> Triple("同步失败", sync.error, IconTone.Error)
-        sync.status == SyncStatus.Syncing -> Triple("正在同步…", sync.phase.ifBlank { sync.providerLabel }, IconTone.Primary)
-        sync.account == null -> Triple("把音乐库同步到云端", "连接 GitHub Gist、Gitee 或 WebDAV，同步歌单、收藏和平台账号", IconTone.Secondary)
+        sync.account != null && sync.error.isNotBlank() -> Triple("Sync failed", sync.error, IconTone.Error)
+        sync.status == SyncStatus.Syncing -> Triple("Syncing…", sync.phase.ifBlank { sync.providerLabel }, IconTone.Primary)
+        sync.account == null -> Triple(
+            "Sync your library to the cloud",
+            "Connect GitHub Gist, Gitee or WebDAV to sync playlists, favorites and platform accounts",
+            IconTone.Secondary,
+        )
         else -> return
     }
     ListRow(
@@ -1122,10 +1172,10 @@ internal fun PlaylistSyncTag(playlist: LocalPlaylistSummary, sync: SyncUiState, 
 internal fun PlaylistSyncTag(dirty: Boolean, sync: SyncUiState, conflict: Boolean, long: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     val (label, colors) = when {
-        conflict -> "有冲突" to (scheme.errorContainer to scheme.onErrorContainer)
-        sync.account == null -> "仅本机" to (scheme.surfaceContainerHighest to scheme.onSurfaceVariant)
-        dirty -> "待同步" to (scheme.tertiaryContainer to scheme.onTertiaryContainer)
-        else -> (if (long) "已同步到 ${sync.providerLabel}" else "已同步") to (scheme.secondaryContainer to scheme.onSecondaryContainer)
+        conflict -> "Conflict" to (scheme.errorContainer to scheme.onErrorContainer)
+        sync.account == null -> "Local only" to (scheme.surfaceContainerHighest to scheme.onSurfaceVariant)
+        dirty -> "Pending" to (scheme.tertiaryContainer to scheme.onTertiaryContainer)
+        else -> (if (long) "Synced to ${sync.providerLabel}" else "Synced") to (scheme.secondaryContainer to scheme.onSecondaryContainer)
     }
     val icon = when {
         conflict -> Icons.Filled.SyncProblem
@@ -1191,8 +1241,8 @@ private fun BoxScope.LibraryFabMenu(expanded: Boolean, onExpandedChange: (Boolea
                 checked = expanded,
                 onCheckedChange = onExpandedChange,
                 modifier = Modifier.semantics {
-                    contentDescription = "新建"
-                    stateDescription = if (expanded) "已展开" else "已收起"
+                    contentDescription = "New"
+                    stateDescription = if (expanded) "Expanded" else "Collapsed"
                 },
             ) {
                 val icon by remember { derivedStateOf { if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add } }
@@ -1202,17 +1252,17 @@ private fun BoxScope.LibraryFabMenu(expanded: Boolean, onExpandedChange: (Boolea
     ) {
         FloatingActionButtonMenuItem(
             onClick = { onExpandedChange(false); menu.onLink() },
-            text = { Text("导入歌单链接") },
+            text = { Text(stringResource(R.string.library_import_link)) },
             icon = { Icon(Icons.Filled.Link, null) },
         )
         FloatingActionButtonMenuItem(
             onClick = { onExpandedChange(false); menu.onFile() },
-            text = { Text("从文件导入") },
+            text = { Text(stringResource(R.string.library_import_file)) },
             icon = { Icon(Icons.Filled.FileOpen, null) },
         )
         FloatingActionButtonMenuItem(
             onClick = { onExpandedChange(false); menu.onCreate() },
-            text = { Text("新建歌单") },
+            text = { Text(stringResource(R.string.library_new_playlist)) },
             icon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, null) },
         )
     }
@@ -1228,7 +1278,7 @@ private fun NewPlaylistSplitButton(menu: NewMenu, modifier: Modifier = Modifier)
             SplitButtonDefaults.LeadingButton(onClick = menu.onCreate, modifier = Modifier.tvFocusRing()) {
                 Icon(Icons.Filled.Add, null, Modifier.size(SplitButtonDefaults.LeadingIconSize))
                 Spacer(Modifier.width(8.dp))
-                Text("新建歌单", maxLines = 1)
+                Text(stringResource(R.string.library_new_playlist), maxLines = 1)
             }
         },
         trailingButton = {
@@ -1237,20 +1287,20 @@ private fun NewPlaylistSplitButton(menu: NewMenu, modifier: Modifier = Modifier)
                     checked = expanded,
                     onCheckedChange = { expanded = it },
                     modifier = Modifier.tvFocusRing().semantics {
-                        contentDescription = "更多新建方式"
-                        stateDescription = if (expanded) "已展开" else "已收起"
+                        contentDescription = "More ways to create"
+                        stateDescription = if (expanded) "Expanded" else "Collapsed"
                     },
                 ) {
                     Icon(Icons.Filled.KeyboardArrowDown, null, Modifier.size(SplitButtonDefaults.TrailingIconSize))
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(20.dp)) {
                     DropdownMenuItem(
-                        text = { Text("导入歌单链接") },
+                        text = { Text(stringResource(R.string.library_import_link)) },
                         leadingIcon = { Icon(Icons.Filled.Link, null) },
                         onClick = { expanded = false; menu.onLink() },
                     )
                     DropdownMenuItem(
-                        text = { Text("从文件导入") },
+                        text = { Text(stringResource(R.string.library_import_file)) },
                         leadingIcon = { Icon(Icons.Filled.FileOpen, null) },
                         onClick = { expanded = false; menu.onFile() },
                     )
@@ -1275,30 +1325,36 @@ private fun LinkImportDialog(isLink: (String) -> Boolean, onImport: (String) -> 
         onDismissRequest = onDismiss,
         title = {
             DialogAvoidsFold()
-            Text("导入歌单链接")
+            Text(stringResource(R.string.library_import_link))
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "粘贴平台歌单或专辑的分享链接。识别后打开详情，点“存到本地歌单”保存。",
+                    stringResource(R.string.library_link_dialog_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedTextField(
                     value = value,
                     onValueChange = { value = it },
-                    label = { Text("链接") },
+                    label = { Text(stringResource(R.string.library_link_field)) },
                     singleLine = true,
                     isError = value.isNotBlank() && !valid,
-                    supportingText = if (value.isNotBlank() && !valid) ({ Text("没有识别到平台链接") }) else null,
+                    supportingText = if (value.isNotBlank() && !valid) {
+                        ({ Text(stringResource(R.string.library_link_invalid)) })
+                    } else {
+                        null
+                    },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(onGo = { submit() }),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
-        confirmButton = { TextButton(onClick = submit, enabled = valid) { Text("识别") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        confirmButton = {
+            TextButton(onClick = submit, enabled = valid) { Text(stringResource(R.string.library_link_recognize)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.library_cancel)) } },
     )
 }
 
@@ -1353,8 +1409,9 @@ internal fun rememberExportLauncher(actions: MusicActions): () -> Unit {
 private fun rememberMissingPicker(): () -> Unit {
     val snackbar = LocalAppSnackbar.current
     val scope = rememberCoroutineScope()
-    return remember(snackbar, scope) {
-        { scope.launch { snackbar.showSnackbar("这台设备没有系统文件选择器，无法选择文件") } }
+    val context = LocalContext.current
+    return remember(snackbar, scope, context) {
+        { scope.launch { snackbar.showSnackbar(context.getString(R.string.library_no_picker)) } }
     }
 }
 
@@ -1387,13 +1444,18 @@ internal fun PlaylistMosaic(covers: List<String>, name: String, size: Dp, corner
 
 /** 页面自己的撤销 Snackbar：外壳的 SnackbarHost 不对页面开放，这里就近显示在浮层上方。 */
 @Stable
-internal class UndoController(val host: SnackbarHostState, private val scope: CoroutineScope, private val long: Boolean) {
+internal class UndoController(
+    val host: SnackbarHostState,
+    private val scope: CoroutineScope,
+    private val long: Boolean,
+    private val undoLabel: String,
+) {
     fun show(message: String, undo: () -> Unit) {
         scope.launch {
             host.currentSnackbarData?.dismiss()
             val result = host.showSnackbar(
                 message = message,
-                actionLabel = "撤销",
+                actionLabel = undoLabel,
                 duration = if (long) SnackbarDuration.Long else SnackbarDuration.Short,
             )
             if (result == SnackbarResult.ActionPerformed) undo()
@@ -1406,7 +1468,8 @@ internal fun rememberUndo(): UndoController {
     val host = LocalAppSnackbar.current
     val scope = rememberCoroutineScope()
     val tv = LocalAppWindow.current.isTv
-    return remember(host, scope, tv) { UndoController(host, scope, tv) }
+    val undoLabel = stringResource(R.string.library_undo)
+    return remember(host, scope, tv, undoLabel) { UndoController(host, scope, tv, undoLabel) }
 }
 
 /** Room 的列表初始值是空列表；300ms 内先显示骨架，避免一闪而过的空状态。 */

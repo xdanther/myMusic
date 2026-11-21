@@ -1,5 +1,6 @@
 package com.mytv.mymusic.ui.playlists
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.mytv.mymusic.R
 
@@ -133,12 +134,14 @@ private fun PlaylistsUiState.categoryMode() = mode == PlaylistMode.Category && c
 
 private fun PlaylistsUiState.listeningMode() = mode == PlaylistMode.Listening && canListen
 
+@Composable
 private fun playlistsSubtitle(playlists: PlaylistsUiState): String = listOf(
     playlists.providerName,
     when {
-        playlists.categoryMode() -> playlists.selectedCategoryName.ifBlank { "分类" }
-        playlists.listeningMode() -> "听歌模式"
-        else -> "为你推荐"
+        playlists.categoryMode() ->
+            playlists.selectedCategoryName.ifBlank { stringResource(R.string.playlists_category) }
+        playlists.listeningMode() -> stringResource(R.string.playlists_listening_mode)
+        else -> stringResource(R.string.playlists_for_you)
     },
 ).filter { it.isNotBlank() }.joinToString(" · ")
 
@@ -150,16 +153,19 @@ private fun ModeToggle(playlists: PlaylistsUiState, onSelect: (PlaylistMode) -> 
         if (playlists.canListen) add(PlaylistMode.Listening)
     }
     if (options.size < 2) return
+    val resources = LocalContext.current.resources
     ConnectedToggleGroup(
         options = options,
         selected = playlists.mode,
         onSelect = onSelect,
         label = {
-            when (it) {
-                PlaylistMode.Recommend -> "推荐"
-                PlaylistMode.Category -> "分类"
-                PlaylistMode.Listening -> "听歌模式"
-            }
+            resources.getString(
+                when (it) {
+                    PlaylistMode.Recommend -> R.string.playlists_recommended
+                    PlaylistMode.Category -> R.string.playlists_category
+                    PlaylistMode.Listening -> R.string.playlists_listening_mode
+                },
+            )
         },
         modifier = modifier,
         icon = {
@@ -186,13 +192,13 @@ private fun PhonePlaylists(
     val listeningMode = playlists.listeningMode()
     val listState = rememberLazyListState()
     PageScaffold(
-        title = "歌单",
+        title = stringResource(R.string.nav_playlists),
         subtitle = playlistsSubtitle(playlists),
         actions = {
             if (window.isTablet && (playlists.canCategorize || playlists.canListen)) {
                 ModeToggle(playlists, actions::setPlaylistMode, Modifier.width(if (playlists.canListen) 400.dp else 240.dp))
             }
-            IconButton(onClick = onOpenSearch) { Icon(Icons.Filled.Search, "搜索歌单") }
+            IconButton(onClick = onOpenSearch) { Icon(Icons.Filled.Search, stringResource(R.string.playlists_search)) }
         },
     ) { padding ->
         BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -278,9 +284,15 @@ private fun androidx.compose.foundation.lazy.LazyListScope.recommendContent(
         !playlists.canRecommend -> item(key = "unsupported", contentType = "unsupported") {
             EmptyState(
                 icon = Icons.AutoMirrored.Filled.QueueMusic,
-                title = "这个平台没有推荐歌单",
-                message = if (playlists.canCategorize) "可以按分类浏览，或换一个来源。" else "换一个来源，或到搜索页直接查找歌单。",
-                actionLabel = if (playlists.canCategorize) "按分类浏览" else other?.let { "换成${it.name}" },
+                title = stringResource(R.string.playlists_no_recommend),
+                message = stringResource(
+                    if (playlists.canCategorize) R.string.playlists_browse_hint else R.string.playlists_search_hint,
+                ),
+                actionLabel = if (playlists.canCategorize) {
+                    stringResource(R.string.playlists_browse_categories)
+                } else {
+                    other?.let { stringResource(R.string.playlists_switch_source, it.name) }
+                },
                 onAction = {
                     if (playlists.canCategorize) actions.setPlaylistMode(PlaylistMode.Category)
                     else other?.let { actions.selectPlaylistSource(it.id) }
@@ -296,27 +308,29 @@ private fun androidx.compose.foundation.lazy.LazyListScope.recommendContent(
         }
         items.isEmpty() && playlists.recommendationsError.isNotBlank() -> item(key = "error", contentType = "error") {
             DiscoverErrorState(
-                title = "推荐歌单没有加载出来",
-                message = "${playlists.providerName}：${playlists.recommendationsError}",
+                title = stringResource(R.string.playlists_recommend_failed),
+                message = "${playlists.providerName}: ${playlists.recommendationsError}",
                 onRetry = actions::refreshPlaylists,
-                secondaryLabel = other?.let { "换成${it.name}" },
+                secondaryLabel = other?.let { stringResource(R.string.playlists_switch_source, it.name) },
                 onSecondary = other?.let { { actions.selectPlaylistSource(it.id) } },
             )
         }
         items.isEmpty() -> item(key = "empty", contentType = "empty") {
             EmptyState(
                 icon = Icons.AutoMirrored.Filled.QueueMusic,
-                title = "这个平台暂时没有推荐歌单",
-                message = "换一个来源，或到搜索页直接查找歌单。",
-                actionLabel = "刷新",
+                title = stringResource(R.string.playlists_recommend_empty),
+                message = stringResource(R.string.playlists_search_hint),
+                actionLabel = stringResource(R.string.charts_refresh_action),
                 onAction = actions::refreshPlaylists,
             )
         }
         else -> {
             val lead = items.first()
             item(key = "leadLabel", contentType = "label") {
-                SectionLabel("编辑推荐", Modifier.padding(horizontal = gutter)) {
-                    TextButton(onClick = actions::refreshPlaylists, modifier = Modifier.heightIn(min = 48.dp)) { Text("换一批") }
+                SectionLabel(stringResource(R.string.playlists_editor_picks), Modifier.padding(horizontal = gutter)) {
+                    TextButton(onClick = actions::refreshPlaylists, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.playlists_refresh_picks))
+                    }
                 }
             }
             item(key = "lead", contentType = "lead") {
@@ -324,7 +338,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.recommendContent(
             }
             val rest = items.drop(1)
             if (rest.isNotEmpty()) {
-                item(key = "restLabel", contentType = "label") { SectionLabel("为你推荐", Modifier.padding(horizontal = gutter)) }
+                item(key = "restLabel", contentType = "label") {
+                    SectionLabel(stringResource(R.string.playlists_for_you), Modifier.padding(horizontal = gutter))
+                }
                 items(
                     restRows,
                     key = { row -> "rest:${row.first().id}" },
@@ -364,7 +380,10 @@ private fun androidx.compose.foundation.lazy.LazyListScope.categoryContent(
     if (playlists.categoriesError.isNotBlank()) {
         item(key = "categoriesError", contentType = "error") {
             Box(Modifier.padding(horizontal = gutter, vertical = 8.dp)) {
-                ErrorBlock("分类列表没有加载出来：${playlists.categoriesError}", actions::refreshPlaylists)
+                ErrorBlock(
+                    stringResource(R.string.playlists_categories_failed, playlists.categoriesError),
+                    actions::refreshPlaylists,
+                )
             }
         }
     }
@@ -385,9 +404,16 @@ private fun androidx.compose.foundation.lazy.LazyListScope.categoryContent(
     }
     item(key = "categoryHead", contentType = "head") {
         val selected = playlists.categories.find { it.id == playlists.selectedCategoryId }
-        SectionLabel(playlists.selectedCategoryName.ifBlank { "全部歌单" }, Modifier.padding(horizontal = gutter)) {
+        SectionLabel(
+            playlists.selectedCategoryName.ifBlank { stringResource(R.string.playlists_all) },
+            Modifier.padding(horizontal = gutter),
+        ) {
             if (selected != null && selected.count > 0) {
-                Text("共 ${selected.count} 个歌单", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    stringResource(R.string.playlists_count, selected.count),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -398,7 +424,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.categoryContent(
         }
         list.isEmpty() && playlists.categoryError.isNotBlank() -> item(key = "gridError", contentType = "error") {
             DiscoverErrorState(
-                title = "这个分类没有加载出来",
+                title = stringResource(R.string.playlists_category_failed),
                 message = playlists.categoryError,
                 onRetry = actions::loadMoreCategory,
             )
@@ -406,8 +432,8 @@ private fun androidx.compose.foundation.lazy.LazyListScope.categoryContent(
         list.isEmpty() -> item(key = "gridEmpty", contentType = "empty") {
             EmptyState(
                 icon = Icons.Filled.Category,
-                title = "这个分类下还没有歌单",
-                message = "换一个分类看看。",
+                title = stringResource(R.string.playlists_category_empty),
+                message = stringResource(R.string.playlists_try_another_category),
             )
         }
         else -> {
@@ -421,12 +447,18 @@ private fun androidx.compose.foundation.lazy.LazyListScope.categoryContent(
             item(key = "footer", contentType = "footer") {
                 Box(Modifier.fillMaxWidth().padding(horizontal = gutter), contentAlignment = Alignment.Center) {
                     when {
-                        playlists.categoryLoading -> AppLoading(contained = true, text = "正在加载第 ${playlists.categoryPage + 1} 页")
+                        playlists.categoryLoading -> AppLoading(
+                            contained = true,
+                            text = stringResource(R.string.playlists_loading_page, playlists.categoryPage + 1),
+                        )
                         playlists.categoryError.isNotBlank() -> Box(Modifier.padding(vertical = 8.dp)) {
-                            ErrorBlock("下一页没有加载出来：${playlists.categoryError}", actions::loadMoreCategory)
+                            ErrorBlock(
+                                stringResource(R.string.playlists_next_page_failed, playlists.categoryError),
+                                actions::loadMoreCategory,
+                            )
                         }
                         end -> Text(
-                            "没有更多了",
+                            stringResource(R.string.playlists_no_more),
                             Modifier.padding(vertical = 20.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -477,24 +509,28 @@ private fun androidx.compose.foundation.lazy.LazyListScope.listeningContent(
         }
         modes.isEmpty() && playlists.listenError.isNotBlank() -> item(key = "listenError", contentType = "error") {
             DiscoverErrorState(
-                title = "听歌模式没有加载出来",
-                message = "${playlists.providerName}：${playlists.listenError}",
+                title = stringResource(R.string.playlists_listen_failed),
+                message = "${playlists.providerName}: ${playlists.listenError}",
                 onRetry = actions::refreshListeningModes,
             )
         }
         modes.isEmpty() -> item(key = "listenEmpty", contentType = "empty") {
             EmptyState(
                 icon = Icons.Filled.Headphones,
-                title = "这个平台暂时没有听歌模式",
-                message = "换一个来源，或看看别的分类。",
-                actionLabel = "刷新",
+                title = stringResource(R.string.playlists_listen_empty),
+                message = stringResource(R.string.playlists_look_elsewhere),
+                actionLabel = stringResource(R.string.charts_refresh_action),
                 onAction = actions::refreshListeningModes,
             )
         }
         else -> {
             item(key = "listenLabel", contentType = "label") {
                 SectionLabel(
-                    if (playlists.listenGroup == GROUP_ALL) "选一个直接开始播放" else playlists.listenGroup,
+                    if (playlists.listenGroup == GROUP_ALL) {
+                        stringResource(R.string.playlists_pick_to_play)
+                    } else {
+                        playlists.listenGroup
+                    },
                     Modifier.padding(horizontal = gutter),
                 )
             }
@@ -558,7 +594,11 @@ private fun ListeningModeCard(
             .aspectRatio(1f)
             .tvCardFocus(RoundedCornerShape(24.dp))
             .clip(shape)
-            .clickable(enabled = !starting, onClickLabel = "播放${mode.name}", onClick = onClick),
+            .clickable(
+                enabled = !starting,
+                onClickLabel = stringResource(R.string.playlists_playing, mode.name),
+                onClick = onClick,
+            ),
     ) {
         if (hasCover) {
             CoverBox(mode.cover, mode.name, Modifier.fillMaxSize(), RectangleShape, 48f)
@@ -602,7 +642,12 @@ private fun ListeningModeCard(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(Icons.Filled.GraphicEq, null, Modifier.size(13.dp), tint = scheme.onPrimary)
-                Text("正在播放", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = scheme.onPrimary)
+                Text(
+                    stringResource(R.string.playlists_now_playing),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = scheme.onPrimary,
+                )
             }
             !starting -> Box(
                 Modifier
@@ -668,7 +713,11 @@ private fun QuickListenCard(starting: Boolean, onClick: () -> Unit, modifier: Mo
             .tvFocusRing(shape, scale = 1.02f)
             .clip(shape)
             .background(Brush.horizontalGradient(listOf(scheme.primaryContainer, scheme.tertiaryContainer)))
-            .clickable(enabled = !starting, onClickLabel = "随便听听", onClick = onClick)
+            .clickable(
+                enabled = !starting,
+                onClickLabel = stringResource(R.string.playlists_shuffle),
+                onClick = onClick,
+            )
             .padding(horizontal = 18.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -679,9 +728,14 @@ private fun QuickListenCard(starting: Boolean, onClick: () -> Unit, modifier: Mo
             Icon(Icons.Filled.Headphones, null, Modifier.size(if (window.isTv) 32.dp else 25.dp), tint = content)
         }
         Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
-            Text("随便听听", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = content)
             Text(
-                "按当前平台的听歌模式直接开播",
+                stringResource(R.string.playlists_shuffle),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = content,
+            )
+            Text(
+                stringResource(R.string.playlists_shuffle_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = content.copy(alpha = 0.72f),
                 maxLines = 1,
@@ -695,7 +749,12 @@ private fun QuickListenCard(starting: Boolean, onClick: () -> Unit, modifier: Mo
                 Modifier.size(if (window.isTv) 56.dp else 44.dp).clip(CircleShape).background(scheme.primary),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Filled.PlayArrow, "开始播放", Modifier.size(if (window.isTv) 32.dp else 26.dp), tint = scheme.onPrimary)
+                Icon(
+                    Icons.Filled.PlayArrow,
+                    stringResource(R.string.playlists_start_playing),
+                    Modifier.size(if (window.isTv) 32.dp else 26.dp),
+                    tint = scheme.onPrimary,
+                )
             }
         }
     }
@@ -721,7 +780,13 @@ private fun CategoryChips(playlists: PlaylistsUiState, actions: MusicActions, mo
         }
         if (visible.size > limit) {
             TextButton(onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(if (expanded) "收起" else "更多 ${visible.size - limit} 个")
+                Text(
+                    if (expanded) {
+                        stringResource(R.string.playlists_collapse)
+                    } else {
+                        stringResource(R.string.playlists_show_more, visible.size - limit)
+                    },
+                )
             }
         }
     }
@@ -741,7 +806,8 @@ private fun PlaylistCard(playlist: Playlist, actions: MusicActions, modifier: Mo
         title = playlist.name,
         subtitle = listOf(
             playlist.creator,
-            "${playlist.trackCount} 首".takeIf { playlist.trackCount > 0 },
+            (if (playlist.trackCount == 1) "1 song" else "${playlist.trackCount} songs")
+                .takeIf { playlist.trackCount > 0 },
         ).filterNotNull().filter { it.isNotBlank() }.joinToString(" · "),
         onClick = { actions.openPlaylist(playlist) },
         modifier = modifier,
@@ -775,7 +841,11 @@ private fun FeaturePlaylist(
         Box(Modifier.matchParentSize().background(Brush.verticalGradient(0.3f to caption.copy(alpha = 0f), 1f to caption.copy(alpha = 0.94f))))
         Column(Modifier.align(Alignment.BottomStart).padding(16.dp)) {
             Text(
-                listOf("编辑推荐", count.takeIf { it.isNotBlank() }?.let { "$it 次播放" }, playlist.creator.takeIf { it.isNotBlank() })
+                listOf(
+                    stringResource(R.string.playlists_editor_picks),
+                    count.takeIf { it.isNotBlank() }?.let { stringResource(R.string.playlists_plays, it) },
+                    playlist.creator.takeIf { it.isNotBlank() },
+                )
                     .filterNotNull().joinToString(" · "),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -811,11 +881,15 @@ private fun TvPlaylists(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Column(Modifier.weight(1f)) {
-                Text("歌单", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.nav_playlists),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                )
                 Text(playlistsSubtitle(playlists), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
             IconButton(onClick = onOpenSearch, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.Search, "搜索歌单")
+                Icon(Icons.Filled.Search, stringResource(R.string.playlists_search))
             }
         }
         // 浏览方式和来源各占一行：电视字号大，挤在一行会把“听歌模式”和平台名都截掉
@@ -861,10 +935,10 @@ private fun TvRecommendations(playlists: PlaylistsUiState, sources: List<Provide
         }
         items.isEmpty() && playlists.recommendationsError.isNotBlank() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             DiscoverErrorState(
-                title = "推荐歌单没有加载出来",
-                message = "${playlists.providerName}：${playlists.recommendationsError}",
+                title = stringResource(R.string.playlists_recommend_failed),
+                message = "${playlists.providerName}: ${playlists.recommendationsError}",
                 onRetry = actions::refreshPlaylists,
-                secondaryLabel = other?.let { "换成${it.name}" },
+                secondaryLabel = other?.let { stringResource(R.string.playlists_switch_source, it.name) },
                 onSecondary = other?.let { { actions.selectPlaylistSource(it.id) } },
             )
         }
@@ -879,9 +953,15 @@ private fun TvRecommendations(playlists: PlaylistsUiState, sources: List<Provide
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 EmptyState(
                     icon = Icons.AutoMirrored.Filled.QueueMusic,
-                    title = if (playlists.canRecommend) "这个平台暂时没有推荐歌单" else "这个平台没有推荐歌单",
-                    message = if (playlists.canCategorize) "可以按分类浏览。" else "换一个来源看看。",
-                    actionLabel = if (playlists.canCategorize) "按分类浏览" else "刷新",
+                    title = stringResource(
+                        if (playlists.canRecommend) R.string.playlists_recommend_empty else R.string.playlists_no_recommend,
+                    ),
+                    message = stringResource(
+                        if (playlists.canCategorize) R.string.playlists_browse_hint else R.string.playlists_look_elsewhere,
+                    ),
+                    actionLabel = stringResource(
+                        if (playlists.canCategorize) R.string.playlists_browse_categories else R.string.charts_refresh_action,
+                    ),
                     onAction = {
                         if (playlists.canCategorize) actions.setPlaylistMode(PlaylistMode.Category) else actions.refreshPlaylists()
                     },
@@ -920,7 +1000,11 @@ private fun TvRecommendations(playlists: PlaylistsUiState, sources: List<Provide
                 ) { rowIndex, row ->
                     Column(Modifier.padding(top = 16.dp)) {
                         Text(
-                            if (rowIndex == 0) "为你推荐" else "更多推荐",
+                            if (rowIndex == 0) {
+                                stringResource(R.string.playlists_for_you)
+                            } else {
+                                stringResource(R.string.playlists_more_picks)
+                            },
                             Modifier.padding(horizontal = gutter),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
@@ -1002,7 +1086,11 @@ private fun androidx.compose.foundation.layout.RowScope.TvListeningGrid(playlist
     Column(Modifier.weight(1f).fillMaxHeight()) {
         Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${playlists.listenGroup.ifBlank { stringResource(R.string.all_items) }} · ${modes.size} 个模式",
+                stringResource(
+                    R.string.playlists_modes_count,
+                    playlists.listenGroup.ifBlank { stringResource(R.string.all_items) },
+                    modes.size,
+                ),
                 Modifier.weight(1f).semantics { heading() },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
@@ -1013,11 +1101,15 @@ private fun androidx.compose.foundation.layout.RowScope.TvListeningGrid(playlist
             when {
                 modes.isEmpty() && playlists.listenLoading -> SkeletonCardGrid(3, rows = 2)
                 modes.isEmpty() && playlists.listenError.isNotBlank() -> DiscoverErrorState(
-                    title = "听歌模式没有加载出来",
-                    message = "${playlists.providerName}：${playlists.listenError}",
+                    title = stringResource(R.string.playlists_listen_failed),
+                    message = "${playlists.providerName}: ${playlists.listenError}",
                     onRetry = actions::refreshListeningModes,
                 )
-                modes.isEmpty() -> EmptyState(Icons.Filled.Headphones, "这个平台暂时没有听歌模式", "换一个来源看看。")
+                modes.isEmpty() -> EmptyState(
+                    Icons.Filled.Headphones,
+                    stringResource(R.string.playlists_listen_empty),
+                    stringResource(R.string.playlists_look_elsewhere),
+                )
                 else -> LazyVerticalGrid(
                     // 电视屏宽只有 960dp 左右，四列会把卡片压到放不下四字标题
                     columns = GridCells.Fixed(3),
@@ -1059,10 +1151,10 @@ private fun TvCategories(playlists: PlaylistsUiState, actions: MusicActions) {
     Row(Modifier.fillMaxSize().padding(start = gutter, end = gutter, top = 12.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
         LazyColumn(Modifier.width(280.dp).fillMaxHeight(), state = listState, contentPadding = PaddingValues(bottom = 48.dp)) {
             if (playlists.categories.isEmpty() && playlists.categoriesLoading) {
-                item(key = "loading", contentType = "loading") { AppLoading(text = "正在读取分类…") }
+                item(key = "loading", contentType = "loading") { AppLoading(text = stringResource(R.string.playlists_reading_categories)) }
             }
             if (playlists.categoriesError.isNotBlank()) {
-                item(key = "error", contentType = "error") { ErrorBlock("分类列表没有加载出来", actions::refreshPlaylists) }
+                item(key = "error", contentType = "error") { ErrorBlock(stringResource(R.string.playlists_categories_failed_short), actions::refreshPlaylists) }
             }
             itemsIndexed(
                 entries,
@@ -1103,7 +1195,11 @@ private fun androidx.compose.foundation.layout.RowScope.TvCategoryGrid(playlists
     Column(Modifier.weight(1f).fillMaxHeight()) {
         Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${playlists.selectedCategoryName.ifBlank { "全部歌单" }} · 第 ${playlists.categoryPage} 页",
+                stringResource(
+                    R.string.playlists_page_meta,
+                    playlists.selectedCategoryName.ifBlank { stringResource(R.string.playlists_all) },
+                    playlists.categoryPage,
+                ),
                 Modifier.weight(1f).semantics { heading() },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
@@ -1114,11 +1210,15 @@ private fun androidx.compose.foundation.layout.RowScope.TvCategoryGrid(playlists
             when {
                 list.isEmpty() && (playlists.categoryLoading || !playlists.categoryOpen) -> SkeletonCardGrid(4, rows = 2)
                 list.isEmpty() && playlists.categoryError.isNotBlank() -> DiscoverErrorState(
-                    title = "这个分类没有加载出来",
+                    title = stringResource(R.string.playlists_category_failed),
                     message = playlists.categoryError,
                     onRetry = actions::retryCategory,
                 )
-                list.isEmpty() -> EmptyState(Icons.Filled.Category, "这个分类下还没有歌单", "换一个分类，或者回到上一页。")
+                list.isEmpty() -> EmptyState(
+                    Icons.Filled.Category,
+                    stringResource(R.string.playlists_category_empty),
+                    stringResource(R.string.playlists_empty_hint),
+                )
                 else -> LazyVerticalGrid(
                     columns = GridCells.Fixed(4),
                     modifier = Modifier.fillMaxSize(),
@@ -1135,7 +1235,14 @@ private fun androidx.compose.foundation.layout.RowScope.TvCategoryGrid(playlists
                     }
                     if (playlists.categoryError.isNotBlank()) {
                         item(key = "pageError", contentType = "error", span = { GridItemSpan(maxLineSpan) }) {
-                            ErrorBlock("第 ${playlists.categoryPage} 页没有加载出来：${playlists.categoryError}", actions::retryCategory)
+                            ErrorBlock(
+                                stringResource(
+                                    R.string.playlists_page_failed,
+                                    playlists.categoryPage,
+                                    playlists.categoryError,
+                                ),
+                                actions::retryCategory,
+                            )
                         }
                     }
                 }
@@ -1165,10 +1272,10 @@ private fun TvPager(playlists: PlaylistsUiState, actions: MusicActions, modifier
             modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(CircleShape).alpha(if (canPrev) 1f else 0.38f),
         ) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, null)
-            Text("上一页")
+            Text(stringResource(R.string.playlists_previous))
         }
         Text(
-            "第 $page 页",
+            stringResource(R.string.playlists_page, page),
             Modifier.padding(horizontal = 24.dp),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
@@ -1177,7 +1284,7 @@ private fun TvPager(playlists: PlaylistsUiState, actions: MusicActions, modifier
             onClick = { if (canNext) actions.categoryPage(page + 1) },
             modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(CircleShape).alpha(if (canNext) 1f else 0.38f),
         ) {
-            Text("下一页")
+            Text(stringResource(R.string.playlists_next))
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
         }
     }
@@ -1201,7 +1308,7 @@ private sealed interface CategoryEntry {
 
 private fun categoryEntries(categories: List<PlaylistCategory>): List<CategoryEntry> = buildList {
     add(CategoryEntry.All)
-    categories.groupBy { it.group.ifBlank { "其他" } }.forEach { (group, items) ->
+    categories.groupBy { it.group.ifBlank { "Other" } }.forEach { (group, items) ->
         add(CategoryEntry.Header(group))
         items.forEachIndexed { index, category -> add(CategoryEntry.Item(category, index, items.size)) }
     }

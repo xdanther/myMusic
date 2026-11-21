@@ -1,5 +1,8 @@
 package com.mytv.mymusic.data
 
+import androidx.annotation.StringRes
+import com.mytv.mymusic.R
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -140,4 +143,10 @@ data class QRCheckResult(
 )
 
 enum class RepeatMode { Off, All, One }
-enum class SearchKind(val label: String) { Song("单曲"), Playlist("歌单"), Album("专辑"), Artist("歌手"), Link("链接") }
+enum class SearchKind(@StringRes val labelRes: Int) {
+    Song(R.string.search_kind_song),
+    Playlist(R.string.search_kind_playlist),
+    Album(R.string.search_kind_album),
+    Artist(R.string.search_kind_artist),
+    Link(R.string.search_kind_link),
+}

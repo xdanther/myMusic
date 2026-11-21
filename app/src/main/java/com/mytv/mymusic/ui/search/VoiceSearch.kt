@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import com.mytv.mymusic.R
 import com.mytv.mymusic.ui.components.LocalAppSnackbar
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -54,9 +55,10 @@ fun rememberVoiceSearch(onResult: (String) -> Unit, onFailure: () -> Unit): Voic
 fun rememberVoiceSearchWithFeedback(onResult: (String) -> Unit): VoiceSearch {
     val snackbar = LocalAppSnackbar.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     return rememberVoiceSearch(
         onResult = onResult,
-        onFailure = { scope.launch { snackbar.showSnackbar("这台设备没有可用的语音识别服务") } },
+        onFailure = { scope.launch { snackbar.showSnackbar(context.getString(R.string.voice_unavailable)) } },
     )
 }
 
@@ -65,7 +67,7 @@ private fun recognizerIntent(context: Context): Intent =
     Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
-        putExtra(RecognizerIntent.EXTRA_PROMPT, "说出歌曲、歌手或专辑名")
+        putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.voice_prompt))
         putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
         putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
     }

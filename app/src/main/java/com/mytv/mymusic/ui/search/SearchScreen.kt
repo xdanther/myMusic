@@ -2,6 +2,10 @@
 
 package com.mytv.mymusic.ui.search
 
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
+
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.PredictiveBackHandler
@@ -329,8 +333,9 @@ fun SearchScreen(
     val keyboardState = rememberUpdatedState(keyboard)
     val focusManagerState = rememberUpdatedState(focusManager)
     val snackbarState = rememberUpdatedState(snackbar)
+    val context = LocalContext.current
 
-    val ctx = remember(actions, scope) {
+    val ctx = remember(actions, scope, context) {
         // 清除 / 删除搜索记录可撤销：撤销时按原顺序写回快照
         fun undoable(message: String, apply: () -> Unit) {
             val snapshot = appState.value.searchHistory
@@ -338,7 +343,11 @@ fun SearchScreen(
             scope.launch {
                 val current = snackbarState.value
                 current.currentSnackbarData?.dismiss()
-                val result = current.showSnackbar(message, actionLabel = "撤销", duration = SnackbarDuration.Short)
+                val result = current.showSnackbar(
+                    message,
+                    actionLabel = context.getString(R.string.search_undo),
+                    duration = SnackbarDuration.Short,
+                )
                 if (result == SnackbarResult.ActionPerformed) actions.restoreHistory(snapshot)
             }
         }
@@ -364,19 +373,20 @@ fun SearchScreen(
                     }
                 }
             },
-            removeHistory = { item -> undoable("已删除“$item”") { actions.removeHistory(item) } },
-            clearHistory = { undoable("已清除搜索记录") { actions.clearHistory() } },
+            removeHistory = { item ->
+                undoable(context.getString(R.string.search_history_removed, item)) { actions.removeHistory(item) }
+            },
+            clearHistory = { undoable(context.getString(R.string.search_history_cleared)) { actions.clearHistory() } },
             openActions = { actionTrack.value = it },
         )
     }
     val onEdit: (Boolean) -> Unit = remember(editing) { { editing.value = it } }
 
-    val context = LocalContext.current
     val recognitionPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
             actions.startRecognition()
         } else {
-            scope.launch { snackbar.showSnackbar("需要麦克风权限才能听歌识曲") }
+            scope.launch { snackbar.showSnackbar(context.getString(R.string.search_mic_permission)) }
         }
     }
     // 电视通常没有麦克风，入口只在有麦克风的手机 / 平板上出现
@@ -613,7 +623,9 @@ private fun SearchField(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回结果") }
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.search_back_results))
+            }
         } else {
             Icon(Icons.Filled.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.width(12.dp))
@@ -638,7 +650,7 @@ private fun SearchField(
                 Box {
                     if (value.isEmpty()) {
                         Text(
-                            "歌曲、歌单、专辑、歌手，或粘贴链接",
+                            stringResource(R.string.search_hint),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -651,17 +663,21 @@ private fun SearchField(
         )
         if (onRecognize != null) {
             IconButton(onClick = onRecognize, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.GraphicEq, "听歌识曲", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(
+                    Icons.Filled.GraphicEq,
+                    stringResource(R.string.search_recognize),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         if (onVoiceResult != null && voice.available) {
             IconButton(onClick = voice.start, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.Mic, "语音搜索", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.Filled.Mic, stringResource(R.string.search_voice), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (onClear != null) {
             IconButton(onClick = onClear, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.Close, "清除搜索", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.Filled.Close, stringResource(R.string.search_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -669,11 +685,12 @@ private fun SearchField(
 
 @Composable
 private fun KindToggle(ctx: SearchCtx, modifier: Modifier = Modifier) {
+    val resources = LocalContext.current.resources
     ConnectedToggleGroup(
         options = SearchKinds,
         selected = ctx.kind.value,
         onSelect = ctx.actions::setSearchKind,
-        label = { it.label },
+        label = { resources.getString(it.labelRes) },
         modifier = modifier,
     )
 }
@@ -739,14 +756,20 @@ private fun HomeContent(ctx: SearchCtx, modifier: Modifier, readClipboard: Boole
     Column(modifier) {
         when {
             typedLink != null -> LinkCard(
-                title = linkPlatform(typedLink).let { if (it.isBlank()) "解析这个链接" else "解析$it 链接" },
+                title = linkPlatform(typedLink).let {
+                    if (it.isBlank()) stringResource(R.string.search_parse_link)
+                    else stringResource(R.string.search_parse_platform_link, it)
+                },
                 url = extractUrl(typedLink),
                 busy = ctx.appLoading.value,
                 onParse = { ctx.actions.openLink(typedLink) },
                 onDismiss = null,
             )
             clip.isNotEmpty() && clip != dismissedClip -> LinkCard(
-                title = linkPlatform(clip).let { if (it.isBlank()) "剪贴板里有一个平台链接" else "剪贴板里有一个$it 链接" },
+                title = linkPlatform(clip).let {
+                    if (it.isBlank()) stringResource(R.string.search_clipboard_link)
+                    else stringResource(R.string.search_clipboard_platform_link, it)
+                },
                 url = extractUrl(clip),
                 busy = ctx.appLoading.value,
                 onParse = {
@@ -807,10 +830,10 @@ private fun LinkCard(title: String, url: String, busy: Boolean, onParse: () -> U
             if (busy) {
                 LoadingIndicator(Modifier.size(40.dp))
             } else {
-                Button(onClick = onParse, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("解析") }
+                Button(onClick = onParse, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text(stringResource(R.string.search_parse)) }
             }
             if (onDismiss != null) {
-                IconButton(onClick = onDismiss, modifier = Modifier.tvFocusRing(CircleShape)) { Icon(Icons.Filled.Close, "忽略这个链接") }
+                IconButton(onClick = onDismiss, modifier = Modifier.tvFocusRing(CircleShape)) { Icon(Icons.Filled.Close, stringResource(R.string.search_ignore_link)) }
             }
         }
     }
@@ -823,7 +846,7 @@ private fun Suggestions(ctx: SearchCtx, query: String) {
         .filter { it != query && it.contains(query, ignoreCase = true) }
         .take(5)
     val rows = listOf(query) + matches
-    SectionLabel("联想")
+    SectionLabel(stringResource(R.string.search_suggestions))
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
         rows.forEachIndexed { index, text ->
             val shape = segmentShape(index, rows.size)
@@ -845,7 +868,7 @@ private fun Suggestions(ctx: SearchCtx, query: String) {
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    if (index == 0) "搜索“$text”" else text,
+                    if (index == 0) stringResource(R.string.search_search_for, text) else text,
                     Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (index == 0) FontWeight.SemiBold else FontWeight.Normal,
@@ -860,16 +883,18 @@ private fun Suggestions(ctx: SearchCtx, query: String) {
 @Composable
 private fun HistorySection(ctx: SearchCtx, big: Boolean) {
     val history = ctx.history.value
-    SectionLabel("最近搜索") {
+    val clearLabel = stringResource(R.string.search_clear_history)
+    val clearDescription = stringResource(R.string.search_clear_history_desc)
+    SectionLabel(stringResource(R.string.search_recent)) {
         if (history.isNotEmpty()) {
             TextButton(onClick = ctx.clearHistory, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Text("清除", Modifier.semantics { contentDescription = "清除搜索记录" })
+                Text(clearLabel, Modifier.semantics { contentDescription = clearDescription })
             }
         }
     }
     if (history.isEmpty()) {
         Text(
-            "搜索记录只保存在本机，不上传，也不参与歌单同步。",
+            stringResource(R.string.search_history_local_note),
             Modifier.padding(start = 4.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -907,7 +932,12 @@ private fun HistoryChip(text: String, big: Boolean, onClick: () -> Unit, onRemov
         )
         if (onRemove != null) {
             IconButton(onClick = onRemove, modifier = Modifier.size(40.dp).tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.Close, "删除搜索记录“$text”", Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(
+                    Icons.Filled.Close,
+                    stringResource(R.string.search_remove_history, text),
+                    Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -919,22 +949,30 @@ private fun PlatformsNote(ctx: SearchCtx) {
     Row(Modifier.fillMaxWidth().padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f).padding(start = 4.dp)) {
             Text(
-                if (providers.isEmpty()) "还没有启用参与聚合的平台" else "同时搜索 ${providers.size} 个平台",
+                if (providers.isEmpty()) {
+                    stringResource(R.string.search_no_aggregate_providers)
+                } else {
+                    stringResource(R.string.search_aggregate_count, providers.size)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                providers.joinToString("、") { it.name }.ifBlank { "到“搜索与浏览”里打开至少一个平台。" },
+                providers.joinToString(", ") { it.name }.ifBlank {
+                    stringResource(R.string.search_open_platforms_hint)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        val adjustLabel = stringResource(R.string.search_adjust)
+        val adjustDescription = stringResource(R.string.search_adjust_desc)
         TextButton(onClick = ctx.openSettings, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-            Text("调整", Modifier.semantics { contentDescription = "调整聚合平台" })
+            Text(adjustLabel, Modifier.semantics { contentDescription = adjustDescription })
         }
     }
     Text(
-        "粘贴网易云、QQ 音乐等平台的分享链接，可以直接打开歌单、专辑或单曲。试听、VIP 和没有版权会逐条标出。",
+        stringResource(R.string.search_link_note),
         Modifier.padding(start = 4.dp, top = 8.dp),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -961,7 +999,9 @@ private fun SearchSelectionHeader(ctx: SearchCtx, modifier: Modifier = Modifier)
             ) {
                 Icon(Icons.Filled.DoneAll, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("多选", Modifier.semantics { contentDescription = "批量选择歌曲" })
+                val selectLabel = stringResource(R.string.search_multi_select)
+                val selectDescription = stringResource(R.string.search_multi_select_desc)
+                Text(selectLabel, Modifier.semantics { contentDescription = selectDescription })
             }
         }
         return
@@ -1135,7 +1175,7 @@ private fun LazyListScope.songItems(
                         TextButton(
                             onClick = { ctx.actions.mergeAlternative(row.track, row.source) },
                             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text("合并") }
+                        ) { Text(stringResource(R.string.search_merge)) }
                     },
                     onLongClick = null,
                 )
@@ -1147,6 +1187,9 @@ private fun LazyListScope.songItems(
 @Composable
 private fun AlternativesHeader(count: Int, expanded: Boolean, onToggle: () -> Unit) {
     val shape = RoundedCornerShape(16.dp)
+    val expandedLabel = stringResource(
+        if (expanded) R.string.search_expanded else R.string.search_collapsed,
+    )
     Row(
         Modifier
             .fillMaxWidth()
@@ -1155,14 +1198,18 @@ private fun AlternativesHeader(count: Int, expanded: Boolean, onToggle: () -> Un
             .tvFocusRing(shape, scale = 1.02f)
             .clip(shape)
             .clickable(onClick = onToggle)
-            .semantics { stateDescription = if (expanded) "已展开" else "已收起" }
+            .semantics { stateDescription = expandedLabel }
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text("其他版本 · $count", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
-                "Live、伴奏、重制版不会自动合并",
+                stringResource(R.string.search_other_versions, count),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                stringResource(R.string.search_versions_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1203,7 +1250,11 @@ private fun SearchSongRow(
     val selectTrailing: (@Composable RowScope.() -> Unit) = {
         Icon(
             if (isSelected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-            contentDescription = if (isSelected) "取消选择“${track.title}”" else "选择“${track.title}”",
+            contentDescription = if (isSelected) {
+                stringResource(R.string.charts_deselect_song, track.title)
+            } else {
+                stringResource(R.string.charts_select_song, track.title)
+            },
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(end = 4.dp),
         )
@@ -1275,7 +1326,7 @@ private fun MoreActionButton(
             onClick = { if (tablet) onExpandedChange(true) else ctx.openActions(track) },
             modifier = Modifier.tvFocusRing(CircleShape),
         ) {
-            Icon(Icons.Filled.MoreVert, "更多操作：${track.title}")
+            Icon(Icons.Filled.MoreVert, stringResource(R.string.search_more_actions, track.title))
         }
         if (tablet) TrackMenu(ctx, track, expanded) { onExpandedChange(false) }
     }
@@ -1288,29 +1339,37 @@ private fun TrackMenu(ctx: SearchCtx, track: CanonicalTrack, expanded: Boolean, 
     var pickPlaylist by remember(expanded) { mutableStateOf(false) }
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss, shape = RoundedCornerShape(20.dp)) {
         if (!pickPlaylist) {
-            MenuItem("播放", Icons.Filled.PlayArrow) { onDismiss(); ctx.play(track) }
-            MenuItem(if (favorite != null) "取消收藏" else "收藏", if (favorite != null) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder) {
+            MenuItem(stringResource(R.string.search_play), Icons.Filled.PlayArrow) { onDismiss(); ctx.play(track) }
+            MenuItem(
+                if (favorite != null) stringResource(R.string.search_unfavorite) else stringResource(R.string.search_favorite),
+                if (favorite != null) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            ) {
                 onDismiss()
                 ctx.actions.favorite(favorite ?: song)
             }
             DropdownMenuItem(
-                text = { Text("加入歌单") },
+                text = { Text(stringResource(R.string.search_add_to_playlist)) },
                 leadingIcon = { Icon(Icons.Filled.LibraryAdd, null) },
                 trailingIcon = { Icon(Icons.Filled.ChevronRight, null) },
                 enabled = ctx.playlists.value.isNotEmpty(),
                 onClick = { pickPlaylist = true },
             )
-            MenuItem("下载", Icons.Filled.Download) { onDismiss(); ctx.actions.download(song) }
+            MenuItem(stringResource(R.string.search_download), Icons.Filled.Download) { onDismiss(); ctx.actions.download(song) }
             HorizontalDivider()
-            MenuItem("换源", Icons.Filled.SwapHoriz) { onDismiss(); ctx.openSource(track) }
-            MenuItem("合并到…", Icons.Filled.Merge) { onDismiss(); ctx.actions.openMerge(track) }
+            MenuItem(stringResource(R.string.search_switch_source), Icons.Filled.SwapHoriz) { onDismiss(); ctx.openSource(track) }
+            MenuItem(stringResource(R.string.search_merge_to), Icons.Filled.Merge) { onDismiss(); ctx.actions.openMerge(track) }
         } else {
-            MenuItem("返回", Icons.AutoMirrored.Filled.ArrowBack) { pickPlaylist = false }
+            MenuItem(stringResource(R.string.search_back), Icons.AutoMirrored.Filled.ArrowBack) { pickPlaylist = false }
             HorizontalDivider()
             ctx.playlists.value.forEach { playlist ->
                 DropdownMenuItem(
                     text = { Text(playlist.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    trailingIcon = { Text("${playlist.trackCount} 首", style = MaterialTheme.typography.labelMedium) },
+                    trailingIcon = {
+                        Text(
+                            pluralStringResource(R.plurals.search_song_count, playlist.trackCount, playlist.trackCount),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    },
                     onClick = {
                         onDismiss()
                         ctx.actions.addSongToPlaylist(playlist.id, song)
@@ -1350,9 +1409,9 @@ private fun BestMatchCard(
             .clip(shape)
             .background(MaterialTheme.colorScheme.primaryContainer)
             .combinedClickable(
-                onClickLabel = "播放",
+                onClickLabel = stringResource(R.string.search_play),
                 onClick = { ctx.play(track) },
-                onLongClickLabel = "更多操作",
+                onLongClickLabel = stringResource(R.string.charts_more_actions),
                 onLongClick = { if (window.isTablet) menuOpen = true else ctx.openActions(track) },
             )
             .onMenuKey { ctx.openActions(track) },
@@ -1415,7 +1474,12 @@ private fun BestMatchCard(
 @Composable
 private fun BestText(track: CanonicalTrack, large: Boolean) {
     val color = LocalContentColor.current
-    Text("最佳匹配", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = color.copy(alpha = 0.8f))
+    Text(
+        stringResource(R.string.search_best_match),
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.Bold,
+        color = color.copy(alpha = 0.8f),
+    )
     Text(
         track.title,
         style = if (large) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
@@ -1442,7 +1506,12 @@ private fun LoadMore(ctx: SearchCtx) {
             FilledTonalButton(
                 onClick = ctx.actions::searchMore,
                 modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-            ) { Text(if (ctx.loading.value) "正在加载…" else "加载更多") }
+            ) {
+                Text(
+                    if (ctx.loading.value) stringResource(R.string.search_loading_more)
+                    else stringResource(R.string.search_load_more),
+                )
+            }
         }
     }
 }
@@ -1487,20 +1556,31 @@ private fun summarize(
     return ProviderSummary(lines)
 }
 
+@Composable
 private fun statusLabel(state: ProviderSearchState?, kind: SearchKind): String = when (state?.status) {
-    null, ProviderStatus.Loading -> "搜索中"
+    null, ProviderStatus.Loading -> stringResource(R.string.search_status_searching)
     ProviderStatus.Success -> {
         val count = state?.count ?: 0
-        if (count == 0) "无结果" else "$count ${if (kind == SearchKind.Song) "首" else "个"}"
+        if (count == 0) {
+            stringResource(R.string.search_status_no_results)
+        } else if (kind == SearchKind.Song) {
+            pluralStringResource(R.plurals.search_song_count, count, count)
+        } else {
+            stringResource(R.string.search_status_count, count)
+        }
     }
-    ProviderStatus.Timeout -> "超时"
-    ProviderStatus.Error -> "出错"
-    ProviderStatus.Skipped -> "暂时跳过"
-    ProviderStatus.Unsupported -> "不支持"
+    ProviderStatus.Timeout -> stringResource(R.string.search_status_timeout)
+    ProviderStatus.Error -> stringResource(R.string.search_status_error)
+    ProviderStatus.Skipped -> stringResource(R.string.search_status_skipped)
+    ProviderStatus.Unsupported -> stringResource(R.string.search_status_unsupported)
 }
 
-private fun failedText(failed: List<ProviderSearchState>, kind: SearchKind): String =
-    failed.joinToString("，") { it.providerName + statusLabel(it, kind) }
+@Composable
+private fun failedText(failed: List<ProviderSearchState>, kind: SearchKind): String {
+    val parts = ArrayList<String>(failed.size)
+    for (state in failed) parts += state.providerName + statusLabel(state, kind)
+    return parts.joinToString(", ")
+}
 
 /** 结果上方：进行中 / 全部返回时是状态条；有平台失败且已结束时换成“只重试失败的”提示。 */
 @Composable
@@ -1525,13 +1605,19 @@ private fun StatusStrip(summary: ProviderSummary, loading: Boolean, kind: Search
     val window = LocalAppWindow.current
     var expanded by rememberSaveable { mutableStateOf(false) }
     val showDetails = !window.isPhone || expanded
+    val expandedDesc = stringResource(R.string.search_strip_expanded)
+    val collapsedDesc = stringResource(R.string.search_strip_collapsed)
     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = 40.dp)
                 .then(if (window.isPhone) Modifier.clip(RoundedCornerShape(12.dp)).clickable { expanded = !expanded } else Modifier)
-                .semantics { if (window.isPhone) stateDescription = if (expanded) "已展开各平台状态" else "已收起各平台状态" },
+                .semantics {
+                    if (window.isPhone) {
+                        stateDescription = if (expanded) expandedDesc else collapsedDesc
+                    }
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -1549,8 +1635,19 @@ private fun StatusStrip(summary: ProviderSummary, loading: Boolean, kind: Search
                     Icon(Icons.Filled.Check, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
                 Text(
-                    if (loading) "正在搜索 · ${summary.returned}/${summary.total} 个平台已返回"
-                    else "${summary.total} 个平台 · ${if (summary.returned >= summary.total) "全部" else "${summary.returned} 个"}返回",
+                    if (loading) {
+                        stringResource(R.string.search_strip_progress, summary.returned, summary.total)
+                    } else {
+                        stringResource(
+                            R.string.search_strip_done,
+                            summary.total,
+                            if (summary.returned >= summary.total) {
+                                stringResource(R.string.search_strip_all)
+                            } else {
+                                stringResource(R.string.search_status_count, summary.returned)
+                            },
+                        )
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -1629,9 +1726,13 @@ private fun PartialFailureCard(
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text("${failed.size} 个平台没有返回结果", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
-                "${failedText(failed, ctx.kind.value)}。空结果不代表全网没有。",
+                stringResource(R.string.search_failed_card_title, failed.size),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                stringResource(R.string.search_failed_card_note, failedText(failed, ctx.kind.value)),
                 Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -1657,13 +1758,16 @@ private fun PartialFailureCard(
                 ) {
                     Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(if (song) "重试这 ${failed.size} 个" else "重新搜索")
+                    Text(
+                        if (song) stringResource(R.string.search_retry_failed, failed.size)
+                        else stringResource(R.string.search_again),
+                    )
                 }
                 TextButton(
                     onClick = ctx.openSettings,
                     modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onErrorContainer),
-                ) { Text("检查聚合平台") }
+                ) { Text(stringResource(R.string.search_check_platforms)) }
             }
         }
     }
@@ -1746,35 +1850,36 @@ private fun SongEmptyState(ctx: SearchCtx, focus: FocusRequester?) {
     when {
         error.isNotBlank() -> StateBlock(
             icon = Icons.Filled.CloudOff,
-            title = "这次没能搜索",
+            title = stringResource(R.string.search_error_title),
             message = error,
             error = true,
-            primary = "检查聚合平台" to ctx.openSettings,
-            secondary = "重试" to retry,
+            primary = stringResource(R.string.search_check_platforms) to ctx.openSettings,
+            secondary = stringResource(R.string.search_retry) to retry,
             focus = focus,
         )
         ctx.aggregateStatus.value == SearchStatus.Failed -> StateBlock(
             icon = Icons.Filled.WifiOff,
-            title = "平台都没有返回结果",
+            title = stringResource(R.string.search_error_all_failed),
             message = buildString {
-                if (failed.isNotEmpty()) append("${failedText(failed, SearchKind.Song)}。")
-                append("可能是网络问题，也可能是平台接口暂时不可用。")
+                if (failed.isNotEmpty()) append("${failedText(failed, SearchKind.Song)}. ")
+                append(stringResource(R.string.search_error_network))
             },
             error = true,
-            primary = "重试" to retry,
-            secondary = "检查聚合平台" to ctx.openSettings,
+            primary = stringResource(R.string.search_retry) to retry,
+            primaryIsRetry = true,
+            secondary = stringResource(R.string.search_check_platforms) to ctx.openSettings,
             focus = focus,
         )
         ctx.aggregateStatus.value == SearchStatus.Empty -> StateBlock(
             icon = Icons.Filled.SearchOff,
-            title = "没有找到这首歌",
+            title = stringResource(R.string.search_song_empty),
             message = if (failed.isNotEmpty()) {
-                "已返回的平台里没有匹配结果，另外${failedText(failed, SearchKind.Song)}，可以单独重试。"
+                stringResource(R.string.search_song_empty_failed, failedText(failed, SearchKind.Song))
             } else {
-                "试试歌曲名加歌手，或换一个关键词。"
+                stringResource(R.string.search_song_empty_hint)
             },
             error = false,
-            primary = "检查聚合平台" to ctx.openSettings,
+            primary = stringResource(R.string.search_check_platforms) to ctx.openSettings,
             secondary = null,
             focus = focus,
         )
@@ -1783,39 +1888,35 @@ private fun SongEmptyState(ctx: SearchCtx, focus: FocusRequester?) {
 
 @Composable
 private fun CollectionEmptyState(ctx: SearchCtx, focus: FocusRequester?) {
-    val kind = ctx.kind.value
-    val label = when (kind) {
-        SearchKind.Album -> "专辑"
-        SearchKind.Artist -> "歌手"
-        else -> "歌单"
-    }
+    val label = stringResource(ctx.kind.value.labelRes)
     val retry = { ctx.actions.submitSearch(ctx.submittedQuery.value) }
     val error = ctx.error.value
     when {
         error.isNotBlank() -> StateBlock(
             icon = Icons.Filled.CloudOff,
-            title = "这次没能搜索$label",
+            title = stringResource(R.string.search_collection_error, label),
             message = error,
             error = true,
-            primary = "检查聚合平台" to ctx.openSettings,
-            secondary = "重试" to retry,
+            primary = stringResource(R.string.search_check_platforms) to ctx.openSettings,
+            secondary = stringResource(R.string.search_retry) to retry,
             focus = focus,
         )
         ctx.collectionStatus.value == SearchStatus.Failed -> StateBlock(
             icon = Icons.Filled.WifiOff,
-            title = "平台都没有返回$label",
-            message = "可能是网络问题，也可能是平台接口暂时不可用。",
+            title = stringResource(R.string.search_collection_all_failed, label),
+            message = stringResource(R.string.search_error_network),
             error = true,
-            primary = "重试" to retry,
-            secondary = "检查聚合平台" to ctx.openSettings,
+            primary = stringResource(R.string.search_retry) to retry,
+            primaryIsRetry = true,
+            secondary = stringResource(R.string.search_check_platforms) to ctx.openSettings,
             focus = focus,
         )
         ctx.collectionStatus.value == SearchStatus.Empty -> StateBlock(
             icon = Icons.Filled.SearchOff,
-            title = "没有找到相关$label",
-            message = "换一个关键词，或检查参与聚合的平台。",
+            title = stringResource(R.string.search_collection_empty, label),
+            message = stringResource(R.string.search_collection_empty_hint),
             error = false,
-            primary = "检查聚合平台" to ctx.openSettings,
+            primary = stringResource(R.string.search_check_platforms) to ctx.openSettings,
             secondary = null,
             focus = focus,
         )
@@ -1832,6 +1933,7 @@ private fun StateBlock(
     primary: Pair<String, () -> Unit>,
     secondary: Pair<String, () -> Unit>?,
     focus: FocusRequester?,
+    primaryIsRetry: Boolean = false,
 ) {
     Column(
         Modifier.fillMaxWidth().padding(vertical = 32.dp, horizontal = 16.dp),
@@ -1877,7 +1979,7 @@ private fun StateBlock(
                     .then(if (focus != null) Modifier.focusRequester(focus) else Modifier)
                     .tvFocusRing(RoundedCornerShape(24.dp)),
             ) {
-                if (primary.first == "重试") {
+                if (primaryIsRetry) {
                     Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                 }
@@ -1924,11 +2026,13 @@ private fun LazyListScope.collectionItems(ctx: SearchCtx, stateFocus: FocusReque
 @Composable
 private fun CollectionNote(kind: SearchKind) {
     Text(
-        when (kind) {
-            SearchKind.Album -> "按名称、歌手和曲目数把各平台的同一张专辑放在一起，点平台名打开对应版本。"
-            SearchKind.Artist -> "按姓名把各平台的同一个歌手放在一起，点平台名打开这个歌手的歌曲。"
-            else -> "歌单只按同名推荐，不合并不同平台的歌单内容。"
-        },
+        stringResource(
+            when (kind) {
+                SearchKind.Album -> R.string.search_note_album
+                SearchKind.Artist -> R.string.search_note_artist
+                else -> R.string.search_note_playlist
+            },
+        ),
         Modifier.padding(start = 4.dp, top = 12.dp),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1980,10 +2084,15 @@ private fun SearchCtx.openCollection(playlist: com.mytv.mymusic.data.Playlist, k
     if (kind == SearchKind.Artist) actions.openArtist(playlist) else actions.openPlaylist(playlist, kind == SearchKind.Album)
 }
 
+@Composable
 private fun collectionSubtitle(item: CanonicalCollection): String = listOf(
     item.creator,
-    if (item.trackCount > 0) "${item.trackCount} 首" else "",
-    "${item.sources.map { it.providerId }.distinct().size} 个平台",
+    if (item.trackCount > 0) {
+        pluralStringResource(R.plurals.search_song_count, item.trackCount, item.trackCount)
+    } else {
+        ""
+    },
+    stringResource(R.string.search_platform_count, item.sources.map { it.providerId }.distinct().size),
 ).filter { it.isNotBlank() }.joinToString(" · ")
 
 @Composable
@@ -1999,6 +2108,8 @@ private fun SourcePill(ctx: SearchCtx, source: CollectionSource, focusRequester:
     val kind = ctx.kind.value
     val shape = RoundedCornerShape(8.dp)
     val count = source.playlist.trackCount
+    val openOn = stringResource(R.string.search_open_on, source.providerName)
+    val openOnCount = stringResource(R.string.search_open_on_count, source.providerName, count)
     Surface(
         onClick = { ctx.openCollection(source.playlist, kind) },
         shape = shape,
@@ -2006,7 +2117,9 @@ private fun SourcePill(ctx: SearchCtx, source: CollectionSource, focusRequester:
         modifier = Modifier
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .tvFocusRing(shape)
-            .semantics { contentDescription = "在${source.providerName}打开" + if (count > 0) "，$count 首" else "" },
+            .semantics {
+                contentDescription = if (count > 0) openOnCount else openOn
+            },
     ) {
         // 按钮已有完整描述，里面的简称和曲目数不再单独读
         Row(
@@ -2017,7 +2130,11 @@ private fun SourcePill(ctx: SearchCtx, source: CollectionSource, focusRequester:
             ProviderIcon(id = source.providerId, name = source.providerName, size = 22.dp, corner = 6.dp)
             Text(providerMark(source.providerName), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             if (count > 0) {
-                Text("$count 首", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    pluralStringResource(R.plurals.search_song_count, count, count),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -2082,11 +2199,15 @@ private fun TvSearchHome(ctx: SearchCtx) {
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 48.dp),
         ) {
-            Text("搜索", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.nav_search),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+            )
             KindToggle(ctx, Modifier.padding(top = 12.dp).widthIn(max = 420.dp).fillMaxWidth())
             HomeContent(ctx, Modifier.fillMaxWidth(), readClipboard = false, big = true)
             Text(
-                "选中输入框按确认键，可以用系统键盘、遥控器语音，或手机上的 Google TV 应用输入中文。",
+                stringResource(R.string.search_tv_hint),
                 Modifier.padding(start = 4.dp, top = 16.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2119,13 +2240,25 @@ private fun TvKeyboard(
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            TvKey(label = "空格", modifier = Modifier.weight(2f)) { onQueryChange("$query ") }
-            TvKey(icon = Icons.AutoMirrored.Filled.Backspace, description = "退格", modifier = Modifier.weight(1f)) {
+            TvKey(label = stringResource(R.string.search_tv_space), modifier = Modifier.weight(2f)) { onQueryChange("$query ") }
+            TvKey(
+                icon = Icons.AutoMirrored.Filled.Backspace,
+                description = stringResource(R.string.search_tv_backspace),
+                modifier = Modifier.weight(1f),
+            ) {
                 onQueryChange(query.dropLast(1))
             }
-            TvKey(icon = Icons.Filled.Close, description = "清空", modifier = Modifier.weight(1f)) { onQueryChange("") }
+            TvKey(
+                icon = Icons.Filled.Close,
+                description = stringResource(R.string.search_tv_clear),
+                modifier = Modifier.weight(1f),
+            ) { onQueryChange("") }
             if (onVoiceResult != null && voice.available) {
-                TvKey(icon = Icons.Filled.Mic, description = "语音搜索", modifier = Modifier.weight(1f)) { voice.start() }
+                TvKey(
+                    icon = Icons.Filled.Mic,
+                    description = stringResource(R.string.search_voice),
+                    modifier = Modifier.weight(1f),
+                ) { voice.start() }
             }
         }
         Button(
@@ -2135,7 +2268,7 @@ private fun TvKeyboard(
         ) {
             Icon(Icons.Filled.Search, null, Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
-            Text("搜索")
+            Text(stringResource(R.string.nav_search))
         }
     }
 }
@@ -2169,11 +2302,12 @@ private fun TvKey(
 @Composable
 private fun TvQueryBar(query: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(28.dp)
+    val queryDescription = stringResource(R.string.search_edit_query, query)
     Surface(
         onClick = onClick,
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = modifier.heightIn(min = 56.dp).tvFocusRing(shape, scale = 1.02f).semantics { contentDescription = "修改搜索词：$query" },
+        modifier = modifier.heightIn(min = 56.dp).tvFocusRing(shape, scale = 1.02f).semantics { contentDescription = queryDescription },
     ) {
         Row(Modifier.padding(horizontal = 16.dp).clearAndSetSemantics {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(Icons.Filled.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -2327,7 +2461,7 @@ private fun TvFocusedCollection(
         items.firstOrNull { it.id == focusedId.value } ?: items.first()
     }
     Text(
-        "${focused.name} · ${collectionSubtitle(focused)}，可在这些平台打开：",
+        stringResource(R.string.search_open_on_sources, focused.name, collectionSubtitle(focused)),
         Modifier.padding(start = 4.dp, bottom = 8.dp),
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -2346,6 +2480,7 @@ private fun TvCollectionCard(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(24.dp)
+    val description = "${stringResource(kind.labelRes)}: ${item.name}, ${collectionSubtitle(item)}"
     Column(
         modifier
             .width(176.dp)
@@ -2353,9 +2488,7 @@ private fun TvCollectionCard(
             .clip(shape)
             .clickable(onClick = onOpen)
             // 放在 clickable 之后：保留点击，同时不再把下面的标题、作者重复读一遍
-            .clearAndSetSemantics {
-                contentDescription = "${kind.label}：${item.name}，${collectionSubtitle(item)}"
-            }
+            .clearAndSetSemantics { contentDescription = description }
             .padding(8.dp),
     ) {
         CoverBox(item.cover, item.name, Modifier.size(160.dp), RoundedCornerShape(20.dp), fontSize = 48f)
@@ -2368,7 +2501,9 @@ private fun TvCollectionCard(
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            item.creator.ifBlank { "${item.trackCount} 首" },
+            item.creator.ifBlank {
+                pluralStringResource(R.plurals.search_song_count, item.trackCount, item.trackCount)
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,

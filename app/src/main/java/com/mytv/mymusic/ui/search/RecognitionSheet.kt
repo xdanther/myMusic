@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import com.mytv.mymusic.data.Song
 import com.mytv.mymusic.recognize.RecognitionPhase
 import com.mytv.mymusic.recognize.RecognitionUiState
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
 import com.mytv.mymusic.ui.Cover
 import com.mytv.mymusic.ui.components.AdaptiveSheet
 
@@ -50,12 +52,12 @@ fun RecognitionSheet(
 ) {
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "听歌识曲",
+        title = stringResource(R.string.recognition_title),
         subtitle = when (state.phase) {
-            RecognitionPhase.Listening -> "正在聆听，请靠近音源"
-            RecognitionPhase.Matching -> "正在识别…"
-            RecognitionPhase.Done -> "找到 ${state.results.size} 个结果"
-            RecognitionPhase.Error -> "没有听清"
+            RecognitionPhase.Listening -> stringResource(R.string.recognition_listening_hint)
+            RecognitionPhase.Matching -> stringResource(R.string.recognition_matching)
+            RecognitionPhase.Done -> stringResource(R.string.recognition_found, state.results.size)
+            RecognitionPhase.Error -> stringResource(R.string.recognition_unclear)
             RecognitionPhase.Idle -> ""
         },
     ) {
@@ -99,14 +101,18 @@ private fun ListeningBody(state: RecognitionUiState, onDismiss: () -> Unit) {
             }
         }
         Spacer(Modifier.height(16.dp))
-        Text("正在聆听…", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text(
-            "剩余 ${state.secondsLeft.coerceAtLeast(0)} 秒",
+            stringResource(R.string.recognition_listening),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            stringResource(R.string.recognition_seconds_left, state.secondsLeft.coerceAtLeast(0)),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onDismiss) { Text("取消") }
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.recognition_cancel)) }
         Spacer(Modifier.height(4.dp))
     }
 }
@@ -119,13 +125,13 @@ private fun MatchingBody(onDismiss: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         CircularProgressIndicator()
-        Text("正在识别…", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.recognition_matching), style = MaterialTheme.typography.titleMedium)
         Text(
-            "网易云和酷狗两个通道同时查询",
+            stringResource(R.string.recognition_channels),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        TextButton(onClick = onDismiss) { Text("取消") }
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.recognition_cancel)) }
     }
 }
 
@@ -174,8 +180,8 @@ private fun ResultsBody(
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
-            TextButton(onClick = onRetry) { Text("重新识别") }
-            TextButton(onClick = onDismiss) { Text("关闭") }
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.recognition_again)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.recognition_close)) }
         }
     }
 }
@@ -193,13 +199,13 @@ private fun ErrorBody(message: String, onRetry: () -> Unit, onDismiss: () -> Uni
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(40.dp),
         )
-        Text("没有识别到歌曲", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.recognition_none), style = MaterialTheme.typography.titleMedium)
         Text(
-            message.ifBlank { "请靠近音源，在安静环境下再试一次" },
+            message.ifBlank { stringResource(R.string.recognition_none_hint) },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = onRetry) { Text("再试一次") }
-        TextButton(onClick = onDismiss) { Text("关闭") }
+        Button(onClick = onRetry) { Text(stringResource(R.string.recognition_try_again)) }
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.recognition_close)) }
     }
 }

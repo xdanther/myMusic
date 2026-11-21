@@ -2190,8 +2190,17 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             if (providers.isEmpty()) {
+                val kindName = when (kind) {
+                    SearchKind.Album -> "album"
+                    SearchKind.Artist -> "artist"
+                    else -> "playlist"
+                }
                 _search.update {
-                    it.copy(loading = false, error = "没有启用支持${kind.label}搜索的平台", collectionStatus = SearchStatus.Failed)
+                    it.copy(
+                        loading = false,
+                        error = "No enabled platform supports $kindName search",
+                        collectionStatus = SearchStatus.Failed,
+                    )
                 }
                 return@launch
             }

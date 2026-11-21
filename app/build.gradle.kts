@@ -15,12 +15,33 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+/** 环境变量优先，其次是 signing.properties；空串当作没写（CI 解密出空文件时就是这个样子）。 */
+fun signingValue(env: String, key: String): String? =
+    (System.getenv(env) ?: keystoreProperties.getProperty(key))?.trim()?.takeIf { it.isNotEmpty() }
+
 val localKeystore = rootProject.file("keystore.jks")
-val userKeystore = project.file(
-    System.getenv("KEYSTORE") ?: keystoreProperties.getProperty("storeFile")
-        ?: "keystore.jks"
-)
-val hasReleaseKeystore = userKeystore.exists() || localKeystore.exists()
+val configuredKeystore = signingValue("KEYSTORE", "storeFile")
+    ?.let { project.file(it) }
+    ?: localKeystore
+
+/**
+ * 只有真正能用的密钥库才算数：文件存在、非空、三个口令都有值。
+ * 以前只看 exists()，CI 里 keystore.jks 存在但不可读时会走到 release 签名配置再在最后一步失败；
+ * 现在缺任何一个都退回 debug 签名（和本地没有密钥库时一致），构建不会因为签名材料坏掉而失败。
+ */
+val releaseKeystore = listOf(configuredKeystore, localKeystore).firstOrNull { it.isFile && it.length() > 0 }
+val releaseStorePassword = signingValue("KEYSTORE_PASSWORD", "storePassword")
+val releaseKeyAlias = signingValue("KEY_ALIAS", "keyAlias")
+val releaseKeyPassword = signingValue("KEY_PASSWORD", "keyPassword")
+val hasReleaseSigning = releaseKeystore != null &&
+    releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null
+
+if (!hasReleaseSigning && gradle.startParameter.taskNames.any { it.contains("Release") }) {
+    logger.lifecycle(
+        "myMusic: release signing is not fully configured (keystore/passwords missing); " +
+            "the release APK will be signed with the debug key",
+    )
+}
 
 // 安装包命名：软件名+版本号（与 myDV 一致）
 val appVersionName = "1.1"
@@ -52,11 +73,12 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = if (userKeystore.exists()) userKeystore else localKeystore
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-                ?: keystoreProperties.getProperty("storePassword")
-            keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
-            keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+            if (hasReleaseSigning) {
+                storeFile = releaseKeystore
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 
@@ -65,7 +87,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (hasReleaseKeystore) {
+            signingConfig = if (hasReleaseSigning) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")

@@ -10,12 +10,14 @@ permissions:
   contents: write
  
 jobs:
+  # PR 只跑单测；push 到 main/dev 时测试和构建合并在 release 里跑，省掉一整套环境准备
   test:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21 }
+        with: { distribution: temurin, java-version: 21, cache: gradle }
       - name: Install Android SDK packages
         run: |
           SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
@@ -28,7 +30,6 @@ jobs:
       - run: chmod +x ./gradlew && ./gradlew test
 
   release:
-    needs: test
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -44,17 +45,36 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.0.12077973" "cmake;3.22.1"
       - name: Add signing properties
-        run: |
-          echo ${{ secrets.SIGNING_PROPERTIES }} > encoded_signing_properties
-          base64 -d -i encoded_signing_properties > signing.properties
+        env:
+          SIGNING_PROPERTIES: ${{ secrets.SIGNING_PROPERTIES }}
+        run: printf '%s' "$SIGNING_PROPERTIES" | base64 -d -i > signing.properties
       - name: Add jks file
+        env:
+          SIGN_KEY: ${{ secrets.SIGN_KEY }}
+        run: printf '%s' "$SIGN_KEY" | base64 -d -i > keystore.jks
+      # 签名材料有问题就当场退回 debug 签名并给出提示，不要等 9 分钟编译完再在 validateSigningRelease 失败
+      - name: Check signing material
         run: |
-          echo ${{ secrets.SIGN_KEY }} > ./encoded_key
-          base64 -d -i encoded_key > keystore.jks
-      - name: Build release
+          set -uo pipefail
+          if [ ! -s keystore.jks ]; then
+            echo "::warning title=Signing::SIGN_KEY produced an empty keystore; the release APK will be debug-signed"
+            rm -f keystore.jks
+            exit 0
+          fi
+          store_pass=$(sed -n 's/^storePassword=//p' signing.properties | tr -d '\r' | head -1)
+          key_alias=$(sed -n 's/^keyAlias=//p' signing.properties | tr -d '\r' | head -1)
+          if [ -z "$store_pass" ] || [ -z "$key_alias" ] ||
+             ! keytool -list -keystore keystore.jks -storepass "$store_pass" -alias "$key_alias" > /dev/null 2>&1; then
+            echo "::warning title=Signing::keystore.jks cannot be opened with the password in SIGNING_PROPERTIES; the release APK will be debug-signed"
+            rm -f keystore.jks
+            exit 0
+          fi
+          echo "KEYSTORE=$GITHUB_WORKSPACE/keystore.jks" >> "$GITHUB_ENV"
+          echo "Release APK will be signed with keystore.jks (alias $key_alias)"
+      - name: Test and build release
         env:
           VERSION_CODE: ${{ github.run_number }}
-        run: chmod +x ./gradlew && ./gradlew assembleRelease --no-daemon --max-workers=1 -Porg.gradle.jvmargs=-Xmx3g
+        run: chmod +x ./gradlew && ./gradlew test assembleRelease --console=plain
       - name: Prepare release assets
         id: apk
         run: |

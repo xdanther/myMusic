@@ -10,9 +10,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.compose.ui.platform.LocalContext
 import com.mytv.mymusic.ui.AppNav
 import com.mytv.mymusic.ui.components.LocalAppWindow
 import com.mytv.mymusic.ui.library.SyncCenterScreen
+import com.mytv.mymusic.ui.text.currentLocale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -204,8 +206,10 @@ private fun rememberSettingsOverview(app: AppNav, cacheTick: Int): SettingsOverv
     }
     val localMusic = rememberLocalSettingsSummary()
     val rtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
-    return remember(state, sync, update, equalizer, cacheBytes, downloadsBytes, localMusic, rtl) {
-        settingsOverview(state, sync, update, equalizer, cacheBytes, downloadsBytes, localMusic, rtl)
+    val resources = LocalContext.current.resources
+    val locale = currentLocale()
+    return remember(resources, locale, state, sync, update, equalizer, cacheBytes, downloadsBytes, localMusic, rtl) {
+        settingsOverview(resources, locale, state, sync, update, equalizer, cacheBytes, downloadsBytes, localMusic, rtl)
     }
 }
 

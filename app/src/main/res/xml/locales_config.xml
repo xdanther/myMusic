@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 13+ 的「应用语言」设置读取这份清单；语言标签要和 values-* 目录对应。
+     values/ 是英文默认，values-zh/ 是中文。 -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="zh" />
+</locale-config>

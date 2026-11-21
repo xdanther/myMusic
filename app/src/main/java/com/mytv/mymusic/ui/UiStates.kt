@@ -13,6 +13,7 @@ import com.mytv.mymusic.data.PlaylistEntryEntity
 import com.mytv.mymusic.data.SearchKind
 import com.mytv.mymusic.data.Song
 import com.mytv.mymusic.data.TopList
+import com.mytv.mymusic.ui.playlists.GROUP_ALL
 
 enum class PlaylistMode { Recommend, Category, Listening }
 
@@ -40,7 +41,7 @@ data class PlaylistsUiState(
     val categories: List<PlaylistCategory> = emptyList(),
     val categoriesLoading: Boolean = false,
     val categoriesError: String = "",
-    val categoryGroup: String = "全部",
+    val categoryGroup: String = GROUP_ALL,
     val selectedCategoryId: String = "",
     val selectedCategoryName: String = "",
     val categoryPlaylists: List<Playlist> = emptyList(),
@@ -52,7 +53,7 @@ data class PlaylistsUiState(
     val listenModes: List<ListeningMode> = emptyList(),
     val listenLoading: Boolean = false,
     val listenError: String = "",
-    val listenGroup: String = "全部",
+    val listenGroup: String = GROUP_ALL,
     /** 正在播放的听歌模式 id，卡片上给一个“正在播放”标记。 */
     val listenActive: String = "",
     /** 正在起播的模式 id，卡片上显示转圈。 */
@@ -61,7 +62,7 @@ data class PlaylistsUiState(
 ) {
     val listenGroups: List<String> get() = listenModes.map { it.group }.filter { it.isNotBlank() }.distinct()
     val visibleListenModes: List<ListeningMode>
-        get() = if (listenGroup.isBlank() || listenGroup == "全部") listenModes
+        get() = if (listenGroup.isBlank() || listenGroup == GROUP_ALL) listenModes
         else listenModes.filter { it.group == listenGroup }
 }
 

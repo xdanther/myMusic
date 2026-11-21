@@ -1169,11 +1169,10 @@ fun availabilityLabel(status: Availability): String = when (status) {
     Availability.Unknown -> "待检测"
 }
 
-fun formatTime(ms: Long): String =
-    String.format(Locale.ROOT, "%02d:%02d", (ms / 60000).coerceAtLeast(0), ((ms / 1000) % 60).coerceAtLeast(0))
+/** 时长和文件大小的格式化统一在 `ui/text/Formats.kt`，这里保留原来的名字给已有调用方。 */
+fun formatTime(ms: Long): String = com.mytv.mymusic.ui.text.formatClock(ms)
 
-fun formatDuration(seconds: Int): String =
-    if (seconds <= 0) "" else String.format(Locale.ROOT, "%02d:%02d", seconds / 60, seconds % 60)
+fun formatDuration(seconds: Int): String = com.mytv.mymusic.ui.text.formatDurationSeconds(seconds)
 
 private val MonthDayFormat = SimpleDateFormat("MM-dd", Locale.getDefault())
 
@@ -1189,12 +1188,7 @@ fun relativeTime(millis: Long): String {
     }
 }
 
-fun formatBytes(bytes: Long): String = when {
-    bytes >= 1024L * 1024 * 1024 -> String.format(Locale.ROOT, "%.1f GB", bytes / 1024.0 / 1024 / 1024)
-    bytes >= 1024L * 1024 -> String.format(Locale.ROOT, "%.1f MB", bytes / 1024.0 / 1024)
-    bytes >= 1024L -> String.format(Locale.ROOT, "%.0f KB", bytes / 1024.0)
-    else -> "$bytes B"
-}
+fun formatBytes(bytes: Long): String = com.mytv.mymusic.ui.text.formatByteSize(bytes)
 
 fun providerMark(name: String): String = when {
     name.contains("网易") -> "网易"

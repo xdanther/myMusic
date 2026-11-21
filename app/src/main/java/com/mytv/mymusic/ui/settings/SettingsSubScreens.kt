@@ -1,6 +1,11 @@
 package com.mytv.mymusic.ui.settings
 
 import android.os.Build
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.AppLanguage
+import com.mytv.mymusic.AppLocale
+import com.mytv.mymusic.R
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
@@ -188,9 +193,31 @@ fun AppearanceSettingsScreen(
     val window = LocalAppWindow.current
     val tv = window.isTv
     val appearance = state.appearance
+    val context = LocalContext.current
+    val resources = context.resources
+    var language by remember { mutableStateOf(AppLocale.current(context)) }
     val groupWidth = Modifier.widthIn(max = 480.dp).fillMaxWidth()
     SettingsPage(SettingsSection.Appearance, embedded, onBack) {
         item(key = "preview", contentType = "appearancePreview") { AppearancePreview(state, actions) }
+        // 语言：跟随系统 / 中文 / English。API 33+ 交给系统 per-app locale，低版本改完重建界面
+        item(key = "languageHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.settings_language))
+        }
+        item(key = "language", contentType = "languageOptions") {
+            Column {
+                ConnectedToggleGroup(
+                    options = AppLanguage.entries,
+                    selected = language,
+                    onSelect = { chosen ->
+                        language = chosen
+                        AppLocale.set(context, chosen)
+                    },
+                    label = { context.getString(it.labelRes) },
+                    modifier = groupWidth,
+                )
+                SettingsNote(stringResource(R.string.settings_language_note))
+            }
+        }
         item(key = "layoutHead", contentType = "sectionHeader") { SectionLabel("布局模式") }
         item(key = "layout", contentType = "layoutOptions") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -225,7 +252,7 @@ fun AppearanceSettingsScreen(
                 options = listOf("system", "light", "dark"),
                 selected = appearance.theme,
                 onSelect = { actions.setTheme(it) },
-                label = ::themeLabel,
+                label = { themeLabel(resources, it) },
                 modifier = groupWidth,
                 icon = {
                     when (it) {
@@ -1115,7 +1142,7 @@ fun AccountsSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: (
         SettingsSection.Accounts,
         embedded,
         onBack,
-        subtitle = if (loggedCount > 0) "已登录 $loggedCount 个平台" else SettingsSection.Accounts.subtitle,
+        subtitle = if (loggedCount > 0) "已登录 $loggedCount 个平台" else stringResource(SettingsSection.Accounts.subtitleRes),
     ) {
         item(key = "intro", contentType = "note") {
             SettingsNote(

@@ -1,5 +1,8 @@
 package com.mytv.mymusic.ui.playlists
 
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -457,7 +460,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.listeningContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item(key = "listenGroupAll", contentType = "group") {
-                    MusicChip("全部", playlists.listenGroup == "全部") { actions.selectListenGroup("全部") }
+                    MusicChip(stringResource(R.string.all_items), playlists.listenGroup == GROUP_ALL) {
+                        actions.selectListenGroup(GROUP_ALL)
+                    }
                 }
                 items(groups, key = { "listenGroup:$it" }, contentType = { "group" }) { group ->
                     MusicChip(group, playlists.listenGroup == group) { actions.selectListenGroup(group) }
@@ -489,7 +494,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.listeningContent(
         else -> {
             item(key = "listenLabel", contentType = "label") {
                 SectionLabel(
-                    if (playlists.listenGroup == "全部") "选一个直接开始播放" else playlists.listenGroup,
+                    if (playlists.listenGroup == GROUP_ALL) "选一个直接开始播放" else playlists.listenGroup,
                     Modifier.padding(horizontal = gutter),
                 )
             }
@@ -710,7 +715,7 @@ private fun CategoryChips(playlists: PlaylistsUiState, actions: MusicActions, mo
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        MusicChip("全部", playlists.selectedCategoryId.isBlank()) { actions.clearCategory() }
+        MusicChip(stringResource(R.string.all_items), playlists.selectedCategoryId.isBlank()) { actions.clearCategory() }
         shown.forEach { category ->
             MusicChip(category.name, playlists.selectedCategoryId == category.id) { actions.selectCategory(category) }
         }
@@ -959,7 +964,7 @@ private fun TvRecommendations(playlists: PlaylistsUiState, sources: List<Provide
 @Composable
 private fun TvListening(playlists: PlaylistsUiState, actions: MusicActions) {
     val gutter = LocalAppWindow.current.gutter
-    val groups = listOf("全部") + playlists.listenGroups
+    val groups = listOf(GROUP_ALL) + playlists.listenGroups
     val selectedIndex = groups.indexOf(playlists.listenGroup).coerceAtLeast(0)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 2).coerceAtLeast(0))
     val selectedFocus = remember { FocusRequester() }
@@ -972,7 +977,7 @@ private fun TvListening(playlists: PlaylistsUiState, actions: MusicActions) {
         LazyColumn(Modifier.width(240.dp).fillMaxHeight(), state = listState, contentPadding = PaddingValues(bottom = 48.dp)) {
             itemsIndexed(groups, key = { _, group -> "listenGroup:$group" }, contentType = { _, _ -> "listenGroup" }) { index, group ->
                 ListRow(
-                    title = group,
+                    title = groupLabel(group),
                     index = 0,
                     count = 1,
                     onClick = { actions.selectListenGroup(group) },
@@ -986,13 +991,18 @@ private fun TvListening(playlists: PlaylistsUiState, actions: MusicActions) {
     }
 }
 
+/** 分组名：存储值 [GROUP_ALL] 显示成当前语言的「全部」，其余分组照原样。 */
+@Composable
+private fun groupLabel(group: String): String =
+    if (group == GROUP_ALL) stringResource(R.string.all_items) else group
+
 @Composable
 private fun androidx.compose.foundation.layout.RowScope.TvListeningGrid(playlists: PlaylistsUiState, actions: MusicActions) {
     val modes = playlists.visibleListenModes
     Column(Modifier.weight(1f).fillMaxHeight()) {
         Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${playlists.listenGroup.ifBlank { "全部" }} · ${modes.size} 个模式",
+                "${playlists.listenGroup.ifBlank { stringResource(R.string.all_items) }} · ${modes.size} 个模式",
                 Modifier.weight(1f).semantics { heading() },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
@@ -1062,7 +1072,7 @@ private fun TvCategories(playlists: PlaylistsUiState, actions: MusicActions) {
                 val focusModifier = if (index == selectedIndex) Modifier.focusRequester(selectedFocus) else Modifier
                 when (entry) {
                     is CategoryEntry.All -> ListRow(
-                        title = "全部",
+                        title = stringResource(R.string.all_items),
                         index = 0,
                         count = 1,
                         onClick = actions::clearCategory,
@@ -1070,7 +1080,7 @@ private fun TvCategories(playlists: PlaylistsUiState, actions: MusicActions) {
                         selected = playlists.selectedCategoryId.isBlank(),
                         showChevron = false,
                     )
-                    is CategoryEntry.Header -> SectionLabel(entry.group)
+                    is CategoryEntry.Header -> SectionLabel(groupLabel(entry.group))
                     is CategoryEntry.Item -> ListRow(
                         title = entry.category.name,
                         index = entry.index,

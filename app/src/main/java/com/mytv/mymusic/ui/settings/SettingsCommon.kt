@@ -52,9 +52,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import com.mytv.mymusic.R
 import com.mytv.mymusic.ui.components.IconTone
 import com.mytv.mymusic.ui.components.LocalAppSnackbar
@@ -70,28 +72,28 @@ import kotlinx.coroutines.launch
 /** 设置分区。“开源许可 / 隐私说明”挂在“关于与更新”下面，双栏时左栏仍高亮“关于与更新”。 */
 internal enum class SettingsSection(
     val route: String,
-    val title: String,
-    val subtitle: String,
+    @StringRes val titleRes: Int,
+    @StringRes val subtitleRes: Int,
     val icon: ImageVector,
     val tone: IconTone,
 ) {
-    Appearance("settings/appearance", "外观", "布局、启动页、文字大小、主题、配色与对比度", Icons.Filled.Palette, IconTone.Primary),
+    Appearance("settings/appearance", R.string.settings_section_appearance, R.string.settings_section_appearance_desc, Icons.Filled.Palette, IconTone.Primary),
     // 原来叫“歌词”；枚举名和路由保持不变，旧的深链接和保存的选中项继续有效
-    Lyrics("settings/lyrics", "播放页", "封面形状、歌词背景与动画、律动与跟拍校准", Icons.Filled.PlayCircle, IconTone.Primary),
-    Playback("settings/playback", "播放与换源", "切歌过渡、换源模式与平台顺序", Icons.Filled.SwapHoriz, IconTone.Primary),
-    Report("settings/report", "播放上报", "把播放记录回传给平台，推荐跟着口味走", Icons.Filled.Analytics, IconTone.Primary),
-    Equalizer("settings/equalizer", "均衡器", "本机播放音效，不影响下载文件", Icons.Filled.GraphicEq, IconTone.Primary),
-    Sources("settings/sources", "音乐源", "启用哪些平台、按什么顺序", Icons.Filled.Tune, IconTone.Primary),
-    LxSources("settings/sources/custom", "自定义音源", "导入、启用和更新落雪脚本", Icons.Filled.Code, IconTone.Secondary),
-    Search("settings/search", "搜索与浏览", "默认浏览来源", Icons.Filled.Search, IconTone.Primary),
-    Swipe("settings/swipe", "滑动操作", "歌曲列表左右滑的按钮和拉到头", Icons.Filled.Swipe, IconTone.Secondary),
-    Accounts("settings/accounts", "平台账号", "扫码登录、Cookie 与退出", Icons.Filled.Person, IconTone.Secondary),
-    Sync("settings/sync", "音乐库同步", "自建歌单的云端同步", Icons.Filled.Cloud, IconTone.Secondary),
-    LocalMusic("settings/local", "本地音乐", "扫描范围、封面歌词匹配与上传", Icons.Filled.AudioFile, IconTone.Secondary),
-    Storage("settings/storage", "存储", "缓存、下载与占用", Icons.Filled.Storage, IconTone.Tertiary),
-    About("settings/about", "关于与更新", "版本、更新、许可与隐私", Icons.Filled.Info, IconTone.Tertiary),
-    Licenses("settings/licenses", "开源许可", "应用、上游库与第三方依赖", Icons.Filled.Code, IconTone.Tertiary),
-    Privacy("settings/privacy", "隐私说明", "哪些数据留在本机，哪些会离开", Icons.Filled.PrivacyTip, IconTone.Tertiary),
+    Lyrics("settings/lyrics", R.string.settings_section_lyrics, R.string.settings_section_lyrics_desc, Icons.Filled.PlayCircle, IconTone.Primary),
+    Playback("settings/playback", R.string.settings_section_playback, R.string.settings_section_playback_desc, Icons.Filled.SwapHoriz, IconTone.Primary),
+    Report("settings/report", R.string.settings_section_report, R.string.settings_section_report_desc, Icons.Filled.Analytics, IconTone.Primary),
+    Equalizer("settings/equalizer", R.string.settings_section_equalizer, R.string.settings_section_equalizer_desc, Icons.Filled.GraphicEq, IconTone.Primary),
+    Sources("settings/sources", R.string.settings_section_sources, R.string.settings_section_sources_desc, Icons.Filled.Tune, IconTone.Primary),
+    LxSources("settings/sources/custom", R.string.settings_section_custom_sources, R.string.settings_section_custom_sources_desc, Icons.Filled.Code, IconTone.Secondary),
+    Search("settings/search", R.string.settings_section_search, R.string.settings_section_search_desc, Icons.Filled.Search, IconTone.Primary),
+    Swipe("settings/swipe", R.string.settings_section_swipe, R.string.settings_section_swipe_desc, Icons.Filled.Swipe, IconTone.Secondary),
+    Accounts("settings/accounts", R.string.settings_section_accounts, R.string.settings_section_accounts_desc, Icons.Filled.Person, IconTone.Secondary),
+    Sync("settings/sync", R.string.settings_section_sync, R.string.settings_section_sync_desc, Icons.Filled.Cloud, IconTone.Secondary),
+    LocalMusic("settings/local", R.string.settings_section_local, R.string.settings_section_local_desc, Icons.Filled.AudioFile, IconTone.Secondary),
+    Storage("settings/storage", R.string.settings_section_storage, R.string.settings_section_storage_desc, Icons.Filled.Storage, IconTone.Tertiary),
+    About("settings/about", R.string.settings_section_about, R.string.settings_section_about_desc, Icons.Filled.Info, IconTone.Tertiary),
+    Licenses("settings/licenses", R.string.settings_section_licenses, R.string.settings_section_licenses_desc, Icons.Filled.Code, IconTone.Tertiary),
+    Privacy("settings/privacy", R.string.settings_section_privacy, R.string.settings_section_privacy_desc, Icons.Filled.PrivacyTip, IconTone.Tertiary),
     ;
 
     val parent: SettingsSection? get() = when (this) {
@@ -123,7 +125,7 @@ internal fun SettingsPage(
     section: SettingsSection,
     embedded: Boolean,
     onBack: () -> Unit,
-    subtitle: String = section.subtitle,
+    subtitle: String = stringResource(section.subtitleRes),
     content: LazyListScope.() -> Unit,
 ) {
     if (embedded) {
@@ -136,7 +138,7 @@ internal fun SettingsPage(
         return
     }
     val gutter = LocalAppWindow.current.gutter
-    PageScaffold(title = section.title, subtitle = subtitle, onBack = onBack) { padding ->
+    PageScaffold(title = stringResource(section.titleRes), subtitle = subtitle, onBack = onBack) { padding ->
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(

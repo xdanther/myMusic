@@ -1,5 +1,7 @@
 package com.mytv.mymusic.ui
 
+import com.mytv.mymusic.ui.playlists.GROUP_ALL
+
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
@@ -253,7 +255,7 @@ data class MusicUiState(
     /** 歌单页上次用的浏览方式；还没读到设置时是默认的「推荐」。 */
     val playlistsMode: PlaylistMode = PlaylistMode.Recommend,
     /** 听歌模式页上次选的分组，空表示「全部」。 */
-    val listenGroup: String = "全部",
+    val listenGroup: String = GROUP_ALL,
     val theme: String = "system",
     val appearance: Appearance = Appearance(),
     val lyricsBackground: LyricsBackgroundMode = LyricsBackgroundMode.Ambient,
@@ -631,7 +633,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             playlistsSource = settings.playlistsSource,
             startupTab = settings.startupTab,
             playlistsMode = settings.playlistsMode.toPlaylistMode(),
-            listenGroup = settings.listenGroup.ifBlank { "全部" },
+            listenGroup = settings.listenGroup.ifBlank { GROUP_ALL },
             theme = settings.theme,
             appearance = settings.toAppearance(),
             lyricsBackground = settings.lyricsBackground,
@@ -1010,7 +1012,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 // 读最新状态而不是函数开头那份：拉列表时用户可能已经点了别的分组
                 val remembered = _playlists.value.listenGroup
                 val group = remembered
-                    .takeIf { it == "全部" || modes.any { mode -> mode.group == it } } ?: "全部"
+                    .takeIf { it == GROUP_ALL || modes.any { mode -> mode.group == it } } ?: GROUP_ALL
                 if (group != remembered) app.settings.listenGroup(group)
                 _playlists.update {
                     it.copy(
@@ -1210,7 +1212,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             listenGroup = if (resumed) {
                 _playlists.value.listenGroup
             } else {
-                settingsState.value.listenGroup.ifBlank { "全部" }
+                settingsState.value.listenGroup.ifBlank { GROUP_ALL }
             },
             listenActive = _playlists.value.listenActive.takeIf { sameProvider }.orEmpty(),
             mode = mode,

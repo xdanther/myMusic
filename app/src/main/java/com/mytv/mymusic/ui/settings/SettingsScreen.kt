@@ -1,5 +1,6 @@
 package com.mytv.mymusic.ui.settings
 
+import android.content.res.Resources
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,15 +45,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mytv.mymusic.R
 import com.mytv.mymusic.aggregate.MatchStrictness
 import com.mytv.mymusic.aggregate.PlaybackMode
-import com.mytv.mymusic.data.LyricAutoSwitch
+import com.mytv.mymusic.data.SwipeAction
+import com.mytv.mymusic.data.SwipePrefs
 import com.mytv.mymusic.data.sync.SyncUiState
 import com.mytv.mymusic.data.update.UpdateUiState
-import com.mytv.mymusic.playback.EqPresets
 import com.mytv.mymusic.playback.EqualizerUiState
 import com.mytv.mymusic.ui.MusicUiState
 import com.mytv.mymusic.ui.adaptive.FoldRow
@@ -63,13 +67,11 @@ import com.mytv.mymusic.ui.components.PageScaffold
 import com.mytv.mymusic.ui.components.SegmentedGroup
 import com.mytv.mymusic.ui.components.tvFocusRing
 import com.mytv.mymusic.ui.formatBytes
-import com.mytv.mymusic.ui.player.label
-import com.mytv.mymusic.ui.player.stage.ClassicVisualizer
-import com.mytv.mymusic.ui.player.stage.modeOf
 import com.mytv.mymusic.ui.providerName
-import com.mytv.mymusic.ui.relativeTime
+import com.mytv.mymusic.ui.text.relativeTime
 import com.mytv.mymusic.ui.theme.FontScale
 import com.mytv.mymusic.ui.theme.LayoutMode
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
 /** 设置列表每项下方显示的当前值，以及“关于”上的新版本标记。 */
@@ -80,6 +82,8 @@ internal data class SettingsOverview(
 )
 
 internal fun settingsOverview(
+    resources: Resources,
+    locale: Locale,
     state: MusicUiState,
     sync: SyncUiState,
     update: UpdateUiState,
@@ -90,70 +94,167 @@ internal fun settingsOverview(
     rtl: Boolean = false,
 ): SettingsOverview {
     val appearance = state.appearance
-    val eqLabel = EqPresets.byId(equalizer.presetId)?.label ?: "自定义"
+    val on = resources.getString(R.string.settings_summary_on)
+    val off = resources.getString(R.string.settings_summary_off)
+    val separator = resources.getString(R.string.settings_join_separator)
     val logged = state.providers.filter { !state.cookies[it.id].isNullOrBlank() }
     val account = sync.account
     val info = update.info
     val updateAvailable = info != null
-    val version = "版本 ${update.currentVersionName.ifBlank { "1.0" }}（构建 ${update.currentVersionCode}）"
+    val version = resources.getString(
+        R.string.settings_summary_version,
+        update.currentVersionName.ifBlank { "1.0" },
+        update.currentVersionCode,
+    )
     return SettingsOverview(
         values = mapOf(
             SettingsSection.Appearance to buildString {
-                append("${appearance.colorSource.label} · ${appearance.browseStyle.label} · ${themeLabel(appearance.theme)}")
-                if (appearance.layout != LayoutMode.Auto) append(" · ${appearance.layout.label}")
-                if (appearance.fontScale != FontScale.Standard) append(" · ${appearance.fontScale.label}字号")
+                append(
+                    resources.getString(
+                        R.string.settings_summary_appearance,
+                        resources.appearanceLabel(appearance.colorSource),
+                        resources.schemeLabel(appearance.browseStyle),
+                        themeLabel(resources, appearance.theme),
+                    ),
+                )
+                if (appearance.layout != LayoutMode.Auto) {
+                    append(resources.getString(R.string.settings_summary_suffix, resources.layoutLabel(appearance.layout)))
+                }
+                if (appearance.fontScale != FontScale.Standard) {
+                    append(
+                        resources.getString(
+                            R.string.settings_summary_suffix,
+                            resources.getString(
+                                R.string.settings_summary_font_scale,
+                                resources.fontScaleLabel(appearance.fontScale),
+                            ),
+                        ),
+                    )
+                }
             },
-            SettingsSection.Lyrics to buildString {
-                append("封面${state.coverShape.label} · 背景${state.lyricsBackground.label}")
-                lyricStageSummary(state)?.let { append(" · 动画$it") }
-            },
-            SettingsSection.Playback to playbackModeSummary(state.aggregation.playbackMode) +
-                if (state.aggregation.matchStrictness == MatchStrictness.Strict) " · 严格匹配" else "",
-            SettingsSection.Report to if (state.playReportEnabled) "已开启" else "已关闭",
-            SettingsSection.Equalizer to "$eqLabel · ${if (equalizer.enabled) "已开启" else "已关闭"}",
-            SettingsSection.Sources to sourceSummary(state),
-            SettingsSection.Search to "默认${providerName(state.providers, state.providerId)}",
-            SettingsSection.Swipe to swipeSummary(state.swipe, rtl),
+            // 歌词动画的具体名称还没逐个搬进资源，先只写封面和歌词背景；动画那一行跟着播放页一起迁移
+            SettingsSection.Lyrics to resources.getString(
+                R.string.settings_summary_lyrics,
+                resources.coverShapeLabel(state.coverShape),
+                resources.lyricsBackgroundLabel(state.lyricsBackground),
+            ),
+            SettingsSection.Playback to playbackModeSummary(resources, state.aggregation.playbackMode) +
+                if (state.aggregation.matchStrictness == MatchStrictness.Strict) {
+                    resources.getString(
+                        R.string.settings_summary_suffix,
+                        resources.getString(R.string.settings_summary_strict),
+                    )
+                } else {
+                    ""
+                },
+            SettingsSection.Report to if (state.playReportEnabled) on else off,
+            SettingsSection.Equalizer to resources.getString(
+                R.string.settings_summary_eq,
+                resources.getString(eqPresetName(equalizer.presetId)),
+                if (equalizer.enabled) on else off,
+            ),
+            SettingsSection.Sources to sourceSummary(resources, state),
+            SettingsSection.Search to resources.getString(
+                R.string.settings_summary_default_source,
+                resources.providerBrand(state.providerId, providerName(state.providers, state.providerId)),
+            ),
+            SettingsSection.Swipe to swipeSummaryText(resources, state.swipe, rtl),
             SettingsSection.Accounts to when {
-                logged.isEmpty() -> "未登录任何平台"
-                logged.size <= 2 -> "已登录 ${logged.joinToString("、") { it.name }}"
-                else -> "已登录 ${logged.size} 个平台"
+                logged.isEmpty() -> resources.getString(R.string.settings_summary_accounts_none)
+                logged.size <= 2 -> resources.getString(
+                    R.string.settings_summary_accounts_named,
+                    logged.joinToString(separator) { resources.providerBrand(it.id, it.name) },
+                )
+                else -> resources.getQuantityString(
+                    R.plurals.settings_summary_accounts_count,
+                    logged.size,
+                    logged.size,
+                )
             },
             SettingsSection.Sync to if (account != null) {
-                "${sync.providerLabel} · ${relativeTime(account.lastSyncedAt).ifBlank { "尚未同步" }}"
+                resources.getString(
+                    R.string.settings_summary_sync,
+                    sync.providerLabel,
+                    relativeTime(resources, account.lastSyncedAt, locale).ifBlank {
+                        resources.getString(R.string.settings_summary_never_synced)
+                    },
+                )
             } else {
-                "未连接 · 本机优先"
+                resources.getString(R.string.settings_summary_sync_off)
             },
             SettingsSection.LocalMusic to localMusic,
-            SettingsSection.Storage to "缓存 ${formatBytes(cacheBytes)} · 下载 ${formatBytes(downloadsBytes)}",
-            SettingsSection.About to if (updateAvailable) "$version · 发现新版本 ${info?.versionName.orEmpty()}（构建 ${info?.versionCode ?: 0}）" else version,
+            SettingsSection.Storage to resources.getString(
+                R.string.settings_summary_storage,
+                formatBytes(cacheBytes),
+                formatBytes(downloadsBytes),
+            ),
+            SettingsSection.About to if (updateAvailable) {
+                resources.getString(
+                    R.string.settings_summary_update,
+                    version,
+                    info?.versionName.orEmpty(),
+                    info?.versionCode ?: 0,
+                )
+            } else {
+                version
+            },
         ),
         updateAvailable = updateAvailable,
     )
 }
 
-internal fun themeLabel(theme: String): String = when (theme) {
-    "light" -> "浅色"
-    "dark" -> "深色"
-    else -> "跟随系统"
-}
+internal fun themeLabel(resources: Resources, theme: String): String = resources.getString(
+    when (theme) {
+        "light" -> R.string.settings_summary_theme_light
+        "dark" -> R.string.settings_summary_theme_dark
+        else -> R.string.settings_summary_theme_system
+    },
+)
 
-private fun playbackModeSummary(mode: PlaybackMode): String = when (mode) {
-    PlaybackMode.Auto -> "自动换源"
-    PlaybackMode.Priority -> "按优先音源"
-    PlaybackMode.Pinned -> "固定音源"
-}
+private fun playbackModeSummary(resources: Resources, mode: PlaybackMode): String = resources.getString(
+    when (mode) {
+        PlaybackMode.Auto -> R.string.settings_summary_playback_auto
+        PlaybackMode.Priority -> R.string.settings_summary_playback_priority
+        PlaybackMode.Pinned -> R.string.settings_summary_playback_pinned
+    },
+)
 
 /** 音乐源的当前值：启用几个、第一个是谁。顺序就是用户排的顺序。 */
-private fun sourceSummary(state: MusicUiState): String {
+private fun sourceSummary(resources: Resources, state: MusicUiState): String {
     val searchable = state.providers.filter { it.search }
     val enabled = state.aggregation.enabledOrDefault(searchable.map { it.id })
-    val first = enabled.firstOrNull()?.let { id -> providerName(state.providers, id) }
+    val first = enabled.firstOrNull()?.let { id -> resources.providerBrand(id, providerName(state.providers, id)) }
     return when {
-        enabled.isEmpty() -> "全部关闭"
-        first.isNullOrBlank() -> "${enabled.size} 个平台"
-        else -> "${enabled.size} 个平台 · 先$first"
+        enabled.isEmpty() -> resources.getString(R.string.settings_summary_all_off)
+        first.isNullOrBlank() -> resources.getQuantityString(
+            R.plurals.settings_summary_platforms,
+            enabled.size,
+            enabled.size,
+        )
+        else -> resources.getQuantityString(
+            R.plurals.settings_summary_platforms_first,
+            enabled.size,
+            enabled.size,
+            first,
+        )
     }
+}
+
+/** 滑动操作的摘要：只写起始那一侧（向右滑），关着写「已关闭」。 */
+private fun swipeSummaryText(resources: Resources, prefs: SwipePrefs, rtl: Boolean): String {
+    if (!prefs.enabled) return resources.getString(R.string.settings_summary_swipe_off)
+    val side = resources.getString(
+        if (rtl) R.string.settings_summary_swipe_side_end else R.string.settings_summary_swipe_side_start,
+    )
+    val buttons = prefs.start
+        .map { resources.swipeActionLabel(it) }
+        .joinToString(resources.getString(R.string.settings_join_separator))
+        .ifBlank { resources.getString(R.string.settings_summary_swipe_no_buttons) }
+    val full = prefs.startFull
+        .takeIf { it != SwipeAction.None }
+        ?.let { resources.getString(R.string.settings_summary_swipe_full, resources.swipeActionLabel(it)) }
+        .orEmpty()
+    return resources.getString(R.string.settings_summary_swipe, side, buttons, full)
 }
 
 /** 手机（和 <840dp 平板）的设置首页：三组分段列表，每项下方是当前值，点进各自的子页。 */
@@ -164,7 +265,11 @@ internal fun SettingsHomeScreen(
     onBack: (() -> Unit)?,
 ) {
     val gutter = LocalAppWindow.current.gutter
-    PageScaffold(title = "设置", subtitle = "设置即改即存，不需要保存按钮", onBack = onBack) { padding ->
+    PageScaffold(
+        title = stringResource(R.string.settings_title),
+        subtitle = stringResource(R.string.settings_subtitle),
+        onBack = onBack,
+    ) { padding ->
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
@@ -176,7 +281,7 @@ internal fun SettingsHomeScreen(
         ) {
             item(key = "groups", contentType = "settingsGroups") { SettingsGroups(overview, selected = null, twoPane = false, onOpen = onOpen) }
             item(key = "note", contentType = "note") {
-                SettingsNote("开启同步后，平台 Cookie 会写入私密同步文件；同步令牌和 WebDAV 密码只保存在本机，不会进入日志或同步文件。", Modifier.padding(top = 8.dp))
+                SettingsNote(stringResource(R.string.settings_sync_note), Modifier.padding(top = 8.dp))
             }
         }
     }
@@ -261,7 +366,7 @@ internal fun SettingsTwoPane(
                     ),
             ) {
                 Text(
-                    "设置",
+                    stringResource(R.string.settings_title),
                     Modifier.padding(start = 4.dp, bottom = 16.dp),
                     style = if (tv) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Black,
@@ -324,19 +429,25 @@ private fun DetailHeader(section: SettingsSection, onBack: (() -> Unit)?, backFo
                 onClick = onBack,
                 modifier = Modifier.focusRequester(backFocus).tvFocusRing(CircleShape),
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回${section.parent?.title.orEmpty()}")
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    stringResource(
+                        R.string.settings_back_to,
+                        section.parent?.let { stringResource(it.titleRes) }.orEmpty(),
+                    ),
+                )
             }
         }
         Column(Modifier.weight(1f).padding(start = 4.dp)) {
             Text(
-                section.title,
+                stringResource(section.titleRes),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                section.subtitle,
+                stringResource(section.subtitleRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -359,7 +470,7 @@ private fun SettingsGroups(
                 group.forEachIndexed { index, section ->
                     val badge = section == SettingsSection.About && overview.updateAvailable
                     ListRow(
-                        title = section.title,
+                        title = stringResource(section.titleRes),
                         index = index,
                         count = group.size,
                         onClick = { onOpen(section) },
@@ -394,13 +505,12 @@ private fun NewBadge() {
             .padding(horizontal = 7.dp, vertical = 1.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text("新", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onError)
+        Text(
+            stringResource(R.string.settings_new_badge),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onError,
+        )
     }
 }
 
-/** 总览里“播放页”一行的歌词动画部分：固定用经典时不写，固定其他模式写模式名，自动换时写“随机”“按速度”。 */
-private fun lyricStageSummary(state: MusicUiState): String? = when (state.lyricStage.auto) {
-    LyricAutoSwitch.Fixed -> state.lyricStage.modeOf(state.lyricStage.visualizer).takeIf { it.id != ClassicVisualizer.id }?.label
-    LyricAutoSwitch.Random -> "随机"
-    LyricAutoSwitch.Tempo -> "按速度"
-}

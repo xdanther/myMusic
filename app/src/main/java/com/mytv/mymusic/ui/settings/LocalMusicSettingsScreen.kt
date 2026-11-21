@@ -74,6 +74,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import com.mytv.mymusic.R
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import kotlinx.coroutines.Dispatchers
@@ -90,15 +91,32 @@ private val LocalTitlePolicy.label: String
 @Composable
 internal fun rememberLocalSettingsSummary(): String {
     val library = rememberLocalLibrary() ?: return ""
+    val resources = LocalContext.current.resources
     val prefs by library.prefs.collectAsStateWithLifecycle()
     val index by library.index.collectAsStateWithLifecycle()
     val sources = buildList {
-        if (prefs.mediaStore && library.hasAudioPermission()) add("系统媒体库")
-        if (prefs.folders.isNotEmpty()) add("${prefs.folders.size} 个文件夹")
+        if (prefs.mediaStore && library.hasAudioPermission()) add(resources.getString(R.string.settings_summary_media_store))
+        if (prefs.folders.isNotEmpty()) {
+            add(
+                resources.getQuantityString(
+                    R.plurals.settings_summary_local_folders,
+                    prefs.folders.size,
+                    prefs.folders.size,
+                ),
+            )
+        }
     }
     return when {
-        sources.isEmpty() -> "还没开始扫描"
-        else -> "${index.items.size} 首 · ${sources.joinToString("、")}" + if (prefs.autoMatch) " · 自动匹配" else ""
+        sources.isEmpty() -> resources.getString(R.string.settings_summary_local_none)
+        else -> resources.getString(
+            R.string.settings_summary_local,
+            resources.getQuantityString(
+                R.plurals.settings_summary_local_tracks,
+                index.items.size,
+                index.items.size,
+            ),
+            sources.joinToString(resources.getString(R.string.settings_join_separator)),
+        ) + if (prefs.autoMatch) resources.getString(R.string.settings_summary_local_auto_match) else ""
     }
 }
 

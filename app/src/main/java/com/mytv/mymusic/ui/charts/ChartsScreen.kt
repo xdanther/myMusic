@@ -124,7 +124,6 @@ import com.mytv.mymusic.ui.components.tvCardFocus
 import com.mytv.mymusic.ui.components.tvFocusRing
 import com.mytv.mymusic.ui.relativeTime
 import com.mytv.mymusic.ui.theme.LocalAppearance
-import java.util.Locale
 
 /** 轮播里放前几个榜单，其余进“更多榜单”网格，两处不重复。 */
 private const val CAROUSEL_COUNT = 5
@@ -1234,10 +1233,5 @@ internal fun rememberCoverTint(url: String, actions: MusicActions): State<Color>
     )
 }
 
-/** 播放量：过亿 / 过万用中文单位。 */
-internal fun formatPlayCount(count: Long): String = when {
-    count >= 100_000_000L -> String.format(Locale.ROOT, "%.1f 亿", count / 100_000_000.0).replace(".0 ", " ")
-    count >= 10_000L -> String.format(Locale.ROOT, "%,d 万", count / 10_000)
-    count > 0 -> count.toString()
-    else -> ""
-}
+/** 播放量：12.3K / 4.5M，和界面语言无关（原来是「万 / 亿」）。 */
+internal fun formatPlayCount(count: Long): String = com.mytv.mymusic.ui.text.formatCompactCount(count)

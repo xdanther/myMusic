@@ -30,13 +30,6 @@
     <string name="settings_new_badge">New</string>
     <string name="settings_back_to">Back to %1$s</string>
 
-    <!-- Language -->
-    <string name="settings_language">Language</string>
-    <string name="settings_language_note">Applies immediately. Song titles, lyrics, comments and platform content keep their original language.</string>
-    <string name="language_system">System</string>
-    <string name="language_english">English</string>
-    <string name="language_chinese">中文</string>
-
     <!-- Settings sections -->
     <string name="settings_section_appearance">Look</string>
     <string name="settings_section_appearance_desc">Layout, start page, text size, theme, colors and contrast</string>
@@ -149,6 +142,7 @@
     <string name="color_source_wallpaper">System wallpaper</string>
     <string name="color_source_wallpaper_hint">Android 8.1+</string>
     <string name="color_source_brand">Brand teal</string>
+    <string name="color_source_brand_hint">#006B5F</string>
     <string name="color_source_custom">Custom color</string>
     <string name="color_source_custom_hint">Swatches</string>
     <string name="scheme_soft">Soft</string>
@@ -216,4 +210,48 @@
     <string name="provider_youtube">YouTube Music</string>
     <string name="provider_jamendo">Jamendo</string>
     <string name="provider_mhub">MHub</string>
+
+    <!-- Top-level navigation -->
+    <string name="nav_charts">Charts</string>
+    <string name="nav_playlists">Playlists</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_library">Library</string>
+    <string name="nav_now_playing">Now playing</string>
+
+    <!-- Appearance screen -->
+    <string name="appearance_preview">Current color preview</string>
+    <string name="appearance_layout_mode">Layout mode</string>
+    <string name="appearance_start_page">Start page</string>
+    <string name="appearance_text_size">Text size</string>
+    <string name="appearance_theme">Theme</string>
+    <string name="appearance_color_source">Color source</string>
+    <string name="appearance_color_style">Color style</string>
+    <string name="appearance_contrast">Contrast</string>
+    <string name="appearance_display">Display</string>
+    <string name="appearance_blur">Blur</string>
+    <string name="appearance_style_browse">Browse</string>
+    <string name="appearance_style_player">Playback page (always dark)</string>
+    <string name="appearance_style_desc">%1$s style: %2$s</string>
+    <string name="appearance_layout_desc">Layout mode: %1$s</string>
+    <string name="appearance_start_desc">Start page: %1$s</string>
+    <string name="appearance_start_note">Opens here from the launcher icon or recents; widgets still open their own target.</string>
+    <string name="appearance_layout_hint_auto">Follows the device: switches by window width and TV detection; screen orientation stays on the system default.</string>
+    <string name="appearance_layout_hint_phone">Locked to portrait, with bottom navigation and the mini player.</string>
+    <string name="appearance_layout_hint_tablet">Locked to landscape with side navigation; when wide enough the content splits into two columns.</string>
+    <string name="appearance_layout_hint_tv">Locked to landscape with remote-friendly focus and generous spacing; colors stay dark.</string>
+    <string name="appearance_font_note_tv">Adjust until it reads from across the room. Only text grows; cards and rows grow with it.</string>
+    <string name="appearance_font_note">Only interface text and lyrics grow; spacing and icon sizes stay the same.</string>
+    <string name="appearance_amoled">Pure black</string>
+    <string name="appearance_amoled_summary">Pure black in dark mode; suits OLED screens</string>
+    <string name="appearance_reduce_motion">Reduce motion</string>
+    <string name="appearance_reduce_motion_summary">Turns off morphs, waves and page transitions</string>
+    <string name="appearance_blur_note_tv">On TV, “Auto” skips real-time blur: the mini player and navigation bar use opaque backgrounds so scrolling stays smooth.</string>
+    <string name="appearance_blur_note">Auto: frosted mini player and navigation bar on Android 12+ with enough memory; off uses opaque backgrounds.</string>
+    <string name="appearance_contrast_standard">Standard</string>
+    <string name="appearance_contrast_medium">Medium</string>
+    <string name="appearance_contrast_high">High</string>
+    <string name="appearance_wallpaper_accent">System accent</string>
+    <string name="appearance_wallpaper_color">Wallpaper color</string>
+    <string name="appearance_wallpaper_unsupported">Requires Android 8.1+</string>
+    <string name="appearance_swatch">Swatch %1$d</string>
 </resources>

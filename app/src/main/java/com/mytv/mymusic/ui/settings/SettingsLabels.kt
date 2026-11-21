@@ -6,71 +6,12 @@ import com.mytv.mymusic.R
 import com.mytv.mymusic.data.CoverShapeChoice
 import com.mytv.mymusic.data.LyricsBackgroundMode
 import com.mytv.mymusic.data.SwipeAction
-import com.mytv.mymusic.ui.theme.BlurMode
-import com.mytv.mymusic.ui.theme.ColorSource
-import com.mytv.mymusic.ui.theme.FontScale
-import com.mytv.mymusic.ui.theme.LayoutMode
-import com.mytv.mymusic.ui.theme.SchemeStyle
 
 /**
  * 设置首页的显示名。
  *
- * 这些枚举的名字同时被很多界面用到（播放页、歌词页、滑动设置），逐个改成资源 id 会把整条链路都卷进来；
- * 这里只做「显示时翻译」，枚举名和存进 DataStore 的值都不动——改语言不会让已保存的设置失效。
+ * 只做「显示时映射」：枚举名、平台 id 和存进 DataStore 的值都不动，改文案不会让已保存的设置失效。
  */
-internal fun Resources.appearanceLabel(source: ColorSource): String = getString(
-    when (source) {
-        ColorSource.Cover -> R.string.color_source_cover
-        ColorSource.Wallpaper -> R.string.color_source_wallpaper
-        ColorSource.Brand -> R.string.color_source_brand
-        ColorSource.Custom -> R.string.color_source_custom
-    },
-)
-
-internal fun Resources.appearanceHint(source: ColorSource): String = getString(
-    when (source) {
-        ColorSource.Cover -> R.string.color_source_cover_hint
-        ColorSource.Wallpaper -> R.string.color_source_wallpaper_hint
-        ColorSource.Brand -> R.string.color_source_brand
-        ColorSource.Custom -> R.string.color_source_custom_hint
-    },
-)
-
-internal fun Resources.schemeLabel(style: SchemeStyle): String = getString(
-    when (style) {
-        SchemeStyle.TonalSpot -> R.string.scheme_soft
-        SchemeStyle.Vibrant -> R.string.scheme_vivid
-        SchemeStyle.Expressive -> R.string.scheme_expressive
-        SchemeStyle.Fidelity -> R.string.scheme_fidelity
-    },
-)
-
-internal fun Resources.blurLabel(mode: BlurMode): String = getString(
-    when (mode) {
-        BlurMode.Auto -> R.string.blur_auto
-        BlurMode.On -> R.string.blur_on
-        BlurMode.Off -> R.string.blur_off
-    },
-)
-
-internal fun Resources.layoutLabel(mode: LayoutMode): String = getString(
-    when (mode) {
-        LayoutMode.Auto -> R.string.layout_auto
-        LayoutMode.Phone -> R.string.layout_phone
-        LayoutMode.Tablet -> R.string.layout_tablet
-        LayoutMode.Tv -> R.string.layout_tv
-    },
-)
-
-internal fun Resources.fontScaleLabel(scale: FontScale): String = getString(
-    when (scale) {
-        FontScale.Standard -> R.string.font_standard
-        FontScale.Large -> R.string.font_large
-        FontScale.Larger -> R.string.font_larger
-        FontScale.Largest -> R.string.font_largest
-    },
-)
-
 internal fun Resources.coverShapeLabel(shape: CoverShapeChoice): String = getString(
     when (shape) {
         CoverShapeChoice.Random -> R.string.cover_shape_random

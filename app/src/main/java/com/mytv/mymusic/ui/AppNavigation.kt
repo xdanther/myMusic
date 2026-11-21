@@ -1,5 +1,8 @@
 package com.mytv.mymusic.ui
 
+import androidx.annotation.StringRes
+import com.mytv.mymusic.R
+
 import android.app.Activity
 import android.os.SystemClock
 import androidx.activity.compose.PredictiveBackHandler
@@ -128,11 +131,16 @@ import dev.chrisbanes.haze.rememberHazeState
 private const val EXIT_BACK_WINDOW_MS = 2_000L
 
 /** 顶层入口。设置不再占一格：手机在“我的”右上角，平板和电视在导航栏底部。 */
-enum class TopTab(val route: String, val label: String, val icon: ImageVector, val selectedIcon: ImageVector) {
-    Charts("charts", "榜单", Icons.Outlined.Insights, Icons.Filled.Insights),
-    Playlists("playlists", "歌单", Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
-    Search("search", "搜索", Icons.Outlined.Search, Icons.Filled.Search),
-    Library("library", "我的", Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
+enum class TopTab(
+    val route: String,
+    @StringRes val labelRes: Int,
+    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+) {
+    Charts("charts", R.string.nav_charts, Icons.Outlined.Insights, Icons.Filled.Insights),
+    Playlists("playlists", R.string.nav_playlists, Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
+    Search("search", R.string.nav_search, Icons.Outlined.Search, Icons.Filled.Search),
+    Library("library", R.string.nav_library, Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
 }
 
 /** 各功能的路由文件通过它拿到导航、ViewModel 和公共跳转。 */

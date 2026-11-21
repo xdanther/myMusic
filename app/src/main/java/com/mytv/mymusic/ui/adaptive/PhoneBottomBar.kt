@@ -1,5 +1,7 @@
 package com.mytv.mymusic.ui.adaptive
 
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -124,7 +126,7 @@ fun PhoneBottomBar(
                         selected = on,
                         onClick = { onSelect(tab.route) },
                         icon = { Icon(if (on) tab.selectedIcon else tab.icon, null) },
-                        label = { Text(tab.label) },
+                        label = { Text(stringResource(tab.labelRes)) },
                     )
                 }
             }
@@ -187,7 +189,7 @@ private fun FloatingNavBar(
                 selected = on,
                 onClick = { onSelect(tab.route) },
                 icon = { Icon(if (on) tab.selectedIcon else tab.icon, null) },
-                label = { Text(tab.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                label = { Text(stringResource(tab.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 modifier = Modifier.width(PillItemWidth),
             )
         }

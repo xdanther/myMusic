@@ -52,11 +52,6 @@ class MainActivity : ComponentActivity() {
      */
     private var barsDark = false
 
-    /** 低版本在应用内选过语言时，界面资源要按选中的语言解析（API 33+ 由系统处理）。 */
-    override fun attachBaseContext(newBase: android.content.Context) {
-        super.attachBaseContext(AppLocale.wrap(newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // ViewModel 是进程级的，activity 退出后它还在：全新启动时收起上次留下的播放页

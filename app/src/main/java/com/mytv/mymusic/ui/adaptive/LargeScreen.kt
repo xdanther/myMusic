@@ -1,5 +1,8 @@
 package com.mytv.mymusic.ui.adaptive
 
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -104,7 +107,7 @@ fun TabletNavRail(selected: String, onSelect: (String) -> Unit, onSettings: () -
                 selected = on,
                 onClick = { onSelect(tab.route) },
                 icon = { Icon(if (on) tab.selectedIcon else tab.icon, null) },
-                label = { Text(tab.label) },
+                label = { Text(stringResource(tab.labelRes)) },
                 modifier = Modifier.padding(vertical = 4.dp),
             )
         }
@@ -114,7 +117,7 @@ fun TabletNavRail(selected: String, onSelect: (String) -> Unit, onSettings: () -
             selected = on,
             onClick = onSettings,
             icon = { Icon(if (on) Icons.Filled.Settings else Icons.Outlined.Settings, null) },
-            label = { Text("设置") },
+            label = { Text(stringResource(R.string.settings_title)) },
             modifier = Modifier.padding(bottom = 16.dp),
         )
     }

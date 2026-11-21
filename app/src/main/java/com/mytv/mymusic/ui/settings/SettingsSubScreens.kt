@@ -1,10 +1,9 @@
 package com.mytv.mymusic.ui.settings
 
 import android.os.Build
+import android.content.res.Resources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.mytv.mymusic.AppLanguage
-import com.mytv.mymusic.AppLocale
 import com.mytv.mymusic.R
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.core.animateDpAsState
@@ -173,11 +172,13 @@ import kotlin.math.abs
 
 private val CONTRAST_LEVELS = listOf(0f, 0.5f, 1f)
 
-private fun contrastLabel(value: Float): String = when {
-    value >= 0.75f -> "高"
-    value >= 0.25f -> "中"
-    else -> "标准"
-}
+private fun contrastLabel(resources: Resources, value: Float): String = resources.getString(
+    when {
+        value >= 0.75f -> R.string.appearance_contrast_high
+        value >= 0.25f -> R.string.appearance_contrast_medium
+        else -> R.string.appearance_contrast_standard
+    },
+)
 
 /**
  * 外观：预览卡片 + 主题 + 配色来源 + 风格 + 对比度 + 显示。
@@ -193,60 +194,46 @@ fun AppearanceSettingsScreen(
     val window = LocalAppWindow.current
     val tv = window.isTv
     val appearance = state.appearance
-    val context = LocalContext.current
-    val resources = context.resources
-    var language by remember { mutableStateOf(AppLocale.current(context)) }
+    val resources = LocalContext.current.resources
     val groupWidth = Modifier.widthIn(max = 480.dp).fillMaxWidth()
     SettingsPage(SettingsSection.Appearance, embedded, onBack) {
         item(key = "preview", contentType = "appearancePreview") { AppearancePreview(state, actions) }
-        // 语言：跟随系统 / 中文 / English。API 33+ 交给系统 per-app locale，低版本改完重建界面
-        item(key = "languageHead", contentType = "sectionHeader") {
-            SectionLabel(stringResource(R.string.settings_language))
+        item(key = "layoutHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_layout_mode))
         }
-        item(key = "language", contentType = "languageOptions") {
-            Column {
-                ConnectedToggleGroup(
-                    options = AppLanguage.entries,
-                    selected = language,
-                    onSelect = { chosen ->
-                        language = chosen
-                        AppLocale.set(context, chosen)
-                    },
-                    label = { context.getString(it.labelRes) },
-                    modifier = groupWidth,
-                )
-                SettingsNote(stringResource(R.string.settings_language_note))
-            }
-        }
-        item(key = "layoutHead", contentType = "sectionHeader") { SectionLabel("布局模式") }
         item(key = "layout", contentType = "layoutOptions") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 LayoutModeChips(appearance.layout) { actions.setLayoutMode(it) }
-                SettingsNote(layoutModeHint(appearance.layout))
+                SettingsNote(layoutModeHint(resources, appearance.layout))
             }
         }
-        item(key = "startupHead", contentType = "sectionHeader") { SectionLabel("启动页") }
+        item(key = "startupHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_start_page))
+        }
         item(key = "startup", contentType = "startupOptions") {
             StartupPageOptions(state.startupTab) { actions.setStartupTab(it) }
         }
-        item(key = "fontHead", contentType = "sectionHeader") { SectionLabel("文字大小") }
+        item(key = "fontHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_text_size))
+        }
         item(key = "fontScale", contentType = "fontScaleOptions") {
             Column {
                 ConnectedToggleGroup(
                     options = FontScale.entries,
                     selected = appearance.fontScale,
                     onSelect = { actions.setFontScale(it) },
-                    label = { it.label },
+                    label = { resources.getString(it.labelRes) },
                     modifier = groupWidth,
                 )
                 SettingsNote(
-                    if (tv) "电视三米开外看着调，调到看得清为止。只放大文字，卡片和列表会跟着长高。"
-                    else "只放大界面文字和歌词，间距、图标尺寸不变。",
+                    stringResource(if (tv) R.string.appearance_font_note_tv else R.string.appearance_font_note),
                 )
             }
         }
         // 电视固定深色，不提供浅色主题
-        if (!tv) item(key = "themeHead", contentType = "sectionHeader") { SectionLabel("主题") }
+        if (!tv) item(key = "themeHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_theme))
+        }
         if (!tv) item(key = "theme", contentType = "toggleGroup") {
             ConnectedToggleGroup(
                 options = listOf("system", "light", "dark"),
@@ -263,83 +250,103 @@ fun AppearanceSettingsScreen(
                 },
             )
         }
-        item(key = "sourceHead", contentType = "sectionHeader") { SectionLabel("配色来源") }
+        item(key = "sourceHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_color_source))
+        }
         item(key = "source", contentType = "colorOptions") { ColorSourceOptions(state, actions, perRow = if (window.twoPane) 4 else 2) }
         if (appearance.colorSource == ColorSource.Custom) {
             item(key = "swatches", contentType = "swatches") {
                 SeedSwatches(appearance.customSeed) { actions.setCustomSeed(it) }
             }
         }
-        item(key = "styleHead", contentType = "sectionHeader") { SectionLabel("配色风格") }
-        item(key = "browseStyle", contentType = "styleChips") { StyleChips("浏览页", appearance.browseStyle) { actions.setBrowseStyle(it) } }
-        item(key = "playerStyle", contentType = "styleChips") { StyleChips("播放页（固定深色）", appearance.playerStyle) { actions.setPlayerStyle(it) } }
-        item(key = "contrastHead", contentType = "sectionHeader") { SectionLabel("对比度") }
+        item(key = "styleHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_color_style))
+        }
+        item(key = "browseStyle", contentType = "styleChips") {
+            StyleChips(stringResource(R.string.appearance_style_browse), appearance.browseStyle) { actions.setBrowseStyle(it) }
+        }
+        item(key = "playerStyle", contentType = "styleChips") {
+            StyleChips(stringResource(R.string.appearance_style_player), appearance.playerStyle) { actions.setPlayerStyle(it) }
+        }
+        item(key = "contrastHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_contrast))
+        }
         item(key = "contrast", contentType = "toggleGroup") {
             ConnectedToggleGroup(
                 options = CONTRAST_LEVELS,
                 selected = CONTRAST_LEVELS.minBy { abs(it - appearance.contrast) },
                 onSelect = { actions.setContrast(it) },
-                label = ::contrastLabel,
+                label = { contrastLabel(resources, it) },
                 modifier = groupWidth,
             )
         }
-        item(key = "displayHead", contentType = "sectionHeader") { SectionLabel("显示") }
+        item(key = "displayHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_display))
+        }
         if (!tv) {
             item(key = "amoled", contentType = "switch") {
                 SwitchRow(
-                    title = "纯黑背景",
+                    title = stringResource(R.string.appearance_amoled),
                     checked = appearance.amoled,
                     onCheckedChange = { actions.setAmoled(it) },
                     index = 0,
                     count = 2,
-                    summary = "深色模式下使用纯黑，适合 OLED 屏幕",
+                    summary = stringResource(R.string.appearance_amoled_summary),
                     icon = Icons.Filled.Contrast,
                 )
             }
         }
         item(key = "motion", contentType = "switch") {
             SwitchRow(
-                title = "减少动画",
+                title = stringResource(R.string.appearance_reduce_motion),
                 checked = appearance.reduceMotion,
                 onCheckedChange = { actions.setReduceMotion(it) },
                 index = if (tv) 0 else 1,
                 count = if (tv) 1 else 2,
-                summary = "关闭形变、波浪和页面转场",
+                summary = stringResource(R.string.appearance_reduce_motion_summary),
                 icon = Icons.Filled.Animation,
             )
         }
-        item(key = "blurHead", contentType = "sectionHeader") { SectionLabel("模糊效果") }
+        item(key = "blurHead", contentType = "sectionHeader") {
+            SectionLabel(stringResource(R.string.appearance_blur))
+        }
         item(key = "blur", contentType = "toggleGroup") {
             ConnectedToggleGroup(
                 options = BlurMode.entries,
                 selected = appearance.blur,
                 onSelect = { actions.setBlurMode(it) },
-                label = { it.label },
+                label = { resources.getString(it.labelRes) },
                 modifier = groupWidth,
             )
         }
         item(key = "blurNote", contentType = "note") {
             SettingsNote(
-                if (tv) "电视在“自动”下不做实时模糊，迷你播放器和导航栏改用不透明底色，滑动更流畅。"
-                else "自动：Android 12 以上且内存充足时，迷你播放器和导航栏用磨砂底；关闭后改用不透明底色。",
+                stringResource(if (tv) R.string.appearance_blur_note_tv else R.string.appearance_blur_note),
             )
         }
     }
 }
 
-private fun layoutModeHint(mode: LayoutMode): String = when (mode) {
-    LayoutMode.Auto -> "跟随设备：按窗口宽度和电视识别切换，屏幕方向保持系统默认。"
-    LayoutMode.Phone -> "固定竖屏，使用底部导航和迷你播放器。"
-    LayoutMode.Tablet -> "固定横屏，使用侧边导航；窗口够宽时内容分成两栏，并显示底部播放条或常驻播放窗格。"
-    LayoutMode.Tv -> "固定横屏，使用遥控器焦点导航和大留白，配色固定深色。"
-}
+private fun layoutModeHint(resources: Resources, mode: LayoutMode): String = resources.getString(
+    when (mode) {
+        LayoutMode.Auto -> R.string.appearance_layout_hint_auto
+        LayoutMode.Phone -> R.string.appearance_layout_hint_phone
+        LayoutMode.Tablet -> R.string.appearance_layout_hint_tablet
+        LayoutMode.Tv -> R.string.appearance_layout_hint_tv
+    },
+)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LayoutModeChips(selected: LayoutMode, onSelect: (LayoutMode) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         LayoutMode.entries.forEach { mode ->
-            MusicChip(mode.label, mode == selected, description = "布局模式：${mode.label}") { onSelect(mode) }
+            val label = stringResource(mode.labelRes)
+            MusicChip(
+                text = label,
+                selected = mode == selected,
+                description = stringResource(R.string.appearance_layout_desc, label),
+            ) { onSelect(mode) }
         }
     }
 }
@@ -351,10 +358,15 @@ private fun StartupPageOptions(selectedRoute: String, onSelect: (String) -> Unit
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TopTab.entries.forEach { tab ->
-                MusicChip(tab.label, tab == selected, description = "启动页：${tab.label}") { onSelect(tab.route) }
+                val label = stringResource(tab.labelRes)
+                MusicChip(
+                    text = label,
+                    selected = tab == selected,
+                    description = stringResource(R.string.appearance_start_desc, label),
+                ) { onSelect(tab.route) }
             }
         }
-        SettingsNote("从桌面图标、最近任务打开时停在这一页；桌面小组件点开仍然去它指定的页面。")
+        SettingsNote(stringResource(R.string.appearance_start_note))
     }
 }
 
@@ -390,7 +402,7 @@ private fun AppearancePreview(state: MusicUiState, actions: MusicActions) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text("当前配色预览", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.appearance_preview), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
             Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf(scheme.primary, scheme.secondary, scheme.tertiary, scheme.primaryContainer).forEach { color ->
                     Box(Modifier.size(20.dp).clip(CircleShape).background(color))
@@ -406,6 +418,7 @@ private fun AppearancePreview(state: MusicUiState, actions: MusicActions) {
 @Composable
 private fun ColorSourceOptions(state: MusicUiState, actions: MusicActions, perRow: Int) {
     val appearance = state.appearance
+    val resources = LocalContext.current.resources
     Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ColorSource.entries.chunked(perRow).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -415,7 +428,7 @@ private fun ColorSourceOptions(state: MusicUiState, actions: MusicActions, perRo
                         selected = appearance.colorSource == source,
                         // 系统壁纸取色需要 Android 8.1（API 27）的 WallpaperColors
                         enabled = source != ColorSource.Wallpaper || Build.VERSION.SDK_INT >= 27,
-                        hint = colorSourceHint(source),
+                        hint = colorSourceHint(resources, source),
                         onClick = { actions.setColorSource(source) },
                         modifier = Modifier.weight(1f),
                     ) { sampleModifier -> ColorSourceSample(source, state, sampleModifier) }
@@ -426,11 +439,11 @@ private fun ColorSourceOptions(state: MusicUiState, actions: MusicActions, perRo
     }
 }
 
-private fun colorSourceHint(source: ColorSource): String = when {
-    source != ColorSource.Wallpaper -> source.hint
-    Build.VERSION.SDK_INT >= 31 -> "系统强调色"
-    Build.VERSION.SDK_INT >= 27 -> "壁纸主色"
-    else -> "需要 Android 8.1+"
+private fun colorSourceHint(resources: Resources, source: ColorSource): String = when {
+    source != ColorSource.Wallpaper -> resources.getString(source.hintRes)
+    Build.VERSION.SDK_INT >= 31 -> resources.getString(R.string.appearance_wallpaper_accent)
+    Build.VERSION.SDK_INT >= 27 -> resources.getString(R.string.appearance_wallpaper_color)
+    else -> resources.getString(R.string.appearance_wallpaper_unsupported)
 }
 
 @Composable
@@ -476,7 +489,7 @@ private fun ColorSourceCard(
         sample(Modifier.fillMaxWidth().height(44.dp).clip(RoundedCornerShape(12.dp)))
         Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                source.label,
+                stringResource(source.labelRes),
                 Modifier.weight(1f),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
@@ -527,13 +540,14 @@ private fun SeedSwatches(selected: Int, onSelect: (Int) -> Unit) {
         CustomSeedSwatches.forEachIndexed { index, color ->
             val argb = color.toArgb()
             val isSelected = argb == selected
+            val swatchLabel = stringResource(R.string.appearance_swatch, index + 1)
             Box(
                 Modifier
                     .size(48.dp)
                     .tvFocusRing(CircleShape)
                     .clip(CircleShape)
                     .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(argb) })
-                    .semantics { contentDescription = "色板 ${index + 1}" },
+                    .semantics { contentDescription = swatchLabel },
                 contentAlignment = Alignment.Center,
             ) {
                 Box(Modifier.size(if (isSelected) 30.dp else 38.dp).clip(CircleShape).background(color))
@@ -555,7 +569,12 @@ private fun StyleChips(label: String, selected: SchemeStyle, onSelect: (SchemeSt
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SchemeStyle.entries.forEach { style ->
-                MusicChip(style.label, style == selected, description = "${label.substringBefore("（")}风格：${style.label}") { onSelect(style) }
+                val styleLabel = stringResource(style.labelRes)
+                MusicChip(
+                    text = styleLabel,
+                    selected = style == selected,
+                    description = stringResource(R.string.appearance_style_desc, label, styleLabel),
+                ) { onSelect(style) }
             }
         }
     }

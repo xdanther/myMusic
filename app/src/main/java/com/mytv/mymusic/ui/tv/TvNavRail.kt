@@ -1,5 +1,8 @@
 package com.mytv.mymusic.ui.tv
 
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
@@ -92,7 +95,7 @@ fun TvNavRail(
             ) {
                 if (current != null) {
                     TvRailItem(
-                        label = "正在播放",
+                        label = stringResource(R.string.nav_now_playing),
                         detail = current.title,
                         selected = false,
                         expanded = expanded,
@@ -103,11 +106,11 @@ fun TvNavRail(
                 }
                 order.forEach { tab ->
                     val on = selected == tab.route
-                    TvRailItem(tab.label, "", on, expanded, { onSelect(tab.route) }, icon = if (on) tab.selectedIcon else tab.icon, modifier = Modifier.focusRequester(tabFocus.getValue(tab)))
+                    TvRailItem(stringResource(tab.labelRes), "", on, expanded, { onSelect(tab.route) }, icon = if (on) tab.selectedIcon else tab.icon, modifier = Modifier.focusRequester(tabFocus.getValue(tab)))
                 }
                 Spacer(Modifier.weight(1f))
                 val on = selected == "settings"
-                TvRailItem("设置", "", on, expanded, onSettings, icon = if (on) Icons.Filled.Settings else Icons.Outlined.Settings, modifier = Modifier.focusRequester(settingsFocus))
+                TvRailItem(stringResource(R.string.settings_title), "", on, expanded, onSettings, icon = if (on) Icons.Filled.Settings else Icons.Outlined.Settings, modifier = Modifier.focusRequester(settingsFocus))
             }
             AnimatedVisibility(expanded, enter = fadeIn(), exit = fadeOut()) {
                 Box(

@@ -71,7 +71,6 @@ import com.mytv.mymusic.ui.providerName
 import com.mytv.mymusic.ui.text.relativeTime
 import com.mytv.mymusic.ui.theme.FontScale
 import com.mytv.mymusic.ui.theme.LayoutMode
-import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
 /** 设置列表每项下方显示的当前值，以及“关于”上的新版本标记。 */
@@ -83,7 +82,6 @@ internal data class SettingsOverview(
 
 internal fun settingsOverview(
     resources: Resources,
-    locale: Locale,
     state: MusicUiState,
     sync: SyncUiState,
     update: UpdateUiState,
@@ -112,13 +110,13 @@ internal fun settingsOverview(
                 append(
                     resources.getString(
                         R.string.settings_summary_appearance,
-                        resources.appearanceLabel(appearance.colorSource),
-                        resources.schemeLabel(appearance.browseStyle),
+                        resources.getString(appearance.colorSource.labelRes),
+                        resources.getString(appearance.browseStyle.labelRes),
                         themeLabel(resources, appearance.theme),
                     ),
                 )
                 if (appearance.layout != LayoutMode.Auto) {
-                    append(resources.getString(R.string.settings_summary_suffix, resources.layoutLabel(appearance.layout)))
+                    append(resources.getString(R.string.settings_summary_suffix, resources.getString(appearance.layout.labelRes)))
                 }
                 if (appearance.fontScale != FontScale.Standard) {
                     append(
@@ -126,7 +124,7 @@ internal fun settingsOverview(
                             R.string.settings_summary_suffix,
                             resources.getString(
                                 R.string.settings_summary_font_scale,
-                                resources.fontScaleLabel(appearance.fontScale),
+                                resources.getString(appearance.fontScale.labelRes),
                             ),
                         ),
                     )
@@ -175,7 +173,7 @@ internal fun settingsOverview(
                 resources.getString(
                     R.string.settings_summary_sync,
                     sync.providerLabel,
-                    relativeTime(resources, account.lastSyncedAt, locale).ifBlank {
+                    relativeTime(resources, account.lastSyncedAt).ifBlank {
                         resources.getString(R.string.settings_summary_never_synced)
                     },
                 )

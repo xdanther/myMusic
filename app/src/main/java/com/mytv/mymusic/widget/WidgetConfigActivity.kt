@@ -54,7 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.mytv.mymusic.AppLocale
 import com.mytv.mymusic.MyMusicApp
 import com.mytv.mymusic.data.ListeningMode
 import com.mytv.mymusic.data.ProviderInfo
@@ -76,10 +75,6 @@ import kotlinx.coroutines.CancellationException
  * 每次选择立即保存并推给组件，和 App 的设置页一样没有保存按钮；底部“完成”只是关掉页面。
  */
 class WidgetConfigActivity : ComponentActivity() {
-    /** 小组件设置页同样是应用界面，低版本也要跟随应用内选择的语言。 */
-    override fun attachBaseContext(newBase: android.content.Context) {
-        super.attachBaseContext(AppLocale.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -121,14 +121,6 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider {
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().build()
 
-    /**
-     * API 33 以下没有系统级 per-app locale：先把 Context 包成选中的语言，
-     * 应用内的资源和 `Locale.getDefault()` 才按它解析。API 33+ 交给 LocaleManager，这里原样返回。
-     */
-    override fun attachBaseContext(base: android.content.Context) {
-        super.attachBaseContext(AppLocale.wrap(base))
-    }
-
     override fun onCreate() {
         super.onCreate()
         // 先于仓库、数据库和后台组件安装；写报告失败也会交还 Android 原 handler。

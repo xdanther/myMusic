@@ -4,6 +4,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mytv.mymusic.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -176,15 +179,17 @@ private fun PhoneCharts(
     }
     var pickerOpen by remember { mutableStateOf(false) }
     PageScaffold(
-        title = "榜单",
+        title = stringResource(R.string.nav_charts),
         subtitle = chartsSubtitle(charts),
         actions = {
             IconButton(
                 onClick = { selection.start() },
                 enabled = pool.isNotEmpty(),
                 modifier = Modifier.tvFocusRing(CircleShape),
-            ) { Icon(Icons.Filled.DoneAll, "批量选择歌曲") }
-            IconButton(onClick = actions::refreshCharts) { Icon(Icons.Filled.Refresh, "刷新榜单") }
+            ) { Icon(Icons.Filled.DoneAll, stringResource(R.string.charts_select_songs)) }
+            IconButton(onClick = actions::refreshCharts) {
+                Icon(Icons.Filled.Refresh, stringResource(R.string.charts_refresh))
+            }
         },
     ) { padding ->
         BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -203,19 +208,25 @@ private fun PhoneCharts(
                     empty && charts.loading -> item(key = "skeleton", contentType = "skeleton") { ChartsSkeleton(window.isTablet) }
                     empty && charts.error.isNotBlank() -> item(key = "error", contentType = "error") {
                         DiscoverErrorState(
-                            title = "榜单没有加载出来",
-                            message = "${charts.providerName}：${charts.error}\n可能是网络问题，也可能是平台接口暂时不可用。",
+                            title = stringResource(R.string.charts_load_failed),
+                            message = stringResource(R.string.charts_load_failed_message, charts.providerName, charts.error),
                             onRetry = actions::retryCharts,
-                            secondaryLabel = other?.let { "换成${it.name}" },
+                            secondaryLabel = other?.let { stringResource(R.string.charts_switch_to, it.name) },
                             onSecondary = other?.let { { actions.selectChartSource(it.id) } },
                         )
                     }
                     empty -> item(key = "empty", contentType = "empty") {
                         EmptyState(
                             icon = Icons.Filled.Storefront,
-                            title = if (charts.supported) "暂时没有榜单内容" else "这个平台没有提供排行榜",
-                            message = "换一个来源，或稍后再试。榜单来源只决定内容从哪里读，不影响播放时的自动换源。",
-                            actionLabel = if (other != null) "换成${other.name}" else "刷新",
+                            title = stringResource(
+                                if (charts.supported) R.string.charts_empty else R.string.charts_unsupported,
+                            ),
+                            message = stringResource(R.string.charts_empty_message),
+                            actionLabel = if (other != null) {
+                                stringResource(R.string.charts_switch_to, other.name)
+                            } else {
+                                stringResource(R.string.charts_refresh_action)
+                            },
                             onAction = { if (other != null) actions.selectChartSource(other.id) else actions.refreshCharts() },
                         )
                     }
@@ -239,7 +250,7 @@ private fun PhoneCharts(
                         if (!charts.supported) {
                             item(key = "note", contentType = "note") {
                                 Box(Modifier.padding(horizontal = gutter, vertical = 4.dp)) {
-                                    InfoNote("这个平台没有排行榜，下面只显示平台热歌。", "amber")
+                                    InfoNote(stringResource(R.string.charts_no_charts_note), "amber")
                                 }
                             }
                         }
@@ -268,7 +279,7 @@ private fun PhoneCharts(
                                     }
                                     if (more.isNotEmpty()) {
                                         Column(Modifier.weight(1f)) {
-                                            SectionLabel("更多榜单")
+                                            SectionLabel(stringResource(R.string.charts_more))
                                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                                 more.chunked(2).forEach { row ->
                                                     ChartCardRow(row, 2, charts.providerName, actions::openChart)
@@ -287,7 +298,9 @@ private fun PhoneCharts(
                                 }
                             }
                             if (more.isNotEmpty()) {
-                                item(key = "moreLabel", contentType = "label") { SectionLabel("更多榜单", Modifier.padding(horizontal = gutter)) }
+                                item(key = "moreLabel", contentType = "label") {
+                                    SectionLabel(stringResource(R.string.charts_more), Modifier.padding(horizontal = gutter))
+                                }
                                 items(
                                     moreRows,
                                     key = { row -> "charts:${row.first().id}" },
@@ -306,7 +319,7 @@ private fun PhoneCharts(
                         if (charts.hotSongs.isNotEmpty()) {
                             item(key = "hot", contentType = "hot") {
                                 Column(Modifier.padding(horizontal = gutter)) {
-                                    SectionLabel("平台热歌") {
+                                    SectionLabel(stringResource(R.string.charts_platform_hot)) {
                                         Text(
                                             charts.providerName,
                                             style = MaterialTheme.typography.labelLarge,
@@ -341,7 +354,11 @@ private fun PhoneCharts(
                                                     {
                                                         Icon(
                                                             if (isSelected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                                                            contentDescription = if (isSelected) "取消选择“${song.title}”" else "选择“${song.title}”",
+                                                            contentDescription = if (isSelected) {
+                                                                stringResource(R.string.charts_deselect_song, song.title)
+                                                            } else {
+                                                                stringResource(R.string.charts_select_song, song.title)
+                                                            },
                                                             tint = MaterialTheme.colorScheme.primary,
                                                         )
                                                     }
@@ -360,7 +377,10 @@ private fun PhoneCharts(
                         if (charts.error.isNotBlank()) {
                             item(key = "partial", contentType = "partial") {
                                 Box(Modifier.padding(horizontal = gutter, vertical = 12.dp)) {
-                                    ErrorBlock("部分内容没有加载出来：${charts.error}", actions::retryCharts)
+                                    ErrorBlock(
+                                        stringResource(R.string.charts_partial_error, charts.error),
+                                        actions::retryCharts,
+                                    )
                                 }
                             }
                         }
@@ -386,11 +406,13 @@ private fun PhoneCharts(
     }
 }
 
+@Composable
 private fun chartsSubtitle(charts: ChartsUiState): String {
-    val provider = charts.providerName.ifBlank { "榜单来源" }
+    val provider = charts.providerName.ifBlank { stringResource(R.string.charts_source) }
     return when {
-        charts.loading -> "$provider · 正在读取…"
-        charts.loadedAt > 0 -> "$provider · ${relativeTime(charts.loadedAt)}更新"
+        charts.loading -> "$provider · ${stringResource(R.string.charts_reading)}"
+        charts.loadedAt > 0 ->
+            "$provider · ${stringResource(R.string.charts_updated, relativeTime(charts.loadedAt))}"
         else -> provider
     }
 }
@@ -459,7 +481,7 @@ private fun ChartCarousel(
                 // 只有大项才能点播放键，窄条上点到的一律是“打开榜单”
                 if (showPlay) {
                     FilledIconButton(onClick = { onPlay(chart) }) {
-                        Icon(Icons.Filled.PlayArrow, "播放${chart.name}")
+                        Icon(Icons.Filled.PlayArrow, stringResource(R.string.charts_play_chart, chart.name))
                     }
                 }
             }
@@ -483,11 +505,11 @@ private fun FeaturedChart(
     selection: SelectionState,
 ) {
     val picking = selection.active
-    SectionLabel(chart.name.ifBlank { "榜首" }) {
+    SectionLabel(chart.name.ifBlank { stringResource(R.string.charts_top) }) {
         FilledTonalButton(onClick = { actions.playChart(chart) }, modifier = Modifier.heightIn(min = 40.dp)) {
             Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
-            Text("播放全部")
+            Text(stringResource(R.string.charts_play_all))
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
@@ -526,7 +548,11 @@ private fun FeaturedChart(
                     {
                         Icon(
                             if (isSelected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                            contentDescription = if (isSelected) "取消选择“${song.title}”" else "选择“${song.title}”",
+                            contentDescription = if (isSelected) {
+                                stringResource(R.string.charts_deselect_song, song.title)
+                            } else {
+                                stringResource(R.string.charts_select_song, song.title)
+                            },
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -540,7 +566,7 @@ private fun FeaturedChart(
         }
     }
     TextButton(onClick = { actions.openChart(chart) }, modifier = Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) {
-        Text("查看完整榜单")
+        Text(stringResource(R.string.charts_view_full))
         Spacer(Modifier.width(6.dp))
         Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
     }
@@ -565,12 +591,13 @@ private fun ChartSpotlight(
             .clip(shape)
             .background(MaterialTheme.colorScheme.tertiaryContainer)
             .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
-            .combinedClickable(onClick = onPlay, onLongClick = onMore, onLongClickLabel = "更多操作")
+            .combinedClickable(onClick = onPlay, onLongClick = onMore, onLongClickLabel = stringResource(R.string.charts_more_actions))
             .padding(start = 18.dp, end = 14.dp, top = 14.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(Modifier.semantics { contentDescription = "第 1 名" }) {
+        val rankDescription = stringResource(R.string.charts_rank, 1)
+        Column(Modifier.semantics { contentDescription = rankDescription }) {
             Text("NO.", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = content.copy(alpha = 0.75f))
             Text("1", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, color = content)
         }
@@ -608,9 +635,9 @@ private fun ChartSpotlight(
                         else -> Icons.Filled.RadioButtonUnchecked
                     },
                     contentDescription = when {
-                        !selecting -> "播放${song.title}"
-                        selected -> "取消选择“${song.title}”"
-                        else -> "选择“${song.title}”"
+                        !selecting -> stringResource(R.string.charts_play_song, song.title)
+                        selected -> stringResource(R.string.charts_deselect_song, song.title)
+                        else -> stringResource(R.string.charts_select_song, song.title)
                     },
                 )
             }
@@ -670,6 +697,8 @@ internal class TvHeroItem(
     val playLabel: String,
     val onPlay: () -> Unit,
     val secondaryLabel: String,
+    /** 第二个按钮前面加“换源”图标（单曲 Hero 用）。翻译后不能再靠文案比较。 */
+    val showSourceIcon: Boolean = false,
     val onSecondary: () -> Unit,
     val onClick: () -> Unit,
     val arch: Boolean = false,
@@ -692,10 +721,10 @@ private fun TvCharts(
         buildPlaylistHeroItems(recommended, actions)
     }
     val hotItems = remember(charts.hotSongs, provider, actions) {
-        buildSongHeroItems("hot", charts.hotSongs, "$provider 热歌", actions)
+        buildSongHeroItems("hot", charts.hotSongs, "$provider hot songs", actions)
     }
     val historyItems = remember(history, actions) {
-        buildSongHeroItems("history", history, "最近播放", actions)
+        buildSongHeroItems("history", history, "Recently played", actions)
     }
 
     val focusedKey = remember(charts.providerId) { mutableStateOf<String?>(null) }
@@ -721,43 +750,63 @@ private fun TvCharts(
             empty && charts.loading -> TvChartsSkeleton()
             empty && charts.error.isNotBlank() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 DiscoverErrorState(
-                    title = "榜单没有加载出来",
-                    message = "${charts.providerName}：${charts.error}",
+                    title = stringResource(R.string.charts_load_failed),
+                    message = stringResource(R.string.charts_load_failed_message, charts.providerName, charts.error),
                     onRetry = actions::retryCharts,
                     modifier = Modifier.widthIn(max = 560.dp),
-                    secondaryLabel = other?.let { "换成${it.name}" },
+                    secondaryLabel = other?.let { stringResource(R.string.charts_switch_to, it.name) },
                     onSecondary = other?.let { { actions.selectChartSource(it.id) } },
                 )
             }
             empty || hero == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 EmptyState(
                     icon = Icons.Filled.Storefront,
-                    title = "这个平台没有提供排行榜",
-                    message = "换一个来源，或稍后再试。",
-                    actionLabel = if (other != null) "换成${other.name}" else "刷新",
+                    title = stringResource(R.string.charts_unsupported),
+                    message = stringResource(R.string.charts_empty_message_short),
+                    actionLabel = if (other != null) {
+                        stringResource(R.string.charts_switch_to, other.name)
+                    } else {
+                        stringResource(R.string.charts_refresh_action)
+                    },
                     onAction = { if (other != null) actions.selectChartSource(other.id) else actions.refreshCharts() },
                 )
             }
             else -> {
                 TvHero(hero, actions, playFocus)
                 LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 48.dp)) {
-                    if (chartItems.isNotEmpty()) item(key = "charts", contentType = "chartRow") { TvCardRow("热门榜单", chartItems, onHeroFocused) }
-                    if (playlistItems.isNotEmpty()) item(key = "rec", contentType = "playlistRow") { TvCardRow("为你推荐", playlistItems, onHeroFocused) }
-                    if (hotItems.isNotEmpty()) item(key = "hot", contentType = "songRow") { TvCardRow("平台热歌", hotItems, onHeroFocused) }
-                    if (historyItems.isNotEmpty()) item(key = "history", contentType = "songRow") { TvCardRow("最近播放", historyItems, onHeroFocused) }
+                    if (chartItems.isNotEmpty()) item(key = "charts", contentType = "chartRow") {
+                        TvCardRow(stringResource(R.string.charts_popular), chartItems, onHeroFocused)
+                    }
+                    if (playlistItems.isNotEmpty()) item(key = "rec", contentType = "playlistRow") {
+                        TvCardRow(stringResource(R.string.charts_for_you), playlistItems, onHeroFocused)
+                    }
+                    if (hotItems.isNotEmpty()) item(key = "hot", contentType = "songRow") {
+                        TvCardRow(stringResource(R.string.charts_platform_hot), hotItems, onHeroFocused)
+                    }
+                    if (historyItems.isNotEmpty()) item(key = "history", contentType = "songRow") {
+                        TvCardRow(stringResource(R.string.charts_recent), historyItems, onHeroFocused)
+                    }
                     if (charts.error.isNotBlank()) {
                         item(key = "partial", contentType = "partial") {
                             Box(Modifier.padding(horizontal = gutter, vertical = 8.dp)) {
-                                ErrorBlock("部分内容没有加载出来：${charts.error}", actions::retryCharts)
+                                ErrorBlock(
+                                    stringResource(R.string.charts_partial_error, charts.error),
+                                    actions::retryCharts,
+                                )
                             }
                         }
                     }
                     item(key = "sources", contentType = "sources") {
                         Column(Modifier.padding(top = 12.dp)) {
                             Row(Modifier.padding(horizontal = gutter), verticalAlignment = Alignment.CenterVertically) {
-                                Text("榜单来源", Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text(
+                                    stringResource(R.string.charts_source),
+                                    Modifier.weight(1f).semantics { heading() },
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
                                 IconButton(onClick = actions::refreshCharts, modifier = Modifier.tvFocusRing(CircleShape)) {
-                                    Icon(Icons.Filled.Refresh, "刷新榜单")
+                                    Icon(Icons.Filled.Refresh, stringResource(R.string.charts_refresh))
                                 }
                             }
                             ProviderChips(sources, charts.providerId, actions::selectChartSource)
@@ -850,7 +899,7 @@ private fun TvHero(item: TvHeroItem, actions: MusicActions, playFocus: FocusRequ
                     Text(item.playLabel, Modifier.semantics { contentDescription = "${item.playLabel}：${item.title}" })
                 }
                 FilledTonalButton(onClick = item.onSecondary, modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(CircleShape)) {
-                    if (item.secondaryLabel == "选择音源") {
+                    if (item.showSourceIcon) {
                         Icon(Icons.Filled.SwapHoriz, null)
                         Spacer(Modifier.width(8.dp))
                     }
@@ -868,12 +917,15 @@ internal fun buildChartHeroItems(charts: List<TopList>, provider: String, action
             key = "chart:${chart.id}",
             cover = chart.cover,
             title = chart.name,
-            meta = listOf(provider, chart.updateFrequency, "${chart.trackCount} 首".takeIf { chart.trackCount > 0 })
-                .filterNotNull().filter { it.isNotBlank() }.joinToString(" · "),
-            description = chart.description.ifBlank { "按你的音源策略播放，失败时自动换源。" },
-            playLabel = "播放全部",
+            meta = listOf(
+                provider,
+                chart.updateFrequency,
+                (if (chart.trackCount == 1) "1 song" else "${chart.trackCount} songs").takeIf { chart.trackCount > 0 },
+            ).filterNotNull().filter { it.isNotBlank() }.joinToString(" · "),
+            description = chart.description.ifBlank { "Plays by your source rules, switching automatically on failure." },
+            playLabel = "Play all",
             onPlay = { actions.playChart(chart) },
-            secondaryLabel = "查看榜单",
+            secondaryLabel = "View chart",
             onSecondary = { actions.openChart(chart) },
             onClick = { actions.openChart(chart) },
             arch = true,
@@ -887,12 +939,15 @@ internal fun buildPlaylistHeroItems(recommended: List<Playlist>, actions: MusicA
             key = "pl:${playlist.source}:${playlist.id}",
             cover = playlist.cover,
             title = playlist.name,
-            meta = listOf("歌单", formatPlayCount(playlist.playCount).takeIf { it.isNotBlank() }?.let { "$it 次播放" }, playlist.creator)
-                .filterNotNull().filter { it.isNotBlank() }.joinToString(" · "),
-            description = playlist.description.ifBlank { "来自歌单页的推荐。" },
-            playLabel = "播放全部",
+            meta = listOf(
+                "Playlist",
+                formatPlayCount(playlist.playCount).takeIf { it.isNotBlank() }?.let { "$it plays" },
+                playlist.creator,
+            ).filterNotNull().filter { it.isNotBlank() }.joinToString(" · "),
+            description = playlist.description.ifBlank { "Recommended from Playlists." },
+            playLabel = "Play all",
             onPlay = { actions.playPlaylist(playlist) },
-            secondaryLabel = "打开歌单",
+            secondaryLabel = "Open playlist",
             onSecondary = { actions.openPlaylist(playlist) },
             onClick = { actions.openPlaylist(playlist) },
         )
@@ -910,10 +965,11 @@ internal fun buildSongHeroItems(
         cover = song.cover,
         title = song.title,
         meta = listOf(meta, song.subtitle).filter { it.isNotBlank() }.joinToString(" · "),
-        description = "确定键播放；也可以先选择从哪个平台播放。",
-        playLabel = "播放",
+        description = "Press OK to play, or choose which platform to play from first.",
+        playLabel = "Play",
         onPlay = { actions.play(song, songs) },
-        secondaryLabel = "选择音源",
+        secondaryLabel = "Choose source",
+        showSourceIcon = true,
         onSecondary = { actions.openSourceForSong(song, songs) },
         onClick = { actions.play(song, songs) },
     )
@@ -1106,13 +1162,14 @@ internal fun DiscoverCard(
 /** 封面上的播放量：半透明表面色底，不用实时模糊（每屏模糊层有上限）。 */
 @Composable
 internal fun PlayCountTag(text: String, modifier: Modifier = Modifier) {
+    val playsDescription = stringResource(R.string.charts_plays, text)
     Row(
         modifier
             .heightIn(min = 22.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.78f))
             .padding(horizontal = 8.dp, vertical = 2.dp)
-            .semantics { contentDescription = "$text 次播放" },
+            .semantics { contentDescription = playsDescription },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
@@ -1184,7 +1241,7 @@ internal fun DiscoverErrorState(
             Button(onClick = onRetry, modifier = Modifier.focusRequester(retryFocus).heightIn(min = 48.dp).tvFocusRing(CircleShape)) {
                 Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("重试")
+                Text(stringResource(R.string.charts_retry))
             }
             if (secondaryLabel != null && onSecondary != null) {
                 FilledTonalButton(onClick = onSecondary, modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(CircleShape)) {

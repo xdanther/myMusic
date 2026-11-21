@@ -107,7 +107,12 @@ import java.io.File
 
 // ======================= 喜欢 =======================
 
-private enum class FavFilter(val label: String) { All("全部"), Downloaded("已下载"), Playable("可播放"), Recent("最近添加") }
+private enum class FavFilter(val label: String) {
+    All("All"),
+    Downloaded("Downloaded"),
+    Playable("Playable"),
+    Recent("Recently added"),
+}
 
 @Composable
 fun FavoritesScreen(
@@ -150,7 +155,7 @@ fun FavoritesScreen(
     val downloadedCount = remember(all, downloaded) { all.count { it.second.key in downloaded } }
     val unfavorite: (SavedSong, Song) -> Unit = { saved, song ->
         actions.favorite(song)
-        undo.show("已取消收藏“${song.title}”") { actions.restoreSaved(listOf(saved)) }
+        undo.show("Removed “${song.title}” from favorites") { actions.restoreSaved(listOf(saved)) }
     }
     TvDefaultFocus(playFocus, favorites.isEmpty())
 
@@ -174,7 +179,7 @@ fun FavoritesScreen(
         if (shown.isEmpty() && favorites.isNotEmpty()) {
             item(key = "noMatch", contentType = "empty") {
                 Text(
-                    "没有符合“${filter.label}”的歌曲",
+                    "No songs match “${filter.label}”",
                     Modifier.padding(vertical = 24.dp, horizontal = 4.dp),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -200,7 +205,11 @@ fun FavoritesScreen(
                 badges = local?.let { copy -> { LocalSongBadge(copy) } },
                 trailing = {
                     IconButton(onClick = { unfavorite(saved, song) }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Icon(Icons.Filled.Favorite, "取消收藏“${song.title}”", tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            Icons.Filled.Favorite,
+                            "Remove “${song.title}” from favorites",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 },
                 onMore = { actionSong = saved to song },
@@ -208,7 +217,9 @@ fun FavoritesScreen(
                 swipe = rememberRowSwipe(
                     song,
                     songs,
-                    delete = SwipeDelete("取消收藏", "取消收藏", sameAsUnfavorite = true) { unfavorite(saved, song) },
+                    delete = SwipeDelete("Remove from favorites", "Remove from favorites", sameAsUnfavorite = true) {
+                        unfavorite(saved, song)
+                    },
                 ),
                 // 行尾的心本身是按钮：悬停按钮插在它前面，不替换
                 hoverReplacesTrailing = false,
@@ -217,15 +228,19 @@ fun FavoritesScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        PageScaffold(title = "喜欢", subtitle = if (window.isTv) "${all.size} 首 · 只保存在本机" else "", onBack = onBack) { padding ->
+        PageScaffold(
+            title = "Favorites",
+            subtitle = if (window.isTv) "${all.size} songs · Stored on this device only" else "",
+            onBack = onBack,
+        ) { padding ->
             when {
                 favorites.isEmpty() && !settled -> SkeletonRows(6, Modifier.padding(padding).padding(horizontal = window.gutter))
                 favorites.isEmpty() -> CenteredEmpty(padding, playFocus) {
                     EmptyState(
                         icon = Icons.Filled.Favorite,
-                        title = "还没有收藏的歌曲",
-                        message = "在播放页点亮爱心，或在歌曲菜单里收藏。收藏只保存在本机。",
-                        actionLabel = "去榜单看看",
+                        title = "No favorites yet",
+                        message = "Tap the heart on the player, or favorite a song from its menu. Favorites stay on this device.",
+                        actionLabel = "Browse the charts",
                         onAction = onBrowse,
                     )
                 }
@@ -245,8 +260,8 @@ fun FavoritesScreen(
 
     LocalUnplayableSheets(
         host = unplayable,
-        removeLabel = "取消收藏",
-        removeSummary = "所有设备上都会取消",
+        removeLabel = "Remove from favorites",
+        removeSummary = "This removes it on every device",
         onRemove = { song -> all.firstOrNull { it.second.key == song.key }?.let { (saved, item) -> unfavorite(saved, item) } },
     )
     actionSong?.let { (saved, song) ->
@@ -282,11 +297,15 @@ private fun FavoritesHero(count: Int, latest: Long, downloaded: Int) {
         Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             HeartBadge(72.dp)
             Column {
-                Text("$count 首", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    if (count == 1) "1 song" else "$count songs",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                )
                 Text(
                     listOfNotNull(
-                        relativeTime(latest).takeIf { it.isNotBlank() }?.let { "最近一首：$it" },
-                        "$downloaded 首已下载",
+                        relativeTime(latest).takeIf { it.isNotBlank() }?.let { "Latest: $it" },
+                        "$downloaded downloaded",
                     ).joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -348,7 +367,7 @@ fun HistoryScreen(
     val removeOne: (SavedSong, Song) -> Unit = { saved, song ->
         prepared.keyAfterRemoving(saved.key)?.let { next -> if (window.isTv) refocus = saved.key to next }
         actions.removePlayHistory(saved.key)
-        undo.show("已从最近播放删除「${song.title}」") {
+        undo.show("Removed “${song.title}” from recent plays") {
             actions.restoreSaved(listOf(saved))
             if (window.isTv) refocus = "" to saved.key
         }
@@ -385,14 +404,18 @@ fun HistoryScreen(
                 },
                 onMore = { actionItem = saved to song },
                 // 左滑「删除」= 删这条记录，和 ⋮ 面板里的「从最近播放删除」同一份（撤销按原时间写回）
-                swipe = rememberRowSwipe(song, queue, delete = SwipeDelete("删除", "从最近播放删除") { removeOne(saved, song) }),
+                swipe = rememberRowSwipe(
+                    song,
+                    queue,
+                    delete = SwipeDelete("Delete", "Remove from recent plays") { removeOne(saved, song) },
+                ),
             )
         }
     }
     val note: LazyListScope.() -> Unit = {
         item(key = "note", contentType = "note") {
             Text(
-                "只保存在本机，不会上传或同步。",
+                "Stored on this device only — never uploaded or synced.",
                 Modifier.padding(start = 4.dp, bottom = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -402,8 +425,8 @@ fun HistoryScreen(
 
     Box(Modifier.fillMaxSize()) {
         PageScaffold(
-            title = "最近播放",
-            subtitle = if (window.isTv) "只保存在本机" else "",
+            title = "Recently played",
+            subtitle = if (window.isTv) "Stored on this device only" else "",
             onBack = onBack,
             actions = {
                 if (history.isNotEmpty()) {
@@ -411,10 +434,10 @@ fun HistoryScreen(
                         onClick = {
                             val snapshot = history
                             actions.clearPlayHistory()
-                            undo.show("已清除 ${snapshot.size} 条播放记录") { actions.restoreSaved(snapshot) }
+                            undo.show("Cleared ${snapshot.size} history entries") { actions.restoreSaved(snapshot) }
                         },
                         modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text("清除") }
+                    ) { Text("Clear") }
                 }
             },
         ) { padding ->
@@ -423,8 +446,8 @@ fun HistoryScreen(
                 history.isEmpty() -> CenteredEmpty(padding) {
                     EmptyState(
                         icon = Icons.Filled.History,
-                        title = "还没有播放记录",
-                        message = "播放过的歌曲会按日期保存在本机，不会上传到云端。",
+                        title = "Nothing played yet",
+                        message = "Songs you play are saved here by date, on this device only.",
                     )
                 }
                 // 两栏：今天（或最近的一天）在左，更早的在右
@@ -437,10 +460,10 @@ fun HistoryScreen(
                     },
                     right = {
                         if (groups.size <= 1) {
-                            item(key = "older", contentType = "header") { DayLabel("更早") }
+                            item(key = "older", contentType = "header") { DayLabel("Earlier") }
                             item(key = "olderEmpty", contentType = "empty") {
                                 Text(
-                                    "更早的记录会显示在这里。",
+                                    "Older entries show up here.",
                                     Modifier.padding(start = 4.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -465,8 +488,8 @@ fun HistoryScreen(
     // 放不了的本地歌：面板里除了“找一首平台版本”，也能删掉这条记录
     LocalUnplayableSheets(
         host = unplayable,
-        removeLabel = "从最近播放删除",
-        removeSummary = "只删这台设备上的这条记录",
+        removeLabel = "Remove from recent plays",
+        removeSummary = "Only removes this entry on this device",
         onRemove = { song -> history.firstOrNull { it.key == song.key }?.let { removeOne(it, song) } },
     )
     actionItem?.let { (saved, song) ->
@@ -537,11 +560,11 @@ fun DownloadsScreen(
     val summary: LazyListScope.() -> Unit = {
         item(key = "usage", contentType = "usage") { StorageCard(done.size, doneBytes, cacheBytes, freeBytes) }
         if (active.isNotEmpty()) {
-            item(key = "activeHead", contentType = "header") { DayLabel("正在下载") }
+            item(key = "activeHead", contentType = "header") { DayLabel("Downloading") }
             itemsIndexed(active, key = { _, it -> "active:${it.record.key}" }, contentType = { _, _ -> "download" }) { index, item ->
                 SongRow(
                     title = item.song.title,
-                    subtitle = "${item.song.artist.ifBlank { "未知歌手" }} · 正在下载",
+                    subtitle = "${item.song.artist.ifBlank { "Unknown artist" }} · Downloading",
                     cover = item.song.cover,
                     index = index,
                     count = active.size,
@@ -551,14 +574,14 @@ fun DownloadsScreen(
             }
         }
         if (failed.isNotEmpty()) {
-            item(key = "failedHead", contentType = "header") { DayLabel("下载失败") }
+            item(key = "failedHead", contentType = "header") { DayLabel("Download failed") }
             itemsIndexed(failed, key = { _, it -> "failed:${it.record.key}" }, contentType = { _, _ -> "download" }) { index, item ->
                 SongRow(
                     title = item.song.title,
                     subtitle = listOf(
-                        item.song.artist.ifBlank { "未知歌手" },
-                        item.record.error.ifBlank { "下载失败" },
-                        "点按重试",
+                        item.song.artist.ifBlank { "Unknown artist" },
+                        item.record.error.ifBlank { "Download failed" },
+                        "Tap to retry",
                     ).joinToString(" · "),
                     cover = item.song.cover,
                     index = index,
@@ -577,7 +600,11 @@ fun DownloadsScreen(
                         },
                     trailing = {
                         IconButton(onClick = { deleting = item.record }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Outlined.Delete, "删除“${item.song.title}”的下载记录", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(
+                                Icons.Outlined.Delete,
+                                "Remove the download record for “${item.song.title}”",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     },
                 )
@@ -585,11 +612,11 @@ fun DownloadsScreen(
         }
     }
     val doneList: LazyListScope.() -> Unit = {
-        item(key = "doneHead", contentType = "header") { DayLabel("已下载") }
+        item(key = "doneHead", contentType = "header") { DayLabel("Downloaded") }
         if (done.isEmpty()) {
             item(key = "doneEmpty", contentType = "empty") {
                 Text(
-                    "下载完成的歌曲会出现在这里。",
+                    "Finished downloads show up here.",
                     Modifier.padding(start = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -600,7 +627,7 @@ fun DownloadsScreen(
             // 显示磁盘上文件的真实后缀：记录里的 Song 可能是下载前的搜索元数据，
             // 平台标称无损、账号实际只拿到 mp3 时，两者会对不上。
             val fileExt = File(item.record.path).extension.uppercase().ifBlank { item.song.ext.uppercase() }
-            val detail = if (item.missing) "文件已不存在" else listOf(fileExt, formatBytes(item.size))
+            val detail = if (item.missing) "File is gone" else listOf(fileExt, formatBytes(item.size))
                 .filter { it.isNotBlank() }.joinToString(" · ")
             SongRow(
                 title = item.song.title,
@@ -623,28 +650,38 @@ fun DownloadsScreen(
                 playing = state.current?.key == item.song.key,
                 trailing = {
                     IconButton(onClick = { deleting = item.record }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Icon(Icons.Outlined.Delete, "删除“${item.song.title}”的下载文件", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(
+                            Icons.Outlined.Delete,
+                            "Delete the downloaded file for “${item.song.title}”",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 },
                 // 「删除」在下载里是删文件：和行尾按钮一样先弹确认框
                 swipe = rememberRowSwipe(
                     item.song,
                     doneSongs,
-                    delete = SwipeDelete("删文件", "删除下载文件", icon = Icons.Outlined.Delete) { deleting = item.record },
+                    delete = SwipeDelete("Delete file", "Delete downloaded file", icon = Icons.Outlined.Delete) {
+                        deleting = item.record
+                    },
                 ),
                 hoverReplacesTrailing = false,
             )
         }
     }
 
-    PageScaffold(title = "下载", subtitle = if (window.isTv) "失败项点按重试，菜单键删除" else "", onBack = onBack) { padding ->
+    PageScaffold(
+        title = "Downloads",
+        subtitle = if (window.isTv) "Tap a failed item to retry, use the menu key to delete" else "",
+        onBack = onBack,
+    ) { padding ->
         when {
             downloads.isEmpty() && !settled -> SkeletonRows(6, Modifier.padding(padding).padding(horizontal = window.gutter))
             downloads.isEmpty() -> CenteredEmpty(padding) {
                 EmptyState(
                     icon = Icons.Filled.Download,
-                    title = "还没有下载",
-                    message = "在歌曲菜单里选择下载。下载的歌曲会优先作为本地音源，没网也能播放。",
+                    title = "No downloads yet",
+                    message = "Pick Download from a song's menu. Downloaded songs are used as local sources first, so they play offline.",
                 )
             }
             window.twoPane -> TwoColumns(padding, if (window.isTv) 340.dp else 360.dp, summary, doneList)
@@ -661,13 +698,13 @@ fun DownloadsScreen(
 
     deleting?.let { record ->
         ConfirmDialog(
-            title = if (record.state == DOWNLOAD_FAILED) "移除下载记录" else "删除下载文件",
+            title = if (record.state == DOWNLOAD_FAILED) "Remove download record" else "Delete downloaded file",
             message = if (record.state == DOWNLOAD_FAILED) {
-                "只移除这条失败记录，不影响收藏和歌单。"
+                "Only removes this failed entry; favorites and playlists stay as they are."
             } else {
-                "会删除本机上的音频文件，不影响收藏和歌单。"
+                "Deletes the audio file from this device; favorites and playlists stay as they are."
             },
-            confirmLabel = "删除",
+            confirmLabel = "Delete",
             danger = true,
             onConfirm = { actions.deleteDownload(record) },
             onDismiss = { deleting = null },
@@ -738,9 +775,9 @@ internal fun prepareDownloadSections(
 private fun StorageCard(count: Int, downloadBytes: Long, cacheBytes: Long, freeBytes: Long) {
     val scheme = MaterialTheme.colorScheme
     val segments = listOf(
-        Triple("下载", downloadBytes, scheme.primary),
-        Triple("缓存", cacheBytes, scheme.tertiary),
-        Triple("可用", freeBytes, scheme.surfaceContainerHighest),
+        Triple("Downloads", downloadBytes, scheme.primary),
+        Triple("Cache", cacheBytes, scheme.tertiary),
+        Triple("Free", freeBytes, scheme.surfaceContainerHighest),
     )
     val total = segments.sumOf { it.second }.coerceAtLeast(1L)
     Surface(
@@ -749,9 +786,13 @@ private fun StorageCard(count: Int, downloadBytes: Long, cacheBytes: Long, freeB
         modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
     ) {
         Column(Modifier.padding(18.dp)) {
-            Text("$count 首 · ${formatBytes(downloadBytes)}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
             Text(
-                "下载的歌曲会优先作为本地音源，没网也能播放。",
+                "$count songs · ${formatBytes(downloadBytes)}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Text(
+                "Downloaded songs are used as local sources first, so they play offline.",
                 Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant,
@@ -882,7 +923,7 @@ internal fun PlayShuffleRow(
         ) {
             Icon(Icons.Filled.PlayArrow, null, Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text("播放")
+            Text("Play")
         }
         FilledTonalButton(
             onClick = onShuffle,
@@ -891,7 +932,7 @@ internal fun PlayShuffleRow(
         ) {
             Icon(Icons.Filled.Shuffle, null, Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text("随机播放")
+            Text("Shuffle")
         }
     }
 }
@@ -918,7 +959,7 @@ internal fun <T> FilterRow(options: List<T>, selected: T, label: (T) -> String, 
 }
 
 private fun sourceLabel(song: Song): String = when {
-    song.isInvalid -> "无可用音源"
-    song.isVip -> "需要会员"
+    song.isInvalid -> "No source available"
+    song.isVip -> "Needs membership"
     else -> ""
 }

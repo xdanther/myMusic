@@ -1,6 +1,7 @@
 package com.mytv.mymusic.data.native
 
 import com.mytv.mymusic.data.ProviderInfo
+import com.mytv.mymusic.data.subsonic.NavidromeProvider
 import java.util.UUID
 
 object NativeProviders {
@@ -21,6 +22,7 @@ object NativeProviders {
         addProvider { MHubProvider() }
         addProvider { SodaProvider() }
         addProvider { YuntingProvider() }
+        addProvider { NavidromeProvider() }
     }
 
     private fun MutableList<NativeProvider>.addProvider(factory: () -> NativeProvider) {

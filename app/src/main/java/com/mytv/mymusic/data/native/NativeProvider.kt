@@ -174,6 +174,13 @@ interface NativeProvider {
         throw UnsupportedOperationException("${info.name} 暂不支持账号密码登录")
 
     /**
+     * 带服务器地址的账号密码登录（自建 Navidrome / Subsonic）。默认忽略 [server]，
+     * 交给只需要用户名密码的平台。
+     */
+    suspend fun passwordLogin(server: String, username: String, password: String): String =
+        passwordLogin(username, password)
+
+    /**
      * 这个平台有没有账号侧的「收藏」：把一首歌加进平台账号的我喜欢 / 收藏夹。
      * 和本机收藏是两件事：这个写去平台，换设备也在。默认 false，界面据此决定显不显示这一行。
      */

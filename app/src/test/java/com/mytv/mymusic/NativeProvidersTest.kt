@@ -24,6 +24,7 @@ class NativeProvidersTest {
             "youtubemusic",
             "mhub",
             "yunting",
+            "navidrome",
         )
         val providers = NativeProviders.all()
         assertEquals(expected, providers.map { it.info.id }.toSet())

@@ -1274,8 +1274,8 @@ fun AccountsSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: (
                 actions.cancelLogin()
                 passwordFor = null
             },
-            onSubmit = { username, password ->
-                actions.loginWithPassword(provider.id, username, password)
+            onSubmit = { server, username, password ->
+                actions.loginWithPassword(provider.id, username, password, server)
             },
         )
     }
@@ -1626,14 +1626,18 @@ private fun CookieDialog(provider: ProviderInfo, initial: String, onSave: (Strin
     )
 }
 
-/** 用户名 + 密码登录；成功后 Cookie 变化，面板自动关闭。 */
+/**
+ * 用户名 + 密码登录；成功后 Cookie 变化，面板自动关闭。
+ * 自建服务器（[ProviderInfo.serverLogin]）多一个服务器地址输入框，密码只存本机。
+ */
 @Composable
 private fun PasswordLoginDialog(
     provider: ProviderInfo,
     state: MusicUiState,
     onDismiss: () -> Unit,
-    onSubmit: (String, String) -> Unit,
+    onSubmit: (String, String, String) -> Unit,
 ) {
+    var server by remember(provider.id) { mutableStateOf("") }
     var username by remember(provider.id) { mutableStateOf("") }
     var password by remember(provider.id) { mutableStateOf("") }
     val cookie = state.cookies[provider.id].orEmpty()
@@ -1654,14 +1658,32 @@ private fun PasswordLoginDialog(
         text = {
             Column {
                 Text(
-                    "使用 music.op.wiki 的账号；没有账号请先在网站上注册。登录后可以同步、播放和修改自己的歌单；新建歌单仍在网站操作。",
+                    if (provider.serverLogin) {
+                        "Sign in with your own Navidrome / Subsonic server. The password stays on this device " +
+                            "and is never synced; only the address and username are kept as a marker."
+                    } else {
+                        "使用 music.op.wiki 的账号；没有账号请先在网站上注册。登录后可以同步、播放和修改自己的歌单；新建歌单仍在网站操作。"
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (provider.serverLogin) {
+                    OutlinedTextField(
+                        value = server,
+                        onValueChange = { server = it },
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        label = { Text("Server address") },
+                        placeholder = { Text("https://music.example.com") },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri,
+                        ),
+                    )
+                }
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = if (provider.serverLogin) 8.dp else 12.dp),
                     label = { Text("用户名") },
                     singleLine = true,
                 )
@@ -1688,8 +1710,9 @@ private fun PasswordLoginDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSubmit(username, password) },
-                enabled = username.isNotBlank() && password.isNotBlank() && !busy,
+                onClick = { onSubmit(server, username, password) },
+                enabled = username.isNotBlank() && password.isNotBlank() &&
+                    (!provider.serverLogin || server.isNotBlank()) && !busy,
             ) { Text(if (busy) "登录中…" else "登录") }
         },
         dismissButton = {

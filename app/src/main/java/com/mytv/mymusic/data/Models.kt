@@ -27,6 +27,8 @@ data class ProviderInfo(
     @SerialName("QRLogin") val qrLogin: Boolean = false,
     /** 支持用户名 + 密码登录（music.op.wiki 的 MHub 账号）。 */
     @SerialName("PasswordLogin") val passwordLogin: Boolean = false,
+    /** 登录要填服务器地址（自建 Navidrome / Subsonic）：密码登录弹窗多一个地址输入框。 */
+    @SerialName("ServerLogin") val serverLogin: Boolean = false,
     @SerialName("PlaylistCategories") val playlistCategories: Boolean = false,
     @SerialName("TopLists") val topLists: Boolean = false,
     @SerialName("TopListSongs") val topListSongs: Boolean = false,

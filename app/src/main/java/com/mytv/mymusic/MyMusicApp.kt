@@ -45,7 +45,7 @@ import com.mytv.mymusic.ui.theme.isTelevision
 import java.io.File
 
 @androidx.annotation.OptIn(UnstableApi::class)
-class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider {
+class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider, coil3.SingletonImageLoader.Factory {
     lateinit var repository: MusicRepository
     lateinit var settings: SettingsStore
     lateinit var database: AppDatabase
@@ -157,6 +157,8 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider {
                 .collect { (url, token, enabled) -> SodaProvider.configureSigner(url, token, enabled) }
         }
         secretStore = SecretStore(this)
+        // Navidrome 账号：密码在 Keystore 里，取流和封面加载都读这一份
+        com.mytv.mymusic.data.subsonic.NavidromeStore.attach(this, secretStore)
         equalizer = EqualizerController(this, settings)
         rhythmAnalyzer = RhythmAnalyzer()
         automixStore = com.mytv.mymusic.playback.AutomixAnalysisStore(database.dao())
@@ -238,6 +240,22 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider {
         // DE 上下文里 Glance 依赖的 WorkManager 起不来，直接不启动组件这条链路，主界面照常可用。
         if (backgroundWork) WidgetUpdater.start(this)
     }
+
+    /**
+     * 全局图片加载器：网络请求走 [com.mytv.mymusic.data.subsonic.NavidromeImages] 那个客户端，
+     * 这样封面地址里不用带 Navidrome 的令牌，请求发出前才补认证。其他图片原样放行。
+     */
+    override fun newImageLoader(context: android.content.Context): coil3.ImageLoader =
+        coil3.ImageLoader.Builder(context)
+            .components {
+                add(
+                    coil3.network.okhttp.OkHttpNetworkFetcherFactory(
+                        callFactory = { com.mytv.mymusic.data.subsonic.NavidromeImages.client },
+                        cacheStrategy = { coil3.network.CacheStrategy.DEFAULT },
+                    )
+                )
+            }
+            .build()
 
     private fun createMediaCache(): SimpleCache {
         val directory = File(cacheDir, "media")

@@ -6339,9 +6339,16 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 用户名密码登录（music.op.wiki）：成功后走和 Cookie 登录完全相同的保存与资料刷新流程。 */
-    fun loginWithPassword(providerId: String, username: String, password: String) {
+    /**
+     * 用户名密码登录：成功后走和 Cookie 登录完全相同的保存与资料刷新流程。
+     * [server] 只有需要服务器地址的平台（Navidrome）用；密码由提供者自己存进 Keystore，不进 Cookie。
+     */
+    fun loginWithPassword(providerId: String, username: String, password: String, server: String = "") {
         if (username.isBlank() || password.isBlank()) return
+        if (NativeProviders.get(providerId)?.info?.serverLogin == true && server.isBlank()) {
+            base.value = base.value.copy(loginStatus = "登录失败：请先填写服务器地址", loginProviderId = providerId)
+            return
+        }
         loginJob?.cancel()
         base.value = base.value.copy(login = null, loginStatus = "登录中…", loginProviderId = providerId)
         loginJob = viewModelScope.launch {
@@ -6351,7 +6358,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
             val cookie = try {
-                provider.passwordLogin(username.trim(), password)
+                provider.passwordLogin(server.trim(), username.trim(), password)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Exception) {
@@ -6373,6 +6380,10 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         resolver.clearCache()
         searchEngine.clearCache()
         val previousCookie = settingsState.value.cookies[providerId].orEmpty()
+        // Navidrome 的密码在 Keystore 里单独存，退出登录时一起清掉，不然下次打开还能取流
+        if (providerId == com.mytv.mymusic.data.subsonic.NAVIDROME_ID && cookie.isBlank()) {
+            com.mytv.mymusic.data.subsonic.NavidromeStore.clear()
+        }
         app.settings.cookie(providerId, cookie)
         app.sync.onLocalChange()
         base.value = base.value.copy(login = null, loginProviderId = "")

@@ -65,7 +65,7 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider, c
     }
     lateinit var sync: SyncCoordinator
     lateinit var queueStore: QueueStore
-    /** 「天天听歌」福利中心：听歌时长、任务领取和 VIP 天数，只存本机。 */
+    /** '天天听歌'福利中心：听歌时长、任务领取和 VIP 天数，只存本机。 */
     lateinit var listenTasks: ListenTaskStore
     /** 平台账号资料（头像、昵称、会员等级）的本机缓存，见 AccountProfileStore。 */
     lateinit var accountProfiles: AccountProfileStore
@@ -201,7 +201,7 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider, c
                     reportDeviceIdReady = true
                     SodaProvider.configureFallbackDeviceId(settings.sodaReportDeviceId())
                 }
-                // 汽水「只能试听」类反馈先看这里：登录态字段和签名器配置各是什么
+                // 汽水'只能试听'类反馈先看这里：登录态字段和签名器配置各是什么
                 if (!sodaDiagLogged) {
                     sodaDiagLogged = true
                     val sodaCookie = values.cookies[SodaProvider.SODA_PROVIDER_ID].orEmpty()
@@ -231,7 +231,7 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider, c
         PlayReportHub.register(QQPlayReporter { PlayReportHub.cookie("qq") })
         PlayReportHub.register(KuwoPlayReporter { PlayReportHub.cookie("kuwo") })
         PlayReportHub.register(QianqianPlayReporter { PlayReportHub.cookie("qianqian") })
-        // 屏保、息屏的状态：电视上这时候「离开应用」不是用户真的走了，音乐不能停
+        // 屏保、息屏的状态：电视上这时候'离开应用'不是用户真的走了，音乐不能停
         ScreensaverState.start(this)
         // 桌面小组件：播放、设置、收藏、亮灭屏变化时合并刷新，电视上同样启用。
         // DE 上下文里 Glance 依赖的 WorkManager 起不来，直接不启动组件这条链路，主界面照常可用。

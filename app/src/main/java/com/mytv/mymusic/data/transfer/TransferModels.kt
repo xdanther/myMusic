@@ -18,7 +18,7 @@ const val PLAYLIST_FILE_MIME = "application/json"
 
 const val KIND_PLAYLIST = "playlist"
 
-/** 同步页多选导出时勾上的「我的收藏」；导入时默认合并进收藏。 */
+/** 同步页多选导出时勾上的'我的收藏'；导入时默认合并进收藏。 */
 const val KIND_FAVORITES = "favorites"
 
 @Serializable
@@ -27,7 +27,7 @@ data class MyMusicPlaylistFile(
     val version: Int = PLAYLIST_FILE_VERSION,
     /** ISO-8601。 */
     val exportedAt: String = "",
-    /** 「myMusic 1.0 (12345)」，只作排查。 */
+    /** 'myMusic 1.0 (12345)'，只作排查。 */
     val app: String = "",
     val playlists: List<PortablePlaylist> = emptyList(),
 )
@@ -138,7 +138,7 @@ data class ExportFile(
     override fun hashCode(): Int = (fileName.hashCode() * 31 + mime.hashCode()) * 31 + bytes.contentHashCode()
 }
 
-/** 要导出的一个歌单；[playlistId] 是 [FAVORITES_ID] 时是「我的收藏」。[unreadable] 是存档坏了解不出来的条目。 */
+/** 要导出的一个歌单；[playlistId] 是 [FAVORITES_ID] 时是'我的收藏'。[unreadable] 是存档坏了解不出来的条目。 */
 data class ExportList(
     val playlistId: String,
     val name: String,

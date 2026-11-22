@@ -53,7 +53,7 @@ class YuntingProvider : BaseNativeProvider(YUNTING_INFO) {
         } + provinces.map {
             PlaylistCategory(
                 id = "p${it.provinceCode}",
-                // 省级编码 0 是央广系列，名字直接标「央广」比「国家」清楚
+                // 省级编码 0 是央广系列，名字直接标'央广'比'国家'清楚
                 name = if (it.provinceCode == 0L) "央广" else it.provinceName,
                 group = "地区",
                 source = YUNTING_ID,
@@ -185,7 +185,7 @@ class YuntingProvider : BaseNativeProvider(YUNTING_INFO) {
         id = "$contentId@$provinceCode",
         name = title,
         cover = image,
-        // 一个电台只有一条直播曲目，卡片副标题留给「正在直播：…」
+        // 一个电台只有一条直播曲目，卡片副标题留给'正在直播：…'
         trackCount = 0,
         creator = liveCaption(),
         description = subtitle,

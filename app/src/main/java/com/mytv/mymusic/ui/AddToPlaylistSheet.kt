@@ -19,9 +19,9 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
 
 /**
- * 播放页「Add to playlist」面板（设计稿 04 节）：沿用 [PlaylistPickerSheet] 的勾选模式。
+ * 播放页'Add to playlist'面板（设计稿 04 节）：沿用 [PlaylistPickerSheet] 的勾选模式。
  * 每行右边是勾选框，已经有这首（含同一首的其他平台版本）的勾上；点一下加入或移出，带撤销，面板不自动关，
- * 可以一次加到几个歌单。顶上「新建歌单」建好直接把这首放进去。
+ * 可以一次加到几个歌单。顶上'新建歌单'建好直接把这首放进去。
  * 绑定了平台歌单的行标出改了以后会怎样，规则同歌单详情页：平台能写的写回平台，平台没有写接口的改了就解除绑定，
  * 收藏来的（不是自己的）歌单不能改。
  * 提示条放在面板里：面板是单独的窗口，外壳的 Snackbar 被它盖着，看不见也点不到撤销。

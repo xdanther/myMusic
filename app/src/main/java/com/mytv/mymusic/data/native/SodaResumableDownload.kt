@@ -15,7 +15,7 @@ import kotlin.coroutines.resumeWithException
 /**
  * 续传判断的纯函数，逐条对齐 libresoda `resume.rs::decide_resume_action`
  * （AGPL-3.0，见 THIRD_PARTY_NOTICES.md）。ETag **不参与**判断——它只用来发
- * `If-Range`，续不续得了由「状态码 + 范围头 + 本地字节数 + 密钥指纹」决定。
+ * `If-Range`，续不续得了由'状态码 + 范围头 + 本地字节数 + 密钥指纹'决定。
  */
 internal enum class SodaResumeAction {
     /** 服务端给了 200 全量：丢掉已下载的字节，从头写。 */
@@ -90,7 +90,7 @@ internal class SodaPartPaths(private val target: File) {
     val meta: File get() = File(target.parentFile, "${target.name}$META_SUFFIX")
 
     /**
-     * 可信的「本地字节 ↔ 记录」配对：任何一项对不上就当没有记录。
+     * 可信的'本地字节 ↔ 记录'配对：任何一项对不上就当没有记录。
      * 0 字节的 `.part` 刻意不算——否则 416 那种“总长 0”的响应 会把空文件当完整交付。
      */
     fun trustedRecord(keyFingerprint: String): SodaPartRecord? {

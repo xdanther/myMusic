@@ -243,7 +243,7 @@ internal class CrossfadeController(
         val uri = config.uri
         val reason = when {
             uri.toString().isBlank() -> "下一首还没有地址（等解析）"
-            // 加密整曲要另建一套 DRM 会话，P1 不接；直播流没有「下一首」的终点
+            // 加密整曲要另建一套 DRM 会话，P1 不接；直播流没有'下一首'的终点
             config.drmConfiguration != null -> "下一首是加密整曲"
             uri.path.orEmpty().endsWith(".m3u8", ignoreCase = true) -> "下一首是直播流"
             else -> null
@@ -300,7 +300,7 @@ internal class CrossfadeController(
                 "，已分析 ${"%.0f".format(analysis.bpm)} BPM · ${keyLabel(analysis.keyIndex, analysis.keyMinor)}"
             } else {
                 "，还没有分析结果"
-            } + "，接法 ${plan?.method?.label ?: "等功率淡化"}",
+            } + "，接法 ${plan?.method?.label ?: "Equal-power fade"}",
         )
     }
 

@@ -118,7 +118,7 @@ data class AccountProfile(
  *
  * 昵称为空是合法情况：Apple Music 只暴露订阅状态，不向网页端给昵称和头像
  * （见 `AppleProvider.accountInfo`）。这时候昵称退回平台名，会员等级照样要显示，
- * 所以判成功看的是「接口通了」，不是「拿到了昵称」。
+ * 所以判成功看的是'接口通了'，不是'拿到了昵称'。
  */
 fun accountProfileOf(providerId: String, platformName: String, info: com.mytv.mymusic.data.native.AccountInfo): AccountProfile =
     AccountProfile(
@@ -163,7 +163,7 @@ data class LocalPlaylistSummary(
 }
 
 /**
- * 「加到歌单」面板里点一下（加入、移出、新建并加入）的结果。面板是单独的窗口，外壳的 Snackbar 被它盖着，
+ * '加到歌单'面板里点一下（加入、移出、新建并加入）的结果。面板是单独的窗口，外壳的 Snackbar 被它盖着，
  * 提示由面板自己显示：[changed] 为 false 时 [text] 是原因，[error] 为 true 是失败（登录、收藏的歌单、平台出错）；
  * [removed] 是移出的原条目，撤销时按原位置插回。
  */
@@ -222,7 +222,7 @@ sealed interface TransferUi {
 }
 
 /**
- * 登录成功后问一次「把这些歌单导入成绑定歌单」（设计稿 docs/platform-import.html）。
+ * 登录成功后问一次'把这些歌单导入成绑定歌单'（设计稿 docs/platform-import.html）。
  * 列表拿回来才出面板；[songs] 是空表示还没拉、或者这个平台没有歌单。
  */
 data class PlatformImportUi(

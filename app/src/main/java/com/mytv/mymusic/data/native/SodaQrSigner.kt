@@ -38,7 +38,7 @@ import kotlin.coroutines.resume
 internal class SodaPageResponse(val status: Int, val body: String, val cookieHeader: String)
 
 /**
- * 汽水扫码登录的「签名页」：隐藏 WebView 里跑 libresoda 内置的官方安全组件
+ * 汽水扫码登录的'签名页'：隐藏 WebView 里跑 libresoda 内置的官方安全组件
  * （assets/soda/security/：security_host.html + sdk-glue.js + bdms.js）。
  *
  * 桌面端 SodaM 靠 CDP 拉起 Chromium（`--disable-web-security`）当签名页；Android
@@ -66,7 +66,7 @@ internal object SodaQrSigner : SodaQrGateway {
 
     /**
      * 开一个二维码会话：确保签名页就绪，并做会话隔离——清空 qishui 的 Cookie 与
-     * 页面 localStorage（对应桌面端「每个二维码一个独立 BrowserContext」，不隔离
+     * 页面 localStorage（对应桌面端'每个二维码一个独立 BrowserContext'，不隔离
      * 会被护照服务按设备身份限流，error_code=7 连环出现）。
      */
     override suspend fun beginSession(msToken: String) {
@@ -289,7 +289,7 @@ internal object SodaQrSigner : SodaQrGateway {
             val status = (result["status"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 0
             val body = (result["body"] as? JsonPrimitive)?.content ?: ""
             val responseUrl = (result["responseURL"] as? JsonPrimitive)?.content ?: ""
-            // 只拦「bdms 根本没签名」的 200（那种响应会一路撞 error_code=7）；
+            // 只拦'bdms 根本没签名'的 200（那种响应会一路撞 error_code=7）；
             // 长度不同 WebView/bdms 版本会给出 44～46 字符，不能用固定长度卡死
             val aBogus = responseUrl.substringAfter('?', "").split('&')
                 .firstOrNull { it.startsWith("a_bogus=") }?.substringAfter('=') ?: ""

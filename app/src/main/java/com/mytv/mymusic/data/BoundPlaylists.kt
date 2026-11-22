@@ -19,7 +19,7 @@ fun canReorderBoundPlaylist(bound: Boolean, writeSupported: Boolean, reorderSupp
     !bound || !writeSupported || reorderSupported
 
 /**
- * 登录后「导入平台歌单」面板要标出来的两类行：已经绑过的（灰掉、不可勾），
+ * 登录后'导入平台歌单'面板要标出来的两类行：已经绑过的（灰掉、不可勾），
  * 和会合并进同名普通歌单的（[bindingTarget] 的既有行为，面板上写一句提示）。
  */
 data class PlatformImportMarks(val boundIds: Set<String> = emptySet(), val mergeableIds: Set<String> = emptySet())

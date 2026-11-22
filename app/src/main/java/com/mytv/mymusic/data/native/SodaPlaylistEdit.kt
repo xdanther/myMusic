@@ -124,7 +124,7 @@ internal object SodaPlaylistEdit {
      * 写操作回包是否成功。**成功回包不一定带 `status_code`**：`CreatePlaylist` /
      * `UpdatePlaylistInfo` 成功时只回 `playlist` + `status_info`，出错才带非 0 码
      * （`ERR_INVALID_PARAM` 1000004、`HIT_SENSITIVE_WORD` 1000014）。
-     * 所以「缺字段」必须当成功——写成 `status_code == 0` 会把所有成功都判成失败。
+     * 所以'缺字段'必须当成功——写成 `status_code == 0` 会把所有成功都判成失败。
      * 但**整份回包都解析不出来**（null）时不能算成功：那说明连对答案的资格都没有。
      */
     fun responseIsOk(root: JsonObject?): Boolean {
@@ -153,7 +153,7 @@ internal object SodaPlaylistEdit {
 
     /**
      * 敏感词检查：`true` = 命中。回包形如 `{status_code, is_passed}`，所以命中 = `!is_passed`。
-     * 非 0 的 `status_code` 是接口错误，不当成「命中」——调用方要能区分这两件事。
+     * 非 0 的 `status_code` 是接口错误，不当成'命中'——调用方要能区分这两件事。
      */
     fun sensitiveWordHit(root: JsonObject?): Boolean? {
         if (root == null) return null

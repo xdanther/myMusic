@@ -51,15 +51,15 @@ class FloatingLyricsRulesTest {
     @Test
     fun noPlaybackAndNoLyricsHaveDistinctPlaceholders() {
         val empty = floatingLyricsContent(null, now = 100)
-        assertEquals("myMusic 悬浮歌词", empty.primary)
+        assertEquals("myMusic floating lyrics", empty.primary)
         assertFalse(empty.canControl)
 
         val noLyrics = floatingLyricsContent(snapshot(), now = 100)
         assertEquals("Song", noLyrics.primary)
-        assertEquals("暂时没有歌词", noLyrics.secondary)
+        assertEquals("No lyrics right now", noLyrics.secondary)
 
         val loading = floatingLyricsContent(snapshot(lyricsReady = false, playing = true), now = 100)
-        assertEquals("正在取歌词…", loading.secondary)
+        assertEquals("Fetching lyrics…", loading.secondary)
         assertTrue(loading.playing)
     }
 

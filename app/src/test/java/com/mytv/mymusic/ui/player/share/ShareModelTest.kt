@@ -110,13 +110,13 @@ class ShareModelTest {
 
     @Test
     fun unusedLinesNoteOnlyWhenLinesAreLeftOver() {
-        assertEquals("「封面」样式不放歌词", unusedLinesNote(ShareCardStyle.AlbumArt, 1))
+        assertEquals("The Cover style shows no lyrics", unusedLinesNote(ShareCardStyle.AlbumArt, 1))
         assertNull(unusedLinesNote(ShareCardStyle.Couplet, 2))
-        assertEquals("「对句」用前两句，其余选中的句子不上卡。", unusedLinesNote(ShareCardStyle.Couplet, 3))
+        assertEquals("'Line pairs' uses the first two lines; other selected lines stay off the card.", unusedLinesNote(ShareCardStyle.Couplet, 3))
         assertNull(unusedLinesNote(ShareCardStyle.Quote, 1))
-        assertEquals("「引言」只用第一句，其余选中的句子不上卡。", unusedLinesNote(ShareCardStyle.Quote, 2))
-        assertEquals("「乱排」只用第一句，其余选中的句子不上卡。", unusedLinesNote(ShareCardStyle.Messy, 5))
-        assertEquals("「粗糙」只用第一句，其余选中的句子不上卡。", unusedLinesNote(ShareCardStyle.Brat, 2))
+        assertEquals("'Quote' uses only the first line; other selected lines stay off the card.", unusedLinesNote(ShareCardStyle.Quote, 2))
+        assertEquals("'Scattered' uses only the first line; other selected lines stay off the card.", unusedLinesNote(ShareCardStyle.Messy, 5))
+        assertEquals("'Rough' uses only the first line; other selected lines stay off the card.", unusedLinesNote(ShareCardStyle.Brat, 2))
         (1..8).forEach { assertNull(unusedLinesNote(ShareCardStyle.Spotify, it)) }
     }
 

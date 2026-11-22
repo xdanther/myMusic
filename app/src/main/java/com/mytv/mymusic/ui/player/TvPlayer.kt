@@ -154,7 +154,7 @@ internal fun TvPlayer(
     val idleFocus = remember { FocusRequester() }
     val dockRow = remember { FocusRequester() }
     val addFocus = remember { FocusRequester() }
-    // 「Add to playlist」面板关了（返回键或点遮罩）：焦点回到控制条上的这个按钮，接着能再按一次
+    // 'Add to playlist'面板关了（返回键或点遮罩）：焦点回到控制条上的这个按钮，接着能再按一次
     val sheetWasOpen = remember { booleanArrayOf(false) }
     LaunchedEffect(playlistSheetOpen) {
         if (playlistSheetOpen) {

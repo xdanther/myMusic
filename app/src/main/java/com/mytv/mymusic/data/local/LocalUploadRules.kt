@@ -248,7 +248,7 @@ object LocalUploadRules {
             .toList()
     }
 
-    /** 提示那一句：“已加入「通勤路上」。这首只在本机，换台设备放不了”。 */
+    /** 提示那一句：“已加入'通勤路上'。这首只在本机，换台设备放不了”。 */
     fun promptText(added: String, total: Int, localOnly: Int): String = when {
         total <= 1 -> "$added。这首只在本机，换台设备放不了"
         localOnly == total -> "$added。这 $localOnly 首只在本机，换台设备放不了"
@@ -258,10 +258,10 @@ object LocalUploadRules {
     /** 我的页那一行、页内“正在上传”标题的暂停说明（设计稿第 09 节）。 */
     fun pausedText(provider: CloudProvider, reason: CloudException?): String = when (reason?.kind) {
         CloudErrorKind.RiskControl -> CloudMessages.RISK_CONTROL_PAUSED
-        CloudErrorKind.NotLoggedIn -> "上传暂停：${CloudMessages.notLoggedIn(provider)}"
-        CloudErrorKind.Unauthorized -> "上传暂停：${CloudMessages.WEBDAV_UNAUTHORIZED}"
+        CloudErrorKind.NotLoggedIn -> "Upload paused: ${CloudMessages.notLoggedIn(provider)}"
+        CloudErrorKind.Unauthorized -> "Upload paused: ${CloudMessages.WEBDAV_UNAUTHORIZED}"
         null -> "上传已暂停"
-        else -> "上传暂停：${reason.message}"
+        else -> "Upload paused: ${reason.message}"
     }
 
     /** 已经传完一首的计数用：只算这个云端状态 ready 的。 */

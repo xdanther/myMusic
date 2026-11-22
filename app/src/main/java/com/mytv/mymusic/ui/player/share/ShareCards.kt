@@ -19,7 +19,7 @@
 // CardFrame（9:16 画布），与 Util.kt 的 rotateVertically。px 排版改成 1px = 1dp 的局部密度（CardPixels）；Card / LazyColumn
 // 换成 Box / Column、去掉 1900px 的最大高度（整张都录进图层）；Rush 的 Spacer(padding(x)) 实际占 2x，这里写成明确的高度；
 // 字体换成 Roboto Flex 的字重、字宽、斜度轴；取色换成舞台的封面量化色；乱排的随机数改成按句子和种子确定；模糊改成
-// CPU 预模糊；流光取静止帧；纯中文的竖排歌名歌手改成每字一行；新增「播放页」样式、副行（译文）、省略行。
+// CPU 预模糊；流光取静止帧；纯中文的竖排歌名歌手改成每字一行；新增'播放页'样式、副行（译文）、省略行。
 package com.mytv.mymusic.ui.player.share
 
 import android.os.Build
@@ -458,7 +458,7 @@ private fun CoupletCard(data: ShareCardData, look: ShareCardLook, images: ShareI
                 CardText(first.text, ShareFonts.style(1000, 48, 50, look.content, width = 120))
                 SubLine(first, look, 26)
             }
-            // 只选了一句时不画第二句（Rush 会画「...」）
+            // 只选了一句时不画第二句（Rush 会画'...'）
             lines.getOrNull(1)?.let { second ->
                 Spacer(Modifier.height(16.dp))
                 CardText(second.text, ShareFonts.style(400, 36, 38, look.content))
@@ -589,8 +589,8 @@ private fun BratCard(data: ShareCardData, look: ShareCardLook, modifier: Modifie
 // ---------- 10. 播放页（本应用） ----------
 
 /**
- * 照全屏歌词页：PlayerTheme 表面色、左上角光晕、封面跟随「封面形状」、歌手用主色，第一句是逐字填色停在 62% 的样子，
- * 底部一段静止的波浪进度和「♪ myMusic」。
+ * 照全屏歌词页：PlayerTheme 表面色、左上角光晕、封面跟随'封面形状'、歌手用主色，第一句是逐字填色停在 62% 的样子，
+ * 底部一段静止的波浪进度和'♪ myMusic'。
  */
 @Composable
 private fun PlayerCard(data: ShareCardData, look: ShareCardLook, images: ShareImages, modifier: Modifier) {

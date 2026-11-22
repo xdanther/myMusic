@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /**
- * 本机听歌计时：给「汽水天天送会员」的听歌任务当一个本地进度参考。
+ * 本机听歌计时：给'汽水天天送会员'的听歌任务当一个本地进度参考。
  * 真正的任务阈值、完成情况和免费 VIP 都以汽水服务端为准，见
  * [com.mytv.mymusic.data.native.SodaWelfare]，这里不存任何会员状态。
  */
@@ -31,7 +31,7 @@ class ListenTaskStore(context: Context) {
     private val todayDateKey = stringPreferencesKey("today_date")
     private val todaySecondsKey = intPreferencesKey("today_seconds")
 
-    /** 跨天就把当天时长归零，界面因此永远只看到「今天」听了多久。 */
+    /** 跨天就把当天时长归零，界面因此永远只看到'今天'听了多久。 */
     val state: Flow<ListenTaskState> = dataStore.data.map { values ->
         val stored = ListenTaskState(
             todayDate = values[todayDateKey] ?: "",

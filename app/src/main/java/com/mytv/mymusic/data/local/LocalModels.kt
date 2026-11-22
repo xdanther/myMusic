@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 /** 本地歌的 Song.source；Song.key 就是 `local:sha256:…`。 */
 const val LOCAL_SOURCE = "local"
 
-/** 匹配方式：按标签搜到 / 听歌识曲 / 用户在「换一个」里选的 / 自动没匹配上 / 用户点了「不匹配」。空表示还没试过。 */
+/** 匹配方式：按标签搜到 / 听歌识曲 / 用户在'换一个'里选的 / 自动没匹配上 / 用户点了'不匹配'。空表示还没试过。 */
 object LocalMatchMethod {
     const val TAG = "tag"
     const val AUDIO = "audio"

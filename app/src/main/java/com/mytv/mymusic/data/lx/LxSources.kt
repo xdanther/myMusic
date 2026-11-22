@@ -191,7 +191,7 @@ object LxSources : LxPlayback {
         override suspend fun apply(sources: List<SyncLxSource>, removeAbsent: Boolean) {
             val sourceStore = store ?: return
             importMutex.withLock {
-                // 云端没有的音源、云端带墓碑的音源：都是「别处已经删了」，用 forget 不产生新的删除记录，
+                // 云端没有的音源、云端带墓碑的音源：都是'别处已经删了'，用 forget 不产生新的删除记录，
                 // 否则本机会把这份删除再传回去
                 if (removeAbsent) {
                     val keep = sources.map { it.id }.toSet()

@@ -100,8 +100,8 @@ class TabletopPlayerLayoutTest {
 
     @Test
     fun clockDateLine() {
-        assertEquals("10月31日 周五", clockDateText(10, 31, Calendar.FRIDAY))
-        assertEquals("1月1日 周日", clockDateText(1, 1, Calendar.SUNDAY))
-        assertEquals("12月6日 周六", clockDateText(12, 6, Calendar.SATURDAY))
+        assertEquals("10/31 Fri", clockDateText(10, 31, Calendar.FRIDAY))
+        assertEquals("1/1 Sun", clockDateText(1, 1, Calendar.SUNDAY))
+        assertEquals("12/6 Sat", clockDateText(12, 6, Calendar.SATURDAY))
     }
 }

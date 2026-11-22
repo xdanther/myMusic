@@ -9,7 +9,7 @@ import com.mytv.mymusic.data.native.NativeHttp
  * 官方 Web 播放器的埋点像素：`GET https://click-qianqian.91q.com/v.gif`，
  * 无签名、无 Cookie、无登录，返回 0 字节 GIF。
  * 一首歌打四个点：`playstart`（开播）→ `playsong100ms`（起播）→
- * `60play`（放到 59 秒，千千「满 59 秒算一次有效播放」的规则）→
+ * `60play`（放到 59 秒，千千'满 59 秒算一次有效播放'的规则）→
  * `playend`（暂停 / 切歌 / 播完）。
  *
  * ⚠️ 0 字节回包，**无法确认服务端是否计入**，只能算尽力而为；失败静默。

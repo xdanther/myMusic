@@ -317,7 +317,7 @@ private fun ShareLyricsScreen(
     val onCopy: () -> Unit = {
         scope.launch {
             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Lyrics", text)))
-            // Android 13 起系统自己会弹「已复制」
+            // Android 13 起系统自己会弹'已复制'
             if (Build.VERSION.SDK_INT < 33) snack("Copied ${session.selected.size} lyric lines")
         }
     }
@@ -807,7 +807,7 @@ private fun ShareOptions(
     }
 }
 
-/** 副行开关的叫法，跟着「歌词下面那一行」的设置。 */
+/** 副行开关的叫法，跟着'歌词下面那一行'的设置。 */
 private fun sublineLabel(subline: LyricSubline): String = when (subline) {
     LyricSubline.Translation -> "Translation"
     LyricSubline.Romanization -> "Romanization"

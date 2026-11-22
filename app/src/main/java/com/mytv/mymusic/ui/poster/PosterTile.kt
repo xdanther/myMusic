@@ -130,8 +130,8 @@ internal fun wallBadgeText(index: Int): String = (index + 1).toString().padStart
 
 /** 读屏文案：“第 3 首，独上西楼，邓丽君, now playing”。 */
 internal fun tileDescription(index: Int, song: Song, current: Boolean): String = buildString {
-    append("No. ").append(index + 1).append(" tracks,").append(song.title)
-    if (song.artist.isNotBlank()) append("，").append(song.artist)
+    append("Track ").append(index + 1).append(", ").append(song.title)
+    if (song.artist.isNotBlank()) append(", ").append(song.artist)
     if (current) append(", now playing")
 }
 

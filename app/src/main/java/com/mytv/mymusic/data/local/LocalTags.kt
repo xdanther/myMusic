@@ -58,7 +58,7 @@ object LocalTags {
         }
     }
 
-    /** 「换一个匹配」的搜索框预填：标签像样用标签，否则用文件名猜的。 */
+    /** '换一个匹配'的搜索框预填：标签像样用标签，否则用文件名猜的。 */
     fun searchQuery(title: String, artist: String, displayName: String): String {
         val goodTitle = !isJunkTitle(title, displayName)
         val goodArtist = !isJunkArtist(artist)
@@ -68,7 +68,7 @@ object LocalTags {
     }
 
     /**
-     * 「换一个匹配」的预填：标签或文件名能用就用它们；两样都是占位（“Track 05.mp3”）而已经匹配上了，
+     * '换一个匹配'的预填：标签或文件名能用就用它们；两样都是占位（“Track 05.mp3”）而已经匹配上了，
      * 就用匹配到的歌名和歌手，好在其它平台找同一首。
      */
     fun rematchQuery(title: String, artist: String, displayName: String, match: Song?): String {
@@ -95,7 +95,7 @@ object LocalTags {
     }
 
     /**
-     * 按「标题和歌手」设置决定显示什么。
+     * 按'标题和歌手'设置决定显示什么。
      * - 文件：只用文件标签，没有标题时显示文件名；
      * - 只补空缺：标签是空的或占位的那一项换成匹配结果，像样的标签不覆盖；
      * - 匹配结果：匹配上了就整套用匹配结果。

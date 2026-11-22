@@ -48,7 +48,7 @@ internal sealed interface SodaReportEvent {
  * 见 THIRD_PARTY_NOTICES.md）：
  *  - 进度 / 时长 → applog 埋点 `POST https://mcs.zijieapi.com/v1/json`（非签名接口）
  *  - 播放计数 → 业务接口 `POST /luna/pc/action`（走签名器）
- *  - 开播时另写一条「最近播放」`POST /luna/pc/me/recently-played-media`
+ *  - 开播时另写一条'最近播放'`POST /luna/pc/me/recently-played-media`
  *
  * 推荐流的口味则靠 [playedMedia] 回填进 `/luna/pc/feed/song-tab` 的 `played_media`。
  * 播放状态机（何时算开播 / 暂停 / 播完）在 [com.mytv.mymusic.data.playreport.BasePlayReporter]。
@@ -172,7 +172,7 @@ internal open class SodaPlayReporter(
         val device = deviceId().trim().ifEmpty { FALLBACK_DEVICE_ID }
         val userId = userId
         val loggedIn = userId.isNotBlank()
-        // header.custom 和每个 event 的 params 都是「JSON 字符串」，不是嵌套对象
+        // header.custom 和每个 event 的 params 都是'JSON 字符串'，不是嵌套对象
         val custom = buildJsonObject {
             put("pc_channel", CHANNEL)
             put("is_playing", if (isPlaying) 1 else 0)

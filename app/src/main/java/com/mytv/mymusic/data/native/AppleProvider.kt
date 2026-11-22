@@ -218,9 +218,9 @@ class AppleProvider : BaseNativeProvider(APPLE_INFO) {
         playlist: String,
         workDir: File,
     ): String? {
-        // 样本条目顺序和清单里 key 块的出现顺序一致：enhancedHls 老资产是「预取默认 key
-        // 在前、轮换 key 在后」两条 tenc；play/assets 的简版清单只有一把 key、一个 tenc。
-        // 硬套「默认+轮换」会把简版唯一的 tenc 写成默认 kid，所以按清单里实际的 key 取。
+        // 样本条目顺序和清单里 key 块的出现顺序一致：enhancedHls 老资产是'预取默认 key
+        // 在前、轮换 key 在后'两条 tenc；play/assets 的简版清单只有一把 key、一个 tenc。
+        // 硬套'默认+轮换'会把简版唯一的 tenc 写成默认 kid，所以按清单里实际的 key 取。
         val kids = AppleHlsManifest.widevineKeyUris(playlist).mapNotNull { AppleHlsManifest.widevineKeyId(it) }
         if (kids.isEmpty()) {
             AppLog.w(TAG, "PSSH 里没取到 kid，跳过 init 段改写")
@@ -465,19 +465,19 @@ class AppleProvider : BaseNativeProvider(APPLE_INFO) {
         APPLE_CATEGORIES.map { PlaylistCategory(id = it.first, name = it.second, source = "apple") }
 
     /**
-     * 分类下的歌单。`/apple-curators/{id}/playlists` 只给策划自己挂的那几个（cn 的「热门」
+     * 分类下的歌单。`/apple-curators/{id}/playlists` 只给策划自己挂的那几个（cn 的'热门'
      * 实测只有 8 个，`limit` 上限 25），而官网的分类页要丰富得多。差别在于官网走的是
      * grouping 树：一次 `ids[apple-curators]=` + `include=grouping,playlists` +
      * `include[editorial-elements]=children,contents,room` 会把整棵 editorial 树内联回来，
-     * cn「热门」实测能走出 **244 个独立歌单**。
+     * cn'热门'实测能走出 **244 个独立歌单**。
      *
      * `platform=web` 不能省——少了它 Apple 返回 200 但 `meta.failures.response` 是
      * `partial-failure`、树是空的，属于静默失败，必须当错误处理。
      */
     override suspend fun categoryPlaylists(cookie: String, id: String, page: Int, limit: Int): List<Playlist> {
         // 还没选中分类时 id 是空的。Apple 对空的 ids[apple-curators]= 直接回 400
-        // "No ids specified"，那个异常会一路冒到界面变成「这个分类没有加载出来」——
-        // 可这会儿只是「没选分类」，该显示的是空状态。
+        // "No ids specified"，那个异常会一路冒到界面变成'这个分类没有加载出来'——
+        // 可这会儿只是'没选分类'，该显示的是空状态。
         if (id.isBlank()) return emptyList()
         val storefront = storefront(cookie)
         val body = ampGet(

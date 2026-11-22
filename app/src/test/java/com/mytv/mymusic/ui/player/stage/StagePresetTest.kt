@@ -91,7 +91,7 @@ class StagePresetTest {
         assertEquals("已改名", merged.presets.first().name)
         assertTrue(isDirty(prefs, draftOf(prefs).withSettings("rush#salt", emptyMap())))
         assertFalse(isDirty(prefs, draftOf(prefs)))
-        assertEquals(listOf("「Rush · 海盐」的设置：改了 2 项"), animationDiff(prefs, draftOf(prefs).withSettings("rush#salt", mapOf("align" to "end"))))
+        assertEquals(listOf("'Rush · 海盐' settings: 2 changed"), animationDiff(prefs, draftOf(prefs).withSettings("rush#salt", mapOf("align" to "end"))))
     }
 
     @Test

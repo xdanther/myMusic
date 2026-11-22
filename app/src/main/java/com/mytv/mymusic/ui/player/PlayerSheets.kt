@@ -111,7 +111,7 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
     // 本地歌标出会放哪份（本机 / 云端副本 / 平台版本）；哪里都放不了的点了打开“只在 X 上”面板
     val localCopies = rememberLocalCopies()
     val unplayable = rememberLocalUnplayableHost()
-    // 左滑「移出」的撤销条：面板是单独的窗口，外壳的 Snackbar 被它盖着，提示放在面板里
+    // 左滑'移出'的撤销条：面板是单独的窗口，外壳的 Snackbar 被它盖着，提示放在面板里
     val sheetSnackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val sheetNotifier = remember(sheetSnackbar, scope) {
@@ -219,7 +219,7 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
                             Text(formatTime(song.duration * 1000L), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
-                    // 左滑「移出」= Remove from the queue，撤销插回原位置；正在放的这首不能移
+                    // 左滑'移出'= Remove from the queue，撤销插回原位置；正在放的这首不能移
                     swipe = rememberRowSwipe(
                         song,
                         state.queue,

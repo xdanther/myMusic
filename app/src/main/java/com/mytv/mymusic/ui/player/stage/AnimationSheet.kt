@@ -526,7 +526,7 @@ private fun SongModeRow(
             is SongDecision.Remembered -> "Picked when you last listened; remembered"
             is SongDecision.Drawn -> "Drawn from the pool this time"
             is SongDecision.Tempo ->
-                "Measured ${decision.bpm.roundToInt()} BPM → falls in '${TEMPO_NAMES.getOrElse(decision.tier) { "Tier ${decision.tier + 1}" }}」"
+                "Measured ${decision.bpm.roundToInt()} BPM → falls in '${TEMPO_NAMES.getOrElse(decision.tier) { "Tier ${decision.tier + 1}" }}'"
             SongDecision.Measuring -> "Listening for tempo…"
             SongDecision.NoAnalyzer -> "Can't detect tempo yet, using the one shown"
             SongDecision.Unknown -> "Deciding…"
@@ -1311,7 +1311,7 @@ private fun SaveBarContent(count: Int, enabled: Boolean, onDiscard: () -> Unit, 
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // 两行各自不折：横屏面板窄时一行放不下，中文会在「保存」中间断开。
+            // 两行各自不折：横屏面板窄时一行放不下，中文会在'保存'中间断开。
             Column(
                 Modifier.weight(1f).semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
             ) {

@@ -154,7 +154,7 @@ open class MusicRepository(
     suspend fun reorderPlaylistTracks(provider: String, cookie: String, playlistId: String, songs: List<Song>) =
         requireProvider(provider).reorderPlaylistTracks(cookie, playlistId, songs)
 
-    /** 这个平台有没有账号侧收藏（汽水的「我喜欢的音乐」）；界面据此决定显不显示这一行。 */
+    /** 这个平台有没有账号侧收藏（汽水的'我喜欢的音乐'）；界面据此决定显不显示这一行。 */
     fun supportsCollect(provider: String): Boolean =
         NativeProviders.get(provider)?.supportsCollect() == true
 

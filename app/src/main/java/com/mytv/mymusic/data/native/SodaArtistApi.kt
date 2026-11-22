@@ -75,7 +75,7 @@ internal object SodaArtistApi {
         )
     }
 
-    /** 详情页头部那几行「键：值」。服务端给什么就展示什么，不造。 */
+    /** 详情页头部那几行'键：值'。服务端给什么就展示什么，不造。 */
     private fun facts(node: JsonObject): List<Pair<String, String>> {
         val out = mutableListOf<Pair<String, String>>()
         val region = jsonText(node, "region").trim()

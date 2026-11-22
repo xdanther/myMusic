@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * 榜单响应解析。样例取自 2026-11-05 实抓的 cn 区 most-played 榜单
+ * Charts响应解析。样例取自 2026-11-05 实抓的 cn 区 most-played Charts
  * （app/src/test/resources/apple_charts_cn.json），不是编的——Apple 一改结构这些就得红。
  */
 class AppleChartFeedTest {
@@ -39,7 +39,7 @@ class AppleChartFeedTest {
 
     @Test
     fun `extendedAssetUrls comes through so full tracks do not need a second request`() {
-        // 整曲地址是这次换端点的主要收益之一：以前榜单要先拿 ID 再 lookup 一次才补得上
+        // 整曲地址是这次换端点的主要收益之一：以前Charts要先拿 ID 再 lookup 一次才补得上
         val hls = AppleChartFeed.parse(body, "songs")!!.data.first().attributes.extendedAssetUrls.enhancedHls
         assertTrue(hls.startsWith("https://aod.itunes.apple.com/itunes-assets/HLSMusic221/"))
         assertTrue(hls.endsWith(".m3u8"))
@@ -48,7 +48,7 @@ class AppleChartFeedTest {
     @Test
     fun `unknown attributes are ignored rather than fatal`() {
         // 真实响应里带一堆用不到的字段（audioTraits、genreNames、composerName…），
-        // 少配一个 ignoreUnknownKeys 整个榜单就打不开
+        // 少配一个 ignoreUnknownKeys 整个Charts就打不开
         val extra = body.replace(
             """"name":"Hong Kong (feat. """,
             """"someFutureField":{"a":1},"name":"Hong Kong (feat. """,
@@ -59,7 +59,7 @@ class AppleChartFeedTest {
     @Test
     fun `a type that is not in the response means no bucket, not an empty chart`() {
         // type 拼错时 Apple 返回 200 且 results 里没有这个 key。必须让调用方看出来，
-        // 不能兜底成空榜单——那会让榜单页看着像"这个平台没榜"
+        // 不能兜底成空Charts——那会让Charts页看着像"这个平台没榜"
         assertNull(AppleChartFeed.parse(body, "albums"))
         assertNull(AppleChartFeed.parse(body, "playlists"))
     }

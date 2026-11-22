@@ -35,7 +35,7 @@ data class EqualizerUiState(
     val enabled: Boolean = false,
     val presetId: String = "flat",
     val bands: List<EqualizerBand> = emptyList(),
-    val outputLabel: String = "扬声器",
+    val outputLabel: String = "Speaker",
     val effective: Boolean = false,
     val error: String = "",
 )
@@ -47,21 +47,21 @@ data class EqPreset(
 )
 
 object EqPresets {
-    val flat = EqPreset("flat", "平直")
+    val flat = EqPreset("flat", "Flat")
     val pop = EqPreset(
-        "pop", "流行",
+        "pop", "Pop",
         listOf(60 to 4f, 230 to 2f, 910 to 0f, 3600 to 2f, 14000 to 3f),
     )
     val rock = EqPreset(
-        "rock", "摇滚",
+        "rock", "Rock",
         listOf(60 to 5f, 230 to 2f, 910 to -1f, 3600 to 3f, 14000 to 4f),
     )
     val jazz = EqPreset(
-        "jazz", "爵士",
+        "jazz", "Jazz",
         listOf(60 to 3f, 230 to 1f, 910 to 0f, 3600 to 2f, 14000 to 3f),
     )
     val vocal = EqPreset(
-        "vocal", "人声",
+        "vocal", "Vocal",
         listOf(60 to -2f, 230 to -1f, 910 to 3f, 3600 to 2f, 14000 to 0f),
     )
     val all = listOf(flat, pop, rock, jazz, vocal)
@@ -128,11 +128,11 @@ class EqualizerController(
             }
             publish()
         } catch (error: UnsupportedOperationException) {
-            unsupported("当前设备不支持均衡器")
+            unsupported("This device doesn't support the equalizer")
         } catch (error: IllegalStateException) {
-            unsupported("当前输出设备未开放音效控制")
+            unsupported("The current output doesn't allow audio effects")
         } catch (error: Exception) {
-            unsupported(error.message ?: "均衡器初始化失败")
+            unsupported(error.message ?: "Couldn't start the equalizer")
         }
     }
 
@@ -338,18 +338,18 @@ class EqualizerController(
     private val currentOutputLabel: String
         get() {
             val device = audioManager?.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-                ?.firstOrNull { it.isSink } ?: return "扬声器"
+                ?.firstOrNull { it.isSink } ?: return "Speaker"
             return when (device.type) {
                 AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
                 AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
                 AudioDeviceInfo.TYPE_BLE_HEADSET,
-                AudioDeviceInfo.TYPE_BLE_SPEAKER -> if (device.type == AudioDeviceInfo.TYPE_BLE_SPEAKER) "蓝牙音箱" else "蓝牙耳机"
+                AudioDeviceInfo.TYPE_BLE_SPEAKER -> if (device.type == AudioDeviceInfo.TYPE_BLE_SPEAKER) "Bluetooth speaker" else "Bluetooth headphones"
                 AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                AudioDeviceInfo.TYPE_WIRED_HEADSET -> "有线耳机"
+                AudioDeviceInfo.TYPE_WIRED_HEADSET -> "Wired headset"
                 AudioDeviceInfo.TYPE_USB_HEADSET,
-                AudioDeviceInfo.TYPE_USB_DEVICE -> "USB 音频"
-                AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "扬声器"
-                AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> "听筒"
+                AudioDeviceInfo.TYPE_USB_DEVICE -> "USB audio"
+                AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "Speaker"
+                AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> "Earpiece"
                 else -> device.productName?.toString().orEmpty().ifBlank { "当前输出设备" }
             }
         }

@@ -15,7 +15,7 @@ class SodaWelfareTest {
 
     @Test
     fun parsesRealResponse() {
-        // fixture 是 2026-11-05 抓的，把"今天"钉在那一天，测试才不随日历漂移
+        // fixture 是 2026-11-05 抓的，把"Today"钉在那一天，测试才不随日历漂移
         val info = SodaWelfare.parseCommerceInfo(REAL_RESPONSE, todayDate = "2026-11-05")
         assertTrue(info.ok)
         assertFalse(info.notLoggedIn)
@@ -23,7 +23,7 @@ class SodaWelfareTest {
         assertTrue(info.vipActive)
         assertEquals("free_vip", info.vipType)
         assertEquals(1793936053_000L, info.vipExpireAt) // 服务端给秒，解析成毫秒
-        // 今天已经领过（日历里 status=8 那天）
+        // Today已经领过（日历里 status=8 那天）
         assertTrue(info.todayClaimed)
         assertFalse(info.claimable)
         assertEquals(3, info.appliedCount)
@@ -116,7 +116,7 @@ class SodaWelfareTest {
 
     @Test
     fun applyResultUsesServerToast() {
-        // 今天已领过：apply_status=2，服务端直接给了 toast
+        // Today已领过：apply_status=2，服务端直接给了 toast
         val applied = SodaWelfare.parseApplyResult("""{"status_code":0,"apply_status":2,"toast":"今日已经领取过了～"}""")
         assertFalse(applied.success)
         assertEquals("今日已经领取过了～", applied.message)
@@ -129,7 +129,7 @@ class SodaWelfareTest {
         // 没 toast 时按状态给说法
         val noToast = SodaWelfare.parseApplyResult("""{"status_code":0,"apply_status":3}""")
         assertFalse(noToast.success)
-        assertEquals("今天已经领过了", noToast.message)
+        assertEquals("Already claimed today", noToast.message)
 
         val expired = SodaWelfare.parseApplyResult("""{"status_code":0,"apply_status":13}""")
         assertEquals("活动已结束", expired.message)

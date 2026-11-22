@@ -48,7 +48,7 @@ import kotlin.math.roundToInt
 object RushVisualizer : LyricVisualizer {
     override val id = "rush"
     override val label = "Rush"
-    override val origin = ModOrigin("Rush", "7.2.1", "shub39", "GPL-3.0", kind = "Apply")
+    override val origin = ModOrigin("Rush", "7.2.1", "shub39", "GPL-3.0", kind = "App")
     override val order = 1
 
     /** 行高、字距保持 Rush 默认。 */

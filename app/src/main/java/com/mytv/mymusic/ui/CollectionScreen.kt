@@ -974,7 +974,7 @@ private fun LazyListScope.collectionSongs(
                     },
                     onMore = rowMore,
                     onLongClick = rowLongPress,
-                    // 详情页没有可删的：左滑只有取消收藏（收藏过的）；专辑页不给「查看专辑」，歌手页不给他自己
+                    // 详情页没有可删的：左滑只有取消收藏（收藏过的）；专辑页不给'查看专辑'，歌手页不给他自己
                     swipe = rememberRowSwipe(
                         song,
                         songs,

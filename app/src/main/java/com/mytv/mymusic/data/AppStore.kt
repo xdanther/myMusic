@@ -320,7 +320,7 @@ class SettingsStore(private val context: Context) {
     private val playReportEnabledKey = booleanPreferencesKey("play_report_enabled")
     // 汽水上报用的设备标识：每次启动重新生成就没法积累口味，所以落盘
     private val sodaReportDeviceIdKey = stringPreferencesKey("soda_report_device_id")
-    // 酷狗概念版「听歌领会员」：启动时自动领一天的开关，和上次自动领取的日期（只用来去重）
+    // 酷狗概念版'听歌领会员'：启动时自动领一天的开关，和上次自动领取的日期（只用来去重）
     private val kugouWelfareAutoKey = booleanPreferencesKey("kugou_welfare_auto")
     private val kugouWelfareLastDateKey = stringPreferencesKey("kugou_welfare_last_date")
     // 全屏歌词动画与歌词文字变换
@@ -477,7 +477,7 @@ class SettingsStore(private val context: Context) {
     suspend fun miniPlayerTarget(value: MiniPlayerTarget) = context.dataStore.edit { it[miniPlayerTargetKey] = value.name }
     suspend fun playReportEnabled(value: Boolean) = context.dataStore.edit { it[playReportEnabledKey] = value }
 
-    /** 酷狗概念版「听歌领会员」的自动领取开关。 */
+    /** 酷狗概念版'听歌领会员'的自动领取开关。 */
     suspend fun kugouWelfareAuto(value: Boolean) = context.dataStore.edit { it[kugouWelfareAutoKey] = value }
 
     /** 记一次自动领取的日期（北京时间），同一天不再重复打接口。 */
@@ -776,11 +776,11 @@ data class AppSettings(
     val provider: String = "netease",
     val chartsSource: String = "",
     val playlistsSource: String = "",
-    /** 冷启动打开的顶层入口（TopTab.route），空表示默认「榜单」。 */
+    /** 冷启动打开的顶层入口（TopTab.route），空表示默认'榜单'。 */
     val startupTab: String = "",
-    /** 歌单页上次用的浏览方式（PlaylistMode 名字），空表示默认「推荐」。 */
+    /** 歌单页上次用的浏览方式（PlaylistMode 名字），空表示默认'推荐'。 */
     val playlistsMode: String = "",
-    /** 听歌模式页上次选的分组，空表示「全部」。 */
+    /** 听歌模式页上次选的分组，空表示'全部'。 */
     val listenGroup: String = "",
     val theme: String = "system",
     /** 界面布局：Auto / Phone / Tablet / Tv。 */
@@ -851,7 +851,7 @@ data class AppSettings(
     val playReportEnabled: Boolean = true,
     /** 汽水上报用的设备标识，空表示还没生成过（见 SettingsStore.sodaReportDeviceId）。 */
     val sodaReportDeviceId: String = "",
-    /** 酷狗概念版「听歌领会员」是否在启动时自动领一天。 */
+    /** 酷狗概念版'听歌领会员'是否在启动时自动领一天。 */
     val kugouWelfareAuto: Boolean = true,
     /** 上次自动领取的日期（北京时间 yyyy-MM-dd），空表示还没自动领过。 */
     val kugouWelfareLastClaimDate: String = "",
@@ -1128,7 +1128,7 @@ interface LibraryDao {
     fun entryCounts(): Flow<List<PlaylistEntryCount>>
     @Query("SELECT COUNT(*) FROM playlist_entries")
     suspend fun entryCount(): Int
-    /** 哪些（没删的）歌单里有这几个 key 之一：播放页「加到歌单」按钮和面板的勾选态。 */
+    /** 哪些（没删的）歌单里有这几个 key 之一：播放页'加到歌单'按钮和面板的勾选态。 */
     @Query(
         "SELECT DISTINCT e.playlist_id FROM playlist_entries e JOIN playlists p ON p.id = e.playlist_id " +
             "WHERE p.deleted_at IS NULL AND e.song_key IN (:keys)"

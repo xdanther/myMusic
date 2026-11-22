@@ -117,9 +117,9 @@ import kotlinx.coroutines.launch
 internal enum class LocalFilter(val label: String) { All("All"), Unmatched("Not matched"), NotUploaded("Not uploaded"), Folders("Folders") }
 
 /**
- * Local music页，「本机 / 云端」两个视图用连接按钮组切换（设计稿第 ②③ 张）。
+ * Local music页，'本机 / 云端'两个视图用连接按钮组切换（设计稿第 ②③ 张）。
  *
- * 本机视图结构照「下载」页：顶上一张占用卡片（分段条：Uploaded / Matched / Not matched），再往下是播放全部、
+ * 本机视图结构照'下载'页：顶上一张占用卡片（分段条：Uploaded / Matched / Not matched），再往下是播放全部、
  * “Upload…”、筛选、正在上传的那一段和歌曲列表。第一次进来没有权限也没有文件夹时是空状态，
  * 主按钮“Allow reading music”，拒绝后换成“Choose folders instead”（系统文件夹选择器，不要权限）。
  *
@@ -560,7 +560,7 @@ private fun LocalSongRow(
         },
         onMore = if (picking) null else onMore,
         onLongClick = if (picking) null else ({ selection.enter(song.key) }),
-        // 本地歌没有「下载」；也不做删文件，左滑只有取消收藏（收藏过的）
+        // 本地歌没有'下载'；也不做删文件，左滑只有取消收藏（收藏过的）
         swipe = rememberRowSwipe(song, queue, enabled = !picking),
     )
 }

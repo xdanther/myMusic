@@ -48,7 +48,7 @@ import com.mytv.mymusic.ui.components.tvFocusRing
 import com.mytv.mymusic.ui.settings.SettingsNote
 
 /**
- * 酷狗概念版「听歌领会员」：每天领一天的畅听 VIP，可选升级成概念版 VIP（音质更高）。
+ * 酷狗概念版'听歌领会员'：每天领一天的畅听 VIP，可选升级成概念版 VIP（音质更高）。
  * 概念版和普通酷狗音乐不是同一套账号，但本 App 的酷狗登录走的就是概念版 appid，
  * 所以直接用已登录的酷狗账号，不用再登一次。VIP 生效、到期和领取结果都以服务端为准
  * （见 [com.mytv.mymusic.data.native.KugouWelfare]），本机只听歌计时给个参考进度。
@@ -119,7 +119,7 @@ fun KugouWelfareScreen(
     LaunchedEffect(kugou.loggedIn) { if (kugou.loggedIn) onRefresh() }
 }
 
-/** 「我的」页入口：Kugou Concept listening membership的状态摘要。 */
+/** '我的'页入口：Kugou Concept listening membership的状态摘要。 */
 @Composable
 internal fun KugouWelfareEntryCard(
     kugou: KugouWelfareUi,

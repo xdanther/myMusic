@@ -384,7 +384,7 @@ private fun PhoneMeta(
                 )
             }
         }
-        // 空闲时「加到歌单」、收藏和其他控件一起淡出，歌名留着；长按收藏也打开加到歌单面板
+        // 空闲时'加到歌单'、收藏和其他控件一起淡出，歌名留着；长按收藏也打开加到歌单面板
         IdleGuard(idle, blocked, Modifier.graphicsLayer { this.alpha = chrome.value }) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 AddToPlaylistButton(addedToPlaylist, onAddToPlaylist)

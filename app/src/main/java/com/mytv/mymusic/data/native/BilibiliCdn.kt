@@ -4,7 +4,7 @@ package com.mytv.mymusic.data.native
  * B 站音频 CDN 的防盗链契约。`playurl` 返回的音频流在 `*.bilivideo.com` 上，取字节只认两样东西：
  *
  *  - `Referer: https://www.bilibili.com/`。不带就是 openresty 的 `403 Forbidden`（HTML 错误页，
- *    不是 JSON），播放侧只会看到「打开失败」，日志里看不出是防盗链。
+ *    不是 JSON），播放侧只会看到'打开失败'，日志里看不出是防盗链。
  *  - 浏览器档 User-Agent。`ExoPlayerLib/...`（Media3 默认那把）和 Dalvik 默认 UA 一样被 403，
  *    连 Android 移动版 Chrome 的 UA 也过不去；桌面 Chrome/Edge 和 okhttp 都能过。
  *

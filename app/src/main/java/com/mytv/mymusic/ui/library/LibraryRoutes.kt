@@ -49,7 +49,7 @@ fun NavGraphBuilder.libraryRoutes(app: AppNav) {
                 openLocalMusic = { app.nav.navigate(LOCAL_MUSIC_ROUTE) },
             )
         }
-        // 「我的」页的入口卡也要显示任务进度，进页面就把服务端状态读回来
+        // '我的'页的入口卡也要显示任务进度，进页面就把服务端状态读回来
         LaunchedEffect(Unit) {
             app.model.ensureSodaWelfareLoaded()
             app.model.ensureKugouWelfareLoaded()

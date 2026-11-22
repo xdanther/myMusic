@@ -24,7 +24,7 @@ class CoverSizesTest {
         assertEquals(list, coverUrlAt(list, 200))
         assertEquals("http://imge.kugou.com/stdmusic/480/20230920/20230920142503632013.jpg", coverUrlAt(list, 400))
         assertEquals("http://imge.kugou.com/stdmusic/800/20230920/20230920142503632013.jpg", coverUrlAt(list, 1200))
-        // 榜单封面列表里用的是 400，歌手头像在 softhead 下面
+        // Charts封面列表里用的是 400，歌手头像在 softhead 下面
         assertEquals(
             "http://imge.kugou.com/mcommon/240/20241120/20241120202644296668.jpg",
             coverUrlAt("http://imge.kugou.com/mcommon/400/20241120/20241120202644296668.jpg", 100),

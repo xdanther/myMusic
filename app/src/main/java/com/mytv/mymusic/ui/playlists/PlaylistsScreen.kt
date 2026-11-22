@@ -1075,7 +1075,7 @@ private fun TvListening(playlists: PlaylistsUiState, actions: MusicActions) {
     }
 }
 
-/** 分组名：存储值 [GROUP_ALL] 显示成当前语言的「全部」，其余分组照原样。 */
+/** 分组名：存储值 [GROUP_ALL] 显示成当前语言的'全部'，其余分组照原样。 */
 @Composable
 private fun groupLabel(group: String): String =
     if (group == GROUP_ALL) stringResource(R.string.all_items) else group

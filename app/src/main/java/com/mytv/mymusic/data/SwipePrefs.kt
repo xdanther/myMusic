@@ -7,20 +7,20 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 
 /**
  * 列表左右滑能放的动作。[id] 写进 DataStore，改名时不能改 id。
- * [button] 为 false 的只能放在「拉到头」（不做事）。
+ * [button] 为 false 的只能放在'拉到头'（不做事）。
  */
 enum class SwipeAction(val id: String, val label: String, val button: Boolean = true) {
-    Download("download", "下载"),
-    AddToPlaylist("playlist", "加到歌单"),
-    Favorite("favorite", "收藏"),
-    Unfavorite("unfavorite", "取消收藏"),
-    Delete("delete", "删除"),
-    PlayNext("play_next", "下一首播放"),
-    AddToQueue("queue", "加到播放队列"),
-    OpenArtist("artist", "查看歌手"),
-    OpenAlbum("album", "查看专辑"),
-    ChooseSource("source", "选择音源"),
-    None("none", "不做事", button = false),
+    Download("download", "Download"),
+    AddToPlaylist("playlist", "Add to playlist"),
+    Favorite("favorite", "Save"),
+    Unfavorite("unfavorite", "Remove favorite"),
+    Delete("delete", "Delete"),
+    PlayNext("play_next", "Play next"),
+    AddToQueue("queue", "Add to queue"),
+    OpenArtist("artist", "View artist"),
+    OpenAlbum("album", "View album"),
+    ChooseSource("source", "Choose source"),
+    None("none", "Nothing", button = false),
     ;
 
     companion object {
@@ -30,7 +30,7 @@ enum class SwipeAction(val id: String, val label: String, val button: Boolean = 
 
 /**
  * 左右滑的配置（设置 › 滑动操作）。只存在本机，不进同步（同步文件只有歌单、收藏和 Cookie）。
- * [start]：向「结束边」滑（从左往右排的界面里是向右滑）时从起始边露出的按钮，按显示顺序；[startFull]：这一侧拉到头。
+ * [start]：向'结束边'滑（从左往右排的界面里是向右滑）时从起始边露出的按钮，按显示顺序；[startFull]：这一侧拉到头。
  * [end] / [endFull] 同理。每侧 0–2 个按钮；按钮里不能有 [SwipeAction.None]，同一侧不重复，两侧之间可以重复。
  */
 data class SwipePrefs(
@@ -113,7 +113,7 @@ fun SwipePrefs.moveButton(side: SwipeSide, index: Int, delta: Int): SwipePrefs {
 
 /**
  * 第 [index] 个按钮换成 [action]。同一侧已经有它就两个对调；[index] 等于按钮数时追加（满了或已经有它就不动）。
- * 「不做事」不能放按钮位。
+ * '不做事'不能放按钮位。
  */
 fun SwipePrefs.setButton(side: SwipeSide, index: Int, action: SwipeAction): SwipePrefs {
     if (!action.button) return this

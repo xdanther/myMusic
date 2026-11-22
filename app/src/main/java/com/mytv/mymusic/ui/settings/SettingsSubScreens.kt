@@ -351,7 +351,7 @@ private fun LayoutModeChips(selected: LayoutMode, onSelect: (LayoutMode) -> Unit
     }
 }
 
-/** 启动页：冷打开应用时先停在哪个顶层入口。设置里存的是路由，认不出来的回默认「Charts」。 */
+/** 启动页：冷打开应用时先停在哪个顶层入口。设置里存的是路由，认不出来的回默认'Charts'。 */
 @Composable
 private fun StartupPageOptions(selectedRoute: String, onSelect: (String) -> Unit) {
     val selected = TopTab.entries.firstOrNull { it.route == selectedRoute } ?: TopTab.Charts
@@ -755,7 +755,7 @@ internal fun PlaybackSettingsScreen(
         }
         item(key = "priority", contentType = "settingRow") {
             ListRow(
-                // 顺序全应用只有一份，就在「Sources」里排；这里只说明现在是什么顺序
+                // 顺序全应用只有一份，就在'Sources'里排；这里只说明现在是什么顺序
                 title = priority.take(3).joinToString(" → ") { providerName(state.providers, it) }
                     .ifBlank { "No platforms yet" },
                 index = 0,
@@ -1979,7 +1979,7 @@ private fun StorageUsageCard(cacheBytes: Long, downloadsBytes: Long) {
 // ======================= Play reporting =======================
 
 /**
- * Play reporting：把「听了什么、听了多久、听完了没有」回传给平台。
+ * Play reporting：把'听了什么、听了多久、听完了没有'回传给平台。
  * 汽水的推荐流、每日推荐、听歌模式都靠这个才有个人口味，关掉之后首页推荐会一直是通用内容。
  */
 @Composable

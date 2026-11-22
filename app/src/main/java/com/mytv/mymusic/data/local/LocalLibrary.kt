@@ -681,7 +681,7 @@ class LocalLibrary(
     /** 返回 true 表示写进了一个匹配。 */
     private suspend fun autoMatch(row: LocalTrackEntity): Boolean {
         val synced = refDao.ref(row.localId)
-        // 别的设备上点过「不匹配」：那是用户的决定，这台设备也不再自动匹配，免得自动结果又被同步回去
+        // 别的设备上点过'不匹配'：那是用户的决定，这台设备也不再自动匹配，免得自动结果又被同步回去
         if (synced?.rejected == true) {
             update(row.localId) { current ->
                 if (current.matchSettled) current else current.copy(
@@ -738,7 +738,7 @@ class LocalLibrary(
     }
 
     /**
-     * 「换一个匹配」里点了「使用这个」。这台设备有过这个文件就改 local_tracks；
+     * '换一个匹配'里点了'使用这个'。这台设备有过这个文件就改 local_tracks；
      * 从没有过（别的设备加进歌单的）就记进线索表，随同步回到有文件的那台设备（设计稿第 ⑧ 张）。
      * 用户自己选的记满分：合并时按分数取，手选的总能盖过各设备上的自动匹配。
      */
@@ -765,7 +765,7 @@ class LocalLibrary(
     }
 
     /**
-     * 「不匹配」：清掉匹配，回到文件自己的标签和内嵌封面，自动匹配也不再碰它。
+     * '不匹配'：清掉匹配，回到文件自己的标签和内嵌封面，自动匹配也不再碰它。
      * 这也是用户的决定，要同步出去（同步文件里记成 method=none、满分）：不然别的设备快照里的旧匹配
      * 合并时又会被并回来。这台设备没有文件时记进线索表，效果是各台设备都不再用那个平台版本。
      */
@@ -846,7 +846,7 @@ class LocalLibrary(
         )
     }
 
-    /** 「再听一次歌识曲」是显式重试：解除这首的识曲失败 / 崩溃隔离，换第 60 秒再读。 */
+    /** '再听一次歌识曲'是显式重试：解除这首的识曲失败 / 崩溃隔离，换第 60 秒再读。 */
     suspend fun listenAgain(localId: String): List<LocalCandidate> {
         val row = dao.get(localId) ?: return emptyList()
         if (row.missing || !sourceReadable(row.origin)) return emptyList()
@@ -947,7 +947,7 @@ class LocalLibrary(
     }.getOrDefault(false)
 
     /**
-     * 歌词：「同名 .lrc 优先」开着且找得到就用 .lrc；否则用匹配到的平台的歌词；平台也没有时再退回 .lrc。
+     * 歌词：'同名 .lrc 优先'开着且找得到就用 .lrc；否则用匹配到的平台的歌词；平台也没有时再退回 .lrc。
      * 这台设备上没扫到过的歌（放的是云端副本或平台版本）用同步来的匹配取平台歌词；
      * 还没有时，网易云盘里的副本用云盘自己匹配到的那首的歌词。WebDAV 没有歌词，只能靠匹配。
      */
@@ -1224,7 +1224,7 @@ class LocalLibrary(
     }
 
     /**
-     * 「从网易云盘删除 / 从 WebDAV 删除」：先删云端文件（本来就不在也算成功），再把位置标成 deleted。
+     * '从网易云盘删除 / 从 WebDAV 删除'：先删云端文件（本来就不在也算成功），再把位置标成 deleted。
      * 失败抛 [CloudException]，message 直接给用户看。
      */
     suspend fun deleteRemote(localId: String, provider: CloudProvider) = withContext(Dispatchers.IO) {
@@ -1302,7 +1302,7 @@ class LocalLibrary(
         matchedAt = isoOrEmpty(row.matchedAt),
     )
 
-    /** 这台设备上的匹配写进同步文件的样子：匹配上的照写；点过「不匹配」的写成拒绝；自动没匹配上的不写。 */
+    /** 这台设备上的匹配写进同步文件的样子：匹配上的照写；点过'不匹配'的写成拒绝；自动没匹配上的不写。 */
     private fun rowSyncMatch(row: LocalTrackEntity): SyncMatch? = when {
         row.matchMethod == LocalMatchMethod.REJECTED -> SyncMatch.rejection(isoOrEmpty(row.matchedAt))
         row.matched -> syncMatchOf(row)
@@ -1491,7 +1491,7 @@ class LocalLibrary(
     }
 
     private fun adoptMatch(row: LocalTrackEntity, match: SyncMatch, track: SyncTrack, now: Long): LocalTrackEntity? {
-        // 这台设备点过「不匹配」也是一个决定，按同样的规则和同步来的比：更新的手选能盖过它，自动匹配不能
+        // 这台设备点过'不匹配'也是一个决定，按同样的规则和同步来的比：更新的手选能盖过它，自动匹配不能
         val mine = rowSyncMatch(row)
         if (SyncRefMerge.match(mine, match) != match || mine == match) return null
         val at = SyncTime.toMillis(match.matchedAt)
@@ -1523,7 +1523,7 @@ class LocalLibrary(
         /** 匹配是别的设备同步来的占位（只知道平台和 ID，不知道平台上的歌名）。 */
         const val EXTRA_SYNCED_MATCH = "synced_match"
         const val REASON_ELSEWHERE = "只在原来的设备上，这台设备没有这个文件"
-        /** 用户在「换一个匹配」里选的那首记满分，合并时总能盖过自动匹配。 */
+        /** 用户在'换一个匹配'里选的那首记满分，合并时总能盖过自动匹配。 */
         const val USER_CONFIDENCE = 1f
         private const val QUERY_CHUNK = 500
         private const val SHORT_SECONDS = 30

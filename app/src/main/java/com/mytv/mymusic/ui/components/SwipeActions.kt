@@ -148,7 +148,7 @@ class SwipeContent(
     val end: List<SwipeItem>,
     val endFull: SwipeItem?,
 ) {
-    /** 读屏「操作」菜单：两侧按钮 + 两个拉到头，按动作去重，去掉禁用的。 */
+    /** 读屏'操作'菜单：两侧按钮 + 两个拉到头，按动作去重，去掉禁用的。 */
     val accessibility: List<SwipeItem> =
         (start + end + listOfNotNull(startFull, endFull)).filter { it.enabled }.distinctBy { it.action }
 
@@ -171,13 +171,13 @@ class RowSwipe internal constructor(
     internal val coordinator: SwipeCoordinator?,
 )
 
-/** 列表告诉滑动「删除」在这里是什么意思；没有可删的列表传 null（榜单、搜索、专辑、歌手页、本地音乐）。 */
+/** 列表告诉滑动'删除'在这里是什么意思；没有可删的列表传 null（榜单、搜索、专辑、歌手页、本地音乐）。 */
 class SwipeDelete(
     /** 按钮上的字：删除 / 移出 / 删文件 / 取消收藏。 */
     val label: String,
     /** 读屏：从最近播放删除 / 从歌单移出 / 删除下载文件 / 移出播放队列。 */
     val spoken: String,
-    /** 收藏页：删除就是取消收藏，两个按钮都在时只留「取消收藏」。 */
+    /** 收藏页：删除就是取消收藏，两个按钮都在时只留'取消收藏'。 */
     val sameAsUnfavorite: Boolean = false,
     val icon: ImageVector = Icons.Filled.Delete,
     /** 撤销、确认框都由列表自己做（复用各页已有的逻辑）。 */
@@ -269,7 +269,7 @@ internal data class ResolvedSwipe(
 
 /**
  * 设置 + 这一行的情况 → 两侧按钮和拉到头。不出现的按钮不占位（另一个占满）；禁用的（Downloaded、Downloading）照样显示。
- * 拉到头的动作不出现或禁用时这一侧没有「拉到头」：拖到露出宽度就停，不震、不执行。
+ * 拉到头的动作不出现或禁用时这一侧没有'拉到头'：拖到露出宽度就停，不震、不执行。
  */
 internal fun resolveSwipe(prefs: SwipePrefs, facts: SwipeFacts): ResolvedSwipe {
     if (!prefs.enabled) return ResolvedSwipe.Empty
@@ -289,7 +289,7 @@ internal fun resolveSwipe(prefs: SwipePrefs, facts: SwipeFacts): ResolvedSwipe {
     }
     var start = SwipePrefs.clean(prefs.start).mapNotNull(::resolve)
     var end = SwipePrefs.clean(prefs.end).mapNotNull(::resolve)
-    // 收藏页：「删除」就是「取消收藏」，两个都露出来时只留一个
+    // 收藏页：'删除'就是'取消收藏'，两个都露出来时只留一个
     if (facts.delete?.sameAsUnfavorite == true && (start + end).any { it.action == SwipeAction.Unfavorite }) {
         start = start.filter { it.action != SwipeAction.Delete }
         end = end.filter { it.action != SwipeAction.Delete }
@@ -302,7 +302,7 @@ internal fun resolveSwipe(prefs: SwipePrefs, facts: SwipeFacts): ResolvedSwipe {
     )
 }
 
-/** 动作的图标和配色。「删除」的图标由列表给（下载页是描边的垃圾桶，和行尾按钮一致）。 */
+/** 动作的图标和配色。'删除'的图标由列表给（下载页是描边的垃圾桶，和行尾按钮一致）。 */
 internal fun swipeIcon(action: SwipeAction, deleteIcon: ImageVector = Icons.Filled.Delete): ImageVector = when (action) {
     SwipeAction.Download -> Icons.Filled.Download
     SwipeAction.AddToPlaylist -> Icons.Filled.LibraryAdd
@@ -361,8 +361,8 @@ internal fun swipeArtistToOpen(artist: String, hide: String): String? {
 /**
  * 一行歌的滑动内容。返回 null 时 SongRow 照原样画、不能滑：没有外壳环境（电视、预览）、[song] 为空、
  * [enabled] 为 false（多选中）、设置里关掉了滑动（连读屏操作也不挂）。
- * [favoriteKeys]：哪些 key 收藏了就算「已收藏」（搜索结果是聚合曲目，收藏的可能是另一个平台的版本），默认就是这首。
- * [onChooseSource]：「选择音源」换成列表自己的入口（搜索结果按聚合曲目打开，带着所有平台的版本）。
+ * [favoriteKeys]：哪些 key 收藏了就算'已收藏'（搜索结果是聚合曲目，收藏的可能是另一个平台的版本），默认就是这首。
+ * [onChooseSource]：'选择音源'换成列表自己的入口（搜索结果按聚合曲目打开，带着所有平台的版本）。
  */
 @Composable
 fun rememberRowSwipe(
@@ -453,8 +453,8 @@ fun rememberRowSwipe(
 }
 
 /**
- * 设置页的示例行：按 [prefs] 画，动作只提示「演示：下载」不真执行。
- * 按「没下载、不是本地歌、可删」算，好让所有按钮都看得到；取消收藏按「已收藏」算，不然默认配置左滑只剩「删除」。
+ * 设置页的示例行：按 [prefs] 画，动作只提示'演示：下载'不真执行。
+ * 按'没下载、不是本地歌、可删'算，好让所有按钮都看得到；取消收藏按'已收藏'算，不然默认配置左滑只剩'删除'。
  */
 @Composable
 fun rememberDemoRowSwipe(prefs: SwipePrefs, notify: (String) -> Unit): RowSwipe {
@@ -495,7 +495,7 @@ private val SwipeMinFlingOffset = 24.dp
 /** tan 30°：纵向位移不超过横向的这么多倍才算横滑。 */
 internal const val SwipeAngleTan = 0.57735026f
 
-/** 「拉到头」：行宽 60%，最多 [capPx]（240dp）；至少比露出宽度多 [gapPx]（32dp），窄行时不和露出挤在一起。 */
+/** '拉到头'：行宽 60%，最多 [capPx]（240dp）；至少比露出宽度多 [gapPx]（32dp），窄行时不和露出挤在一起。 */
 internal fun swipeFullDistance(rowWidthPx: Float, openPx: Float, capPx: Float, gapPx: Float): Float =
     maxOf(minOf(rowWidthPx * 0.6f, capPx), openPx + gapPx)
 
@@ -697,7 +697,7 @@ internal fun SwipeRowFrame(
                 )
                 .semantics {
                     if (playing) stateDescription = "Now playing"
-                    // 读屏「操作」菜单里挂同样的动作（读屏开着时单指横滑是下一项，不能抢）
+                    // 读屏'操作'菜单里挂同样的动作（读屏开着时单指横滑是下一项，不能抢）
                     val items = swipe.content.value.accessibility
                     if (items.isNotEmpty()) {
                         customActions = items.map { item -> CustomAccessibilityAction(item.spoken) { item.run(); true } }
@@ -792,7 +792,7 @@ private fun SwipeButton(item: SwipeItem, modifier: Modifier, onClick: () -> Unit
     ) {
         val fade = if (item.enabled) Modifier else Modifier.alpha(0.38f)
         Icon(item.icon, null, fade.size(22.dp), tint = fg)
-        // 两个按钮各 64dp，「Next播放」「加到播放队列」放不下 11sp，缩到放得下为止
+        // 两个按钮各 64dp，'Next播放''加到播放队列'放不下 11sp，缩到放得下为止
         Text(
             item.label,
             fade.padding(top = 4.dp),
@@ -821,7 +821,7 @@ internal fun toneColors(tone: SwipeTone): Pair<Color, Color> {
 }
 
 /**
- * 鼠标悬停时行尾的一排圆形按钮：两侧按钮按「起始边 + 结束边」顺序，不含拉到头。
+ * 鼠标悬停时行尾的一排圆形按钮：两侧按钮按'起始边 + 结束边'顺序，不含拉到头。
  * 每个都有读屏说法和悬停提示；点了执行，和滑开后点按钮一样。
  */
 @Composable
@@ -943,7 +943,7 @@ private fun Modifier.swipeGesture(row: SwipeRowState, swipe: RowSwipe, rtl: Bool
             row.dragging = false
             val velocity = tracker.calculateVelocity().x * env.direction
             when (swipeSettle(row.offset, velocity, stops, flingPx, minFlingPx)) {
-                // 拉到头：跨过那一下已经震过一次（稿子「有一次震动」），松手直接执行再收回
+                // 拉到头：跨过那一下已经震过一次（稿子'有一次震动'），松手直接执行再收回
                 SwipeAnchor.FullStart -> {
                     env.swipe.content.value.startFull?.takeIf { it.enabled }?.run?.invoke()
                     row.settle(SwipeAnchor.Closed)

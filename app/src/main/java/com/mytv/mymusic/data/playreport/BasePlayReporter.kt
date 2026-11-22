@@ -8,7 +8,7 @@ package com.mytv.mymusic.data.playreport
  *
  * 规则与上游 sodam `play_report.rs` 一致：
  *  - 单帧时长增量最多算 [MAX_TICK_MS]，系统睡眠 / 卡顿不会把几小时算成播放时长
- *  - 进度严格越过 [PROGRESS_THRESHOLD_MS] 才认「开播了」，每首只报一次
+ *  - 进度严格越过 [PROGRESS_THRESHOLD_MS] 才认'开播了'，每首只报一次
  *  - 播放→暂停的下降沿报一次结束，持续暂停不重复报
  *  - 播完的曲目不再报暂停；一首的结束只报一次
  *  - 切曲那一帧的时长记给上一首
@@ -28,7 +28,7 @@ internal abstract class BasePlayReporter : PlayReporter {
         var endReported: Boolean = false,
     )
 
-    /** 一条已结束的播放记录，用于拼「最近播放」。 */
+    /** 一条已结束的播放记录，用于拼'最近播放'。 */
     private class PlayedRecord(val id: String, val durationMs: Long, val playedMs: Long)
 
     private var current: CurrentPlay? = null
@@ -164,7 +164,7 @@ internal abstract class BasePlayReporter : PlayReporter {
         /** 单帧最大计时间隔（毫秒）。 */
         const val MAX_TICK_MS = 1_000L
 
-        /** 首次进度上报阈值：进度严格大于它才算「真的开始放了」。 */
+        /** 首次进度上报阈值：进度严格大于它才算'真的开始放了'。 */
         const val PROGRESS_THRESHOLD_MS = 500L
 
         /** 保留的播放记录条数。 */

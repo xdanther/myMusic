@@ -509,7 +509,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
 
     /**
      * 听歌模式：`feed_mode_block` 是一组场景（官方 PC 端 45 个），
-     * `feed_mode_bar` 里是「推荐」这类偏好模式。两部分拼成一个列表，用 group 区分。
+     * `feed_mode_bar` 里是'推荐'这类偏好模式。两部分拼成一个列表，用 group 区分。
      */
     override suspend fun listeningModes(cookie: String): List<ListeningMode> {
         val body = NativeHttp.postJson(
@@ -582,7 +582,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         val payload = buildString {
             append("{")
             // played_media 是服务端判断口味的真正通道：把最近真放过的曲目连播放毫秒一起回传，
-            // 空数组就等于「这个人什么都没听过」，推荐流只能给通用的热门内容
+            // 空数组就等于'这个人什么都没听过'，推荐流只能给通用的热门内容
             append("\"played_media\":")
             append(PlayReportHub.playedMediaJson(info.id, PlayReportHub.PLAYED_MEDIA_LIMIT))
             append(",")
@@ -616,7 +616,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
             .map { buildSongFromTrack(it.entity.trackWrapper.track) }
             .filter { it.id.isNotBlank() }
             .distinctBy { it.id }
-        if (songs.isEmpty()) throw IllegalStateException("「${mode.name}」暂时没有歌曲")
+        if (songs.isEmpty()) throw IllegalStateException("'${mode.name}'暂时没有歌曲")
         return songs
     }
 
@@ -637,7 +637,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
      * 搜索回包。2026-11 起 Android `/luna/search/all` 对未签名请求只回
      * `{"extra":{"empty_search":1}}`（或空 body），PC 端 `/luna/pc/search/all`
      * 带应用签名才返回完整 result_groups。所以配了签名器就走 PC 综合搜索，
-     * 没配时保留原来的 Android 分类接口——不能把未签名的综合请求当成「没有结果」。
+     * 没配时保留原来的 Android 分类接口——不能把未签名的综合请求当成'没有结果'。
      * 对齐 libresoda `search.rs` 的 `fetch_search_body`。
      */
     private suspend fun fetchSearchBody(
@@ -656,7 +656,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
      * PC 综合搜索（`GET /luna/pc/search/all`），逐请求应用级签名。
      * 上游 music-lib 没有这条（它只有 Android 搜索），是照官方 PC 客户端新增的实现。
      * 签名头没被接受（200 + 空 body / `empty_search`）时退回 Android 分类接口：
-     * 它至少还能给出已收录的结果，比「搜不到」更接近真相。
+     * 它至少还能给出已收录的结果，比'搜不到'更接近真相。
      */
     private suspend fun fetchPcSearchAll(
         cookie: String,
@@ -1202,7 +1202,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         }.ifEmpty { throw IllegalStateException("no audio stream found") }
     }
 
-    /** 按 ext + 码率推断实际档位，用于「不静默降档」判断与探测归类。 */
+    /** 按 ext + 码率推断实际档位，用于'不静默降档'判断与探测归类。 */
     private fun sodaDownloadInfoQuality(info: DownloadInfo?): AudioQuality {
         info ?: return AudioQuality.Low
         if (info.preview) return AudioQuality.Preview
@@ -1409,7 +1409,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         AppLog.d(TAG, "采用签名器设备号 deviceId=${maskId(deviceId)}（后续 URL 与之对齐）")
     }
 
-    /** libmssdk 的失败原因码按「下一步做什么」分类，这里把它翻译成用户能看懂的提示。 */
+    /** libmssdk 的失败原因码按'下一步做什么'分类，这里把它翻译成用户能看懂的提示。 */
     private fun signerErrorHint(raw: String): String? = when {
         raw.contains("RATE_LIMITED") -> "签名服务被限流，请稍后重试"
         raw.contains("\"code\":\"BUSY\"") || raw.contains("\"code\":\"busy\"") -> "签名服务忙，请稍后重试"
@@ -1505,7 +1505,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
     // ---------------------------------------------------------------------
     // 与 libresoda 对齐的新增能力：歌单写操作、收藏、歌手页、最近播放、联想词。
     // 这些接口都要求逐请求的应用级签名（x-helios / x-medusa），签名覆盖
-    // 「URL + 全部请求头 + body」，所以参数和头必须在签名之前全部就位。
+    // 'URL + 全部请求头 + body'，所以参数和头必须在签名之前全部就位。
     // ---------------------------------------------------------------------
 
     /**
@@ -1593,11 +1593,11 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
     // ---------------- 歌单写操作（对齐 libresoda playlist_edit.rs） ----------------
 
     /**
-     * 「我创建的歌单」：`GET /luna/pc/me/playlist`，官方客户端侧边栏用的就是它。
+     * '我创建的歌单'：`GET /luna/pc/me/playlist`，官方客户端侧边栏用的就是它。
      * 只有出现在这里的歌单才能改——收藏来的别人的歌单不在列表里。
      * 隐私歌单在 `extra["is_private"]` 里标记（服务端只有为真时才给字段）。
      *
-     * 返回「本页歌单 + 下一页游标」：空游标表示没有下一页。
+     * 返回'本页歌单 + 下一页游标'：空游标表示没有下一页。
      */
     internal suspend fun myPlaylistPage(cookie: String, cursor: String = "", count: Int = 50): Pair<List<Playlist>, String> {
         if (cookie.isBlank()) return emptyList<Playlist>() to ""
@@ -1643,8 +1643,8 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         myPlaylistPage(cookie, "", count).first
 
     /**
-     * 这个歌单能不能用当前账号改：出现在「我创建的歌单」里就能改。
-     * null 表示没法判断（没登录 / 网络失败），调用方按「可以试」处理。
+     * 这个歌单能不能用当前账号改：出现在'我创建的歌单'里就能改。
+     * null 表示没法判断（没登录 / 网络失败），调用方按'可以试'处理。
      */
     override suspend fun playlistWritable(cookie: String, id: String): Boolean? {
         if (cookie.isBlank()) return null
@@ -1782,10 +1782,10 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
 
     // ---------------- 收藏（对齐 libresoda collection.rs） ----------------
 
-    /** 汽水的「我喜欢的音乐」是平台侧收藏，换设备也在；没登录时不给这个入口。 */
+    /** 汽水的'我喜欢的音乐'是平台侧收藏，换设备也在；没登录时不给这个入口。 */
     override fun supportsCollect(): Boolean = true
 
-    /** 喜欢 / 取消喜欢单曲（「我喜欢的音乐」）。 */
+    /** 喜欢 / 取消喜欢单曲（'我喜欢的音乐'）。 */
     override suspend fun collectTrack(cookie: String, song: Song) {
         val trackId = songTrackId(song)
         if (trackId.isEmpty()) throw IllegalArgumentException("track id is empty")
@@ -1808,7 +1808,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         sodaWriteFailed(raw, "取消收藏")
     }
 
-    /** 批量版：收藏多首（换源面板「把这批歌收藏到汽水」用）。 */
+    /** 批量版：收藏多首（换源面板'把这批歌收藏到汽水'用）。 */
     suspend fun collectTracks(cookie: String, songs: List<Song>) {
         val ids = songs.map { songTrackId(it) }.filter { it.isNotEmpty() }.distinct()
         if (ids.isEmpty()) return
@@ -1950,7 +1950,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
 
     // ---------------- 最近播放 / 播放统计（对齐 libresoda playback.rs） ----------------
 
-    /** 读「最近播放」；服务端字段随版本变动，这里按曲目 id + 标题解。 */
+    /** 读'最近播放'；服务端字段随版本变动，这里按曲目 id + 标题解。 */
     suspend fun recentlyPlayed(cookie: String, cursor: String = "", count: Int = 20): List<Song> {
         if (cookie.isBlank()) return emptyList()
         val raw = pcGet(
@@ -1973,7 +1973,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         }
     }
 
-    /** 从「最近播放」里删一条。 */
+    /** 从'最近播放'里删一条。 */
     suspend fun deleteRecentlyPlayed(cookie: String, trackIds: List<String>) {
         val ids = SodaCollection.cleanIds(trackIds)
         if (ids.isEmpty() || cookie.isBlank()) return
@@ -2024,7 +2024,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         )
     }
 
-    /** 指定用户的收藏混合列表；传自己的 user_id 就是「我收藏的」。 */
+    /** 指定用户的收藏混合列表；传自己的 user_id 就是'我收藏的'。 */
     internal suspend fun userMixedCollections(
         cookie: String,
         userId: String,
@@ -2173,7 +2173,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         return album to songs
     }
 
-    /** 「音乐墙」：总听歌时长 / 本周听歌时长。 */
+    /** '音乐墙'：总听歌时长 / 本周听歌时长。 */
     suspend fun musicWall(cookie: String): Pair<Long, Long> {
         if (cookie.isBlank()) return 0L to 0L
         val raw = businessPost(SODA_MUSIC_WALL_PATH, "{\"ab_param\":\"\",\"recent_rankings_version\":\"\",\"schema_extra\":\"\"}", cookie).body
@@ -3533,7 +3533,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
 
     // ---------------------------------------------------------------------
     // 诊断日志：VIP 整曲取流是账号状态 × 签名器 × 服务端策略三方共同决定的，
-    // 只报「只能试听」没法定位。这里把每段判断都记进 AppLog（不记 Cookie/Token 值）。
+    // 只报'只能试听'没法定位。这里把每段判断都记进 AppLog（不记 Cookie/Token 值）。
     // ---------------------------------------------------------------------
 
     private fun describeDownloadInfo(info: DownloadInfo?): String {
@@ -3605,7 +3605,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
     /**
      * 汽水的 `translations` 是 `{"cn":"[00:17.66]译文…"}` 这样的标准 LRC。
      * 每行译文贴到对应的原文后面（原文索引 → 译文），歌词解析端才会把同一时间戳的两行
-     * 并成「原文 + 翻译」；只取中文，其他语言（罗马音之类）保持原样不显示。
+     * 并成'原文 + 翻译'；只取中文，其他语言（罗马音之类）保持原样不显示。
      */
     private fun sodaTranslationLines(translation: String, originals: List<Pair<Int, String>>): Map<Int, List<String>> {
         if (translation.isBlank() || originals.isEmpty()) return emptyMap()
@@ -3863,7 +3863,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         const val DEFAULT_SIGNER_TOKEN = "b356ad402bc31ee9e5a99cfdbf41eaa39961a562251c3359"
 
         /**
-         * 「天天送会员」接口用的 UA：服务端按它判断客户端形态，和桌面版同款即可，
+         * '天天送会员'接口用的 UA：服务端按它判断客户端形态，和桌面版同款即可，
          * 这两个接口（commerce_info / apply_free_vip）不要求应用级签名。
          */
         const val WELFARE_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
@@ -4000,7 +4000,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         const val SODA_RECENTLY_PLAYED_PATH = "/luna/pc/me/recently-played-media"
         /** 播放统计 / 上报，参数透传。 */
         const val SODA_MEDIA_STATS_PATH = "/luna/pc/media-stats"
-        /** 「音乐墙」：总听歌时长 / 本周听歌时长。 */
+        /** '音乐墙'：总听歌时长 / 本周听歌时长。 */
         const val SODA_MUSIC_WALL_PATH = "/luna/me/music_wall"
         /** 搜索联想词。 */
         const val SODA_SUG_PATH = "/luna/pc/sug"
@@ -4008,7 +4008,7 @@ class SodaProvider : BaseNativeProvider(SODA_INFO) {
         const val SODA_SUGGEST_WORDS_PATH = "/luna/suggest-words"
         /** 推荐歌单。 */
         const val SODA_RECOMMEND_PLAYLIST_PATH = "/luna/me/playlist/recommend"
-        /** 「我创建的歌单」：官方客户端侧边栏用的就是它，也是判断歌单能否修改的依据。 */
+        /** '我创建的歌单'：官方客户端侧边栏用的就是它，也是判断歌单能否修改的依据。 */
         const val SODA_MY_PLAYLISTS_PATH = "/luna/pc/me/playlist"
         /** PC 专辑详情：JSON 直出，比抓分享页 HTML 稳。 */
         const val SODA_PC_ALBUM_PATH = "/luna/pc/albums"

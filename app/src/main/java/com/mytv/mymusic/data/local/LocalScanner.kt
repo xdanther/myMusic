@@ -22,7 +22,7 @@ object LocalScanner {
     private val skippedFolders = listOf("Ringtones/", "Notifications/", "Alarms/")
 
     /**
-     * 媒体库里的音乐。排除铃声、通知、闹钟目录和 myMusic 自己的下载目录（下载的歌已经在「下载」里）；
+     * 媒体库里的音乐。排除铃声、通知、闹钟目录和 myMusic 自己的下载目录（下载的歌已经在'下载'里）；
      * 落在已授权文件夹里的跳过，交给文件夹扫描——那边能顺带找到同名 .lrc。
      */
     fun queryMediaStore(context: Context, folders: List<LocalFolder>): List<ScannedFile> {

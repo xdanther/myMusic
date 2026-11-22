@@ -91,7 +91,7 @@ class BilibiliProvider : BaseNativeProvider(BILIBILI_INFO) {
         }
 
         val songs = mutableListOf<Song>()
-        // 搜索词里的歌手是匹配时唯一可靠的「这歌是谁唱的」，标题拆不出来时用它兜底
+        // 搜索词里的歌手是匹配时唯一可靠的'这歌是谁唱的'，标题拆不出来时用它兜底
         val keywordArtist = keywordArtist(keyword)
         items.forEachIndexed { index, item ->
             val view = views.getOrNull(index) ?: return@forEachIndexed
@@ -367,7 +367,7 @@ class BilibiliProvider : BaseNativeProvider(BILIBILI_INFO) {
         val option = BILIBILI_QUALITY_DEFINITIONS[quality]?.option
         return PlayableStream(
             url = url,
-            // 自动档时 fetchAudioUrl 挑的是「Hi-Res > 全景声 > 最高 DASH 档 > durl」，
+            // 自动档时 fetchAudioUrl 挑的是'Hi-Res > 全景声 > 最高 DASH 档 > durl'，
             // 挑中了哪一档没随地址带下来，而 DASH 音频在 B 站一律是 fMP4（地址后缀 .m4s，
             // extensionFromUrl 认不出来），后缀为空就按 m4a 兜，别让下载文件命名成 .m4s
             ext = option?.format ?: song.ext.ifBlank { "m4a" },
@@ -810,7 +810,7 @@ class BilibiliProvider : BaseNativeProvider(BILIBILI_INFO) {
     }
 
     /**
-     * 单 P 稿件的曲目信息：稿件标题是 UP 主的宣传文案（「【4K修复】周杰伦 - 晴天MV」），
+     * 单 P 稿件的曲目信息：稿件标题是 UP 主的宣传文案（'【4K修复】周杰伦 - 晴天MV'），
      * 直接当歌名列表里很难看，聚合也认不出来，所以按标题拆回歌名 + 歌手。
      */
     private fun displayTitle(rootTitle: String, part: String, keyword: String = ""): String {
@@ -819,7 +819,7 @@ class BilibiliProvider : BaseNativeProvider(BILIBILI_INFO) {
     }
 
     /**
-     * `晴天-周杰伦` 和 `周杰伦-晴天` 都能拆通，得挑一个：检索词是「歌名 歌手」或只有歌名，
+     * `晴天-周杰伦` 和 `周杰伦-晴天` 都能拆通，得挑一个：检索词是'歌名 歌手'或只有歌名，
      * 所以标题和检索词第一个词对得上的那种解读更可能是歌名。
      */
     private fun chooseTrack(rawTitle: String, keyword: String): BilibiliTrackTitle {
@@ -834,7 +834,7 @@ class BilibiliProvider : BaseNativeProvider(BILIBILI_INFO) {
     }
 
     /**
-     * 匹配换源时检索词就是「歌名 歌手」；这种词搜出来的东西全部由这个歌手相关，
+     * 匹配换源时检索词就是'歌名 歌手'；这种词搜出来的东西全部由这个歌手相关，
      * 标题又拆不出歌手时用它兜底。聚合搜索的词只有歌名，这里返回 null。
      */
     private fun keywordArtist(keyword: String): String? {
@@ -1004,7 +1004,7 @@ class BilibiliProvider : BaseNativeProvider(BILIBILI_INFO) {
         val normalizedCover = normalizeCover(cover)
         val songs = mutableListOf<Song>()
         pages.forEachIndexed { index, page ->
-            // 单 P 时 page.part 往往和稿件标题一样，拼起来就成了「晴天 - 晴天」
+            // 单 P 时 page.part 往往和稿件标题一样，拼起来就成了'晴天 - 晴天'
             val name = if (pages.size == 1) displayTitle(rootTitle, page.part) else page.part.ifEmpty { rootTitle }
             songs += Song(
                 id = "$bvid|${page.cid}",

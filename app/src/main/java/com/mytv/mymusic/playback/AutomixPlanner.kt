@@ -6,10 +6,10 @@ import kotlin.math.roundToLong
 
 /** 自动接歌的四种接法。 */
 enum class AutomixMethod(val label: String) {
-    BeatCut("切拍"),
-    BassHandoff("低频交接"),
-    OutroCarry("尾奏承接"),
-    EqualPowerFade("等功率淡化"),
+    BeatCut("Beat cut"),
+    BassHandoff("Bass handoff"),
+    OutroCarry("Outro carry"),
+    EqualPowerFade("Equal-power fade"),
 }
 
 /**

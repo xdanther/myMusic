@@ -9,7 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
 
-/** 共用格式化：整套界面只有英文，设备是中文时也不能再出现「10 月 20 日」这类写法。 */
+/** 共用格式化：整套界面只有英文，设备是中文时也不能再出现「Oct 20」这类写法。 */
 class FormatsTest {
     @Test
     fun `compact counts use k m b`() {

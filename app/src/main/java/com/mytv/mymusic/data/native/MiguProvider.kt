@@ -232,7 +232,7 @@ class MiguProvider : BaseNativeProvider(MIGU_INFO) {
     }
 
     /**
-     * 咪咕的译文文件开头也有一份「歌曲名 / 歌手名 / 作词 / 作曲」，时间挤在 00:00.00，
+     * 咪咕的译文文件开头也有一份'歌曲名 / 歌手名 / 作词 / 作曲'，时间挤在 00:00.00，
      * 和原词那几行（00:00.03~08）错位，合并后会把这几个标题行对到一起。
      * 译文只留正文。
      */
@@ -464,7 +464,7 @@ class MiguProvider : BaseNativeProvider(MIGU_INFO) {
         )
         val songs = extractListenSongs(body)
         if (songs.isEmpty()) {
-            throw IllegalStateException(if (cookie.isBlank()) "「${mode.name}」需要登录后播放" else "「${mode.name}」暂时没有歌曲")
+            throw IllegalStateException(if (cookie.isBlank()) "'${mode.name}'需要登录后播放" else "'${mode.name}'暂时没有歌曲")
         }
         return songs
     }
@@ -772,7 +772,7 @@ class MiguProvider : BaseNativeProvider(MIGU_INFO) {
 
     /**
      * 洛雪导出的咪咕歌只有歌曲 id（songId）和版权号，没有本应用放歌要的 contentId：照洛雪 mg_musicInfo.js
-     * 批量查 resourceinfo.do（resourceId 填 songId，用「|」连，每批 100 个），换成能放的 Song。
+     * 批量查 resourceinfo.do（resourceId 填 songId，用'|'连，每批 100 个），换成能放的 Song。
      * 这个接口认 songId，不认版权号（实测版权号查回来是空的）。
      * key 是查询用的 songId，换不到的不在结果里。匿名调用；每批 10 秒，失败只记日志、这一批走兜底，不重试。
      * [onBatch] 每换完一批回调一次（已完成批数、总批数），预览面板显示进度。
@@ -974,7 +974,7 @@ class MiguProvider : BaseNativeProvider(MIGU_INFO) {
 
     /**
      * 按档位取流：只请求这一档对应的 tone，接口回的档位对不上就报错，
-     * 不把低档地址当成功——会员区里最常见的就是「请求 ZQ32 回了 HQ」。
+     * 不把低档地址当成功——会员区里最常见的就是'请求 ZQ32 回了 HQ'。
      * [fallbackTones] 打开时还会问歌曲自带档和 HQ/PQ，用它们的地址改写路径升档。
      */
     private suspend fun downloadAtQuality(
@@ -1032,7 +1032,7 @@ class MiguProvider : BaseNativeProvider(MIGU_INFO) {
             if (candidate.matchesTone(actual)) return url
         }
         // 接口拒了显式 VIP tone 时，同一个文件其实能靠改写 CDN 路径加到高档；
-        // 咪咕就是这么「只给低档地址、档位靠目录名区分」的
+        // 咪咕就是这么'只给低档地址、档位靠目录名区分'的
         if (fallbackTones && firstUsableUrl.isNotBlank()) {
             miguRewrittenToneUrl(firstUsableUrl, candidate.tones.first())
                 ?.takeIf { miguDirectUrlPlayable(cookie, it) }
@@ -1080,7 +1080,7 @@ class MiguProvider : BaseNativeProvider(MIGU_INFO) {
         }
 
     /**
-     * 从最高档往下探，第一档能取到就用「该档及以下」作为账号可用档位。
+     * 从最高档往下探，第一档能取到就用'该档及以下'作为账号可用档位。
      * 咪咕会把 FLAC 通过改写普通地址给出，逐档看 VIP 标记不如真实取流准。
      */
     override suspend fun availableQualityOptions(cookie: String): List<AudioQualityOption> {

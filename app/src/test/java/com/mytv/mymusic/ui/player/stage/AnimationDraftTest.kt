@@ -106,12 +106,12 @@ class AnimationDraftTest {
         )
         assertEquals(
             listOf(
-                "换法：固定 → 随机",
-                "所有歌都用：Rush → 黑胶唱片",
-                "随机池：9 个 → 6 个",
-                "「慢」：黑胶唱片 → Rush",
-                "频谱：关 → 开",
-                "「Rush」的设置：改了 3 项",
+                "Rotation: Pin → Random",
+                "Every track: Rush → Vinyl disc",
+                "Random pool: 9 → 6",
+                "'Slow': Vinyl disc → Rush",
+                "Spectrum: Off → On",
+                "'Rush' settings: 3 changed",
             ),
             animationDiff(saved, draft),
         )
@@ -124,9 +124,9 @@ class AnimationDraftTest {
         // 存着的全是认不出的键：清理后没有差别
         assertEquals(emptyList<String>(), animationDiff(withSettings, draftOf(withSettings).copy(pluginSettings = emptyMap())))
         val rush = saved.copy(pluginSettings = mapOf("rush" to mapOf("align" to "end")))
-        assertEquals(listOf("「Rush」的设置：改了 1 项"), animationDiff(rush, draftOf(rush).copy(pluginSettings = emptyMap())))
+        assertEquals(listOf("'Rush' settings: 1 changed"), animationDiff(rush, draftOf(rush).copy(pluginSettings = emptyMap())))
         val cleared = draftOf(saved).copy(auto = LyricAutoSwitch.Random, randomPool = emptySet())
-        assertEquals(listOf("换法：固定 → 随机", "随机池：9 个 → 0 个"), animationDiff(saved, cleared))
+        assertEquals(listOf("Rotation: Pin → Random", "Random pool: 9 → 0"), animationDiff(saved, cleared))
     }
 
     // ---- 舞台预览哪个 ----

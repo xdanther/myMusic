@@ -479,7 +479,7 @@ internal class PosterWallState internal constructor(
 
     /**
      * 只换视角倍数（设置里的滑块）：格子按新格距原地重排，不重放入场，[tileAnims] 按位置保留。
-     * 镜头：大卡正停在正中就换完还在正中（稿子「正在播放的那张留在原位」）；否则以 [anchor]（屏幕点，默认屏幕中心）为锚点换算，
+     * 镜头：大卡正停在正中就换完还在正中（稿子'正在播放的那张留在原位'）；否则以 [anchor]（屏幕点，默认屏幕中心）为锚点换算，
      * 锚点下还是同一处墙面。方向键焦点被拉远后的大卡盖住时挪到大卡上。
      */
     private fun rescale(old: WallMetrics, new: WallMetrics, anchor: WallPoint? = null) {

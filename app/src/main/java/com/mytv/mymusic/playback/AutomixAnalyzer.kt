@@ -481,6 +481,6 @@ private fun keyCorrelation(chroma: DoubleArray, root: Int, profile: DoubleArray)
 private val KEY_NAMES = arrayOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
 internal fun keyLabel(index: Int, minor: Boolean): String {
-    if (index !in KEY_NAMES.indices) return "未知调"
-    return KEY_NAMES[index] + if (minor) " 小调" else " 大调"
+    if (index !in KEY_NAMES.indices) return "Unknown key"
+    return KEY_NAMES[index] + if (minor) " minor" else " major"
 }

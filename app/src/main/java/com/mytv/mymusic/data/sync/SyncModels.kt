@@ -147,7 +147,7 @@ data class SyncRemote(
 /**
  * 匹配结果（规格 3.3）：只记平台和 ID，另一台设备按它现取封面和歌词，不同步歌词正文。
  *
- * 用户点了「不匹配」也要同步出去，否则别的设备快照里还留着旧匹配，合并时会把它“复活”：
+ * 用户点了'不匹配'也要同步出去，否则别的设备快照里还留着旧匹配，合并时会把它“复活”：
  * 记成 [METHOD_REJECTED]、置信度 1（和手选一样算用户的决定）、平台和 ID 留空。
  * 所有读匹配的地方（解析、徽标、显示）都把它当成“没有匹配”。
  */
@@ -156,11 +156,11 @@ data class SyncMatch(
     val provider: String,
     val id: String,
     val confidence: Float = 0f,
-    /** tag / audio / manual / none；用户在「换一个匹配」里选的置信度记 1，合并时总能盖过自动匹配。 */
+    /** tag / audio / manual / none；用户在'换一个匹配'里选的置信度记 1，合并时总能盖过自动匹配。 */
     val method: String = "",
     val matchedAt: String = "",
 ) {
-    /** 用户点过「不匹配」。 */
+    /** 用户点过'不匹配'。 */
     val rejected: Boolean get() = method == METHOD_REJECTED
 
     companion object {

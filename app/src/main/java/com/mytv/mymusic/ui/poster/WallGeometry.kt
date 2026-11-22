@@ -145,7 +145,7 @@ internal enum class WallKind(
 }
 
 /**
- * 墙这一次的格距：设备档 [kind] 乘视角倍数 [zoom]（海报墙设置里的「视角」，0.5 远 … 1.25 近）。
+ * 墙这一次的格距：设备档 [kind] 乘视角倍数 [zoom]（海报墙设置里的'视角'，0.5 远 … 1.25 近）。
  * 格距、缝、小格圆角跟着倍数缩放，世界坐标对倍数是线性的（换倍数时镜头可以精确换算，见 zoomCamera）；
  * 大卡圆角、带子高度和焦点安全区（屏幕上的距离）不缩放。大卡的槽位永远是 6×6 格，显示多大另算（grownDisplaySize）。
  */
@@ -184,7 +184,7 @@ internal data class WallMetrics(val kind: WallKind, val zoom: Float = 1f) {
 
         const val FOCUS_RADIUS_BOOST = 8f
 
-        /** 稿子的「格子 < 40dp」：按格距算，整面墙统一收起，不会有的格子有字有的没字。 */
+        /** 稿子的'格子 < 40dp'：按格距算，整面墙统一收起，不会有的格子有字有的没字。 */
         const val COMPACT_PITCH = 40f
 
         /** 拉远后小格圆角的下限（稿子 max(4, 8·zoom)）。 */

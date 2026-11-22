@@ -282,7 +282,7 @@ private fun trimDecimal(value: Double): String {
     return if (text.endsWith(".0")) text.dropLast(2) else text
 }
 
-/** 曲目总时长：“52 分钟” / “1 小时 12 分钟”；没有时长的歌不算。 */
+/** 曲目总时长："52 min" / "1 h 12 min"；没有时长的歌不算。 */
 internal fun totalDurationLabel(songs: List<Song>): String {
     val seconds = songs.sumOf { it.duration.coerceAtLeast(0).toLong() }
     if (seconds <= 0) return ""

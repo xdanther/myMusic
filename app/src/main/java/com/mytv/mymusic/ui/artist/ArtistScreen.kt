@@ -731,7 +731,7 @@ private fun LazyListScope.artistSongs(
                     }
                 },
                 onMore = { onMore(song) },
-                // 歌手就是这一页：「查看歌手」不给他自己（合唱的给另一位）
+                // 歌手就是这一页：'查看歌手'不给他自己（合唱的给另一位）
                 swipe = rememberRowSwipe(song, songs, hideArtist = artist.displayName),
             )
         }

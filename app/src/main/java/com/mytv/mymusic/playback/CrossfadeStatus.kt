@@ -6,19 +6,19 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * 上一次自动接歌的结果：用了哪种接法、多长，或者为什么退回直接切。
- * 播放服务在切完 / 放弃过渡时写，设置页读——参考文档里「上一次接歌」那一行。
+ * 播放服务在切完 / 放弃过渡时写，设置页读——参考文档里'上一次接歌'那一行。
  */
 data class CrossfadeReport(
     val fromTitle: String,
     val toTitle: String,
-    /** 例如「等功率淡化」「直接切」；后续接了更多接法会换成「切拍」「低频交接」等。 */
+    /** 例如'等功率淡化''直接切'；后续接了更多接法会换成'切拍''低频交接'等。 */
     val method: String,
     val seconds: Float,
     /** 退回直接切的原因；没有退回时为 null。 */
     val fallbackReason: String? = null,
 ) {
     val headline: String
-        get() = if (fallbackReason != null) "已退回直接切" else "$method · ${"%.1f".format(seconds)} 秒"
+        get() = if (fallbackReason != null) "Fell back to a direct switch" else "$method · ${"%.1f".format(seconds)} s"
 
     val detail: String
         get() = buildString {

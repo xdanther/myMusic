@@ -142,7 +142,7 @@ object PlaylistExport {
 
 private val forbiddenFileChars = Regex("""[\\/:*?#"<>|\p{Cntrl}]""")
 
-/** 文件名里去掉 `\ / : * ? # " < > |` 和控制字符，首尾空白去掉，最长 150 字符，空了用「歌单」。 */
+/** 文件名里去掉 `\ / : * ? # " < > |` 和控制字符，首尾空白去掉，最长 150 字符，空了用'歌单'。 */
 internal fun safeFileName(name: String): String {
     val cleaned = name.replace(forbiddenFileChars, "").trim().trimEnd('.').trim()
     return cleaned.take(MAX_FILE_NAME_LENGTH).trim().ifBlank { "歌单" }

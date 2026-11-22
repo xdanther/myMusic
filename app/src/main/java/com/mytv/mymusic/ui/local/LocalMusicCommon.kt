@@ -59,7 +59,7 @@ internal fun rememberCanPickFolder(): Boolean {
 }
 
 /**
- * 「我的」那一行的说明：总数和已上传数（设计稿第 ① 张），扫描或匹配时带上进度；
+ * '我的'那一行的说明：总数和已上传数（设计稿第 ① 张），扫描或匹配时带上进度；
  * 上传队列被风控 / 登录失效停下时写原因（设计稿第 09 节：“上传暂停：网易云要求重新验证”）。
  */
 internal fun localEntrySummary(
@@ -107,7 +107,7 @@ internal fun scanProgressLabel(scan: LocalScanState): String = when (scan.phase)
 }
 
 /**
- * 「我的」里的“Local music”行，和“汽水天天送会员”并成一组（[index] / [count] 决定圆角）。
+ * '我的'里的“Local music”行，和“汽水天天送会员”并成一组（[index] / [count] 决定圆角）。
  * 说明里写总数，扫描中带上进度。
  */
 @Composable

@@ -110,7 +110,7 @@ internal enum class SettingsSection(
             listOf(Storage, About),
         )
 
-        /** 实际列出的分组：电视上没有滑动操作，不列「滑动操作」。 */
+        /** 实际列出的分组：电视上没有滑动操作，不列'滑动操作'。 */
         fun groupsFor(tv: Boolean): List<List<SettingsSection>> =
             if (tv) groups.map { group -> group.filter { it != Swipe } } else groups
     }

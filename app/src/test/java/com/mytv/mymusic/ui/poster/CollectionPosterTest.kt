@@ -27,7 +27,7 @@ class CollectionPosterTest {
 
     @Test
     fun currentIndexFallsBackToSourceKeysAfterAutoSwitch() {
-        // 自动换源后正在放的是 QQ 的版本，歌单里是网易云的：按当前曲目各平台音源的 key 认出来
+        // 自动换源后正在放的是 QQ 的版本，Playlists里是网易云的：按当前曲目各平台音源的 key 认出来
         assertEquals(1, posterCurrentIndex(songs, "qq:999", listOf("qq:999", "netease:b")))
     }
 
@@ -49,37 +49,37 @@ class CollectionPosterTest {
 
     @Test
     fun subtitleListsKindSourceAndCount() {
-        assertEquals("歌单 · 网易云音乐 · 30 首", posterSubtitle("歌单", "网易云音乐", 30, loading = false, playingIndex = -1))
+        assertEquals("Playlists · 网易云音乐 · 30 tracks", posterSubtitle("Playlists", "网易云音乐", 30, loading = false, playingIndex = -1))
     }
 
     @Test
     fun subtitleAddsPlayingPositionWhenThisCollectionIsPlaying() {
         assertEquals(
-            "专辑 · QQ 音乐 · 12 首 · 正在播放第 3 首",
-            posterSubtitle("专辑", "QQ 音乐", 12, loading = false, playingIndex = 2),
+            "Album · QQ 音乐 · 12 tracks · Playing track 3",
+            posterSubtitle("Album", "QQ 音乐", 12, loading = false, playingIndex = 2),
         )
     }
 
     @Test
     fun subtitleShowsLoadingBeforeSongsArrive() {
-        assertEquals("榜单 · 酷狗 · 正在读取…", posterSubtitle("榜单", "酷狗", 0, loading = true, playingIndex = -1))
+        assertEquals("Charts · 酷狗 · Reading…", posterSubtitle("Charts", "酷狗", 0, loading = true, playingIndex = -1))
         // 读完还是空的：不写“0 首”
-        assertEquals("榜单 · 酷狗", posterSubtitle("榜单", "酷狗", 0, loading = false, playingIndex = -1))
+        assertEquals("Charts · 酷狗", posterSubtitle("Charts", "酷狗", 0, loading = false, playingIndex = -1))
     }
 
     @Test
     fun subtitleSkipsBlankSourceAndOutOfRangeIndex() {
-        // 自建歌单没有来源
-        assertEquals("自建歌单 · 8 首", posterSubtitle(LOCAL_PLAYLIST_LABEL, "", 8, loading = false, playingIndex = 8))
-        assertEquals("自建歌单 · 8 首 · 正在播放第 8 首", posterSubtitle(LOCAL_PLAYLIST_LABEL, " ", 8, loading = false, playingIndex = 7))
+        // Local playlists没有来源
+        assertEquals("Local playlists · 8 tracks", posterSubtitle(LOCAL_PLAYLIST_LABEL, "", 8, loading = false, playingIndex = 8))
+        assertEquals("Local playlists · 8 tracks · Playing track 8", posterSubtitle(LOCAL_PLAYLIST_LABEL, " ", 8, loading = false, playingIndex = 7))
     }
 
     @Test
     fun kindLabels() {
-        assertEquals("榜单", collectionKindLabel(CollectionKind.Chart))
-        assertEquals("歌单", collectionKindLabel(CollectionKind.Playlist))
-        assertEquals("专辑", collectionKindLabel(CollectionKind.Album))
-        assertEquals("歌手", collectionKindLabel(CollectionKind.Artist))
+        assertEquals("Charts", collectionKindLabel(CollectionKind.Chart))
+        assertEquals("Playlists", collectionKindLabel(CollectionKind.Playlist))
+        assertEquals("Album", collectionKindLabel(CollectionKind.Album))
+        assertEquals("Artist", collectionKindLabel(CollectionKind.Artist))
     }
 
     // ------------------------------------------------------------------ 浮层按设备
@@ -135,11 +135,11 @@ class CollectionPosterTest {
     @Test
     fun tvPageMenuHasEveryToolbarActionTitledByKindAndName() {
         val calls = mutableListOf<String>()
-        val extra = PosterExtraAction(Icons.Filled.Link, "绑定到我的歌单", { calls += "extra" }, on = true, stateDescription = "已绑定，平台更新自动同步")
+        val extra = PosterExtraAction(Icons.Filled.Link, "Link to my playlist", { calls += "extra" }, on = true, stateDescription = "已绑定，平台更新自动同步")
         val menu = collectionWallMenu(
-            kindLabel = "榜单",
+            kindLabel = "Charts",
             title = "热歌榜",
-            playLabel = "播放全部",
+            playLabel = "Play all",
             hasSongs = true,
             extra = extra,
             playingHere = true,
@@ -150,9 +150,9 @@ class CollectionPosterTest {
             onList = { calls += "list" },
             onSettings = { calls += "settings" },
         )
-        assertEquals("榜单 · 热歌榜", menu.title)
+        assertEquals("Charts · 热歌榜", menu.title)
         assertEquals(
-            listOf("播放全部", "随机播放", "绑定到我的歌单", "回到正在播放", "换源设置", "切回列表视图", "海报墙设置"),
+            listOf("Play all", "Shuffle", "Link to my playlist", "Back to now playing", "Source settings", "Back to list view", "Poster wall settings"),
             menu.items.map { it.label },
         )
         // 已绑定 / 已收藏写在第二行，别的行没有第二行
@@ -167,23 +167,23 @@ class CollectionPosterTest {
         val menu = collectionWallMenu(
             kindLabel = LOCAL_PLAYLIST_LABEL,
             title = "",
-            playLabel = "播放全部",
+            playLabel = "Play all",
             hasSongs = false,
-            extra = PosterExtraAction(Icons.Filled.Edit, "编辑歌单", {}),
+            extra = PosterExtraAction(Icons.Filled.Edit, "编辑Playlists", {}),
             playingHere = false,
             sourceSettings = null,
             onPlayAll = {}, onShuffle = {}, onLocate = {}, onList = {}, onSettings = {},
         )
-        assertEquals("自建歌单 · 详情", menu.title)
-        // 没有歌不给随机，这张没在放不给回到正在播放，不是榜单没有换源设置；没收藏的状态不写第二行
-        assertEquals(listOf("播放全部", "编辑歌单", "切回列表视图", "海报墙设置"), menu.items.map { it.label })
+        assertEquals("Local playlists · Details", menu.title)
+        // 没有歌不给随机，这张没在放不给Back to now playing，不是Charts没有Source settings；没收藏的状态不写第二行
+        assertEquals(listOf("Play all", "编辑Playlists", "Back to list view", "Poster wall settings"), menu.items.map { it.label })
         assertEquals("", menu.items[1].summary)
     }
 
     @Test
     fun queuePageMenuOffersLocateOnlyWhenCurrentIsInTheQueue() {
-        assertEquals(listOf("回到正在播放", "海报墙设置"), queueWallMenu("播放队列", true, {}, {}).items.map { it.label })
-        assertEquals(listOf("海报墙设置"), queueWallMenu("听歌模式", false, {}, {}).items.map { it.label })
+        assertEquals(listOf("Back to now playing", "Poster wall settings"), queueWallMenu("播放队列", true, {}, {}).items.map { it.label })
+        assertEquals(listOf("Poster wall settings"), queueWallMenu("听歌模式", false, {}, {}).items.map { it.label })
         assertEquals("播放队列", queueWallMenu("播放队列", true, {}, {}).title)
     }
 

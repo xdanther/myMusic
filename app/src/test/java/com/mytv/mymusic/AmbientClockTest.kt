@@ -27,10 +27,10 @@ class AmbientClockTest {
 
     @Test
     fun descriptionAddsThePeriodOnlyInTwelveHourMode() {
-        assertEquals("当前时间 21:30", clockDescription(21, 30, use24Hour = true))
-        assertEquals("当前时间 下午9:30", clockDescription(21, 30, use24Hour = false))
-        assertEquals("当前时间 上午12:05", clockDescription(0, 5, use24Hour = false))
-        assertEquals("当前时间 下午12:00", clockDescription(12, 0, use24Hour = false))
+        assertEquals("Current time 21:30", clockDescription(21, 30, use24Hour = true))
+        assertEquals("Current time PM9:30", clockDescription(21, 30, use24Hour = false))
+        assertEquals("Current time AM12:05", clockDescription(0, 5, use24Hour = false))
+        assertEquals("Current time PM12:00", clockDescription(12, 0, use24Hour = false))
     }
 
     @Test

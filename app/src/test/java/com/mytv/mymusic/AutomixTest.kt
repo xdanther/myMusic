@@ -183,11 +183,11 @@ class AutomixTest {
     @Test
     fun `a report explains the method or the fallback`() {
         val mixed = CrossfadeReport("晴天", "稻香", "等功率淡化", 5.6f)
-        assertEquals("等功率淡化 · 5.6 秒", mixed.headline)
+        assertEquals("等功率淡化 · 5.6 s", mixed.headline)
         assertEquals("《晴天》→《稻香》", mixed.detail)
 
         val fallback = CrossfadeReport("晴天", "稻香", "直接切", 0f, "下一首是加密整曲")
-        assertEquals("已退回直接切", fallback.headline)
+        assertEquals("Fell back to a direct switch", fallback.headline)
         assertEquals("《晴天》→《稻香》 · 下一首是加密整曲", fallback.detail)
     }
 }

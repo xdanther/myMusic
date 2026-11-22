@@ -79,7 +79,7 @@ class ImportPlanTest {
         assertEquals(ImportChoice(true, ImportTarget.New), defaultChoices(plan, true)["userlist_1"])
         assertEquals(listOf(ImportTarget.New), targetsFor(plan, run))
         assertEquals("跑步（导入）", newNameFor(plan, run))
-        assertEquals("新建歌单「跑步（导入）」", targetLabel(plan, run, ImportTarget.New))
+        assertEquals("新建歌单'跑步（导入）'", targetLabel(plan, run, ImportTarget.New))
         // 同名的既有绑定的也有没绑定的：合并进没绑定的那个
         val mixed = lxPlan("list_v2.json", listOf(playlist("p1", "跑步", bound = true), playlist("p2", "跑步")))
         assertEquals(SameName("p2", "跑步", bound = false), mixed.sameName["userlist_1"])

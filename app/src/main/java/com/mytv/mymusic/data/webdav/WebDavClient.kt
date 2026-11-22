@@ -112,11 +112,11 @@ data class WebDavPutResult(val etag: String?, val created: Boolean)
 data class WebDavStream(val url: String, val headers: Map<String, String>, val needsClient: Boolean)
 
 enum class WebDavCheckStep(val label: String) {
-    ReadDirectory("读取目录"),
-    CreateDirectory("创建目录"),
-    Write("写入测试文件"),
-    ReadBack("读回测试文件"),
-    Delete("删除测试文件"),
+    ReadDirectory("Read directory"),
+    CreateDirectory("Create directory"),
+    Write("Write test file"),
+    ReadBack("Read test file"),
+    Delete("Delete test file"),
 }
 
 data class WebDavCheckResult(

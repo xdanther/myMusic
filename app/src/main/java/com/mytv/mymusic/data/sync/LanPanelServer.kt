@@ -11,7 +11,7 @@ import java.security.SecureRandom
 internal data class LanPanelStarted(val url: String, val expiresAt: Long)
 
 /**
- * 电视上「手机扫码打开的局域网网页」的公共底座：同步配置（[SyncSetupServer]）和传歌单文件共用。
+ * 电视上'手机扫码打开的局域网网页'的公共底座：同步配置（[SyncSetupServer]）和传歌单文件共用。
  *
  * - 只认 `/s/<令牌>/` 下的路径，令牌 128 位随机、只在二维码里；
  * - 只收局域网来源（回环、私网、链路本地），过期一律 410；

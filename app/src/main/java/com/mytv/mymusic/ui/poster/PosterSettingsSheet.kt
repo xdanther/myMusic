@@ -163,7 +163,7 @@ private fun ZoomSlider(value: Float, onChange: (Float) -> Unit, modifier: Modifi
     )
 }
 
-/** 滑块下面的「远 / 默认 / 近」：各自对着自己的刻度（两头的贴边），点了直接跳到那一档。 */
+/** 滑块下面的'远 / 默认 / 近'：各自对着自己的刻度（两头的贴边），点了直接跳到那一档。 */
 @Composable
 private fun ZoomPresets(value: Float, onChange: (Float) -> Unit, modifier: Modifier = Modifier) {
     val presets = listOf(PosterZoom.MIN to "Far", PosterZoom.DEFAULT to "Default", PosterZoom.MAX to "Close")

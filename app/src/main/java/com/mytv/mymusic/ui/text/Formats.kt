@@ -10,7 +10,7 @@ import java.util.Locale
 
 /**
  * 所有界面共用的格式化。应用只有一套英文文案，所以默认统一用 [Locale.ENGLISH]：
- * 设备是中文时也不会再冒出「10 月 20 日」或「亿 / 万」。
+ * 设备是中文时也不会再冒出'10 月 20 日'或'亿 / 万'。
  */
 
 private val English = Locale.ENGLISH
@@ -44,7 +44,7 @@ fun formatByteSize(bytes: Long, locale: Locale = English): String = when {
 
 /**
  * 播放量等大数：12.3K / 4.5M / 1.2B。
- * 原来是「万 / 亿」，中文用户也看得懂 K/M，换来的是同一套写法。
+ * 原来是'万 / 亿'，中文用户也看得懂 K/M，换来的是同一套写法。
  */
 fun formatCompactCount(count: Long, locale: Locale = English): String {
     fun oneDecimal(value: Double, suffix: String): String =

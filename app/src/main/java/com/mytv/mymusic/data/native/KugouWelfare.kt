@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
- * 酷狗概念版（客户端包名 `com.kugou.android.lite`）「听歌领会员」的客户端。
+ * 酷狗概念版（客户端包名 `com.kugou.android.lite`）'听歌领会员'的客户端。
  *
  * 概念版和普通酷狗音乐不是同一套账号体系：它有自己的 appid（3116）、签名盐和登录 Token。
  * 本 App 的酷狗登录走的就是概念版 appid，所以这里直接复用同一个 Cookie，不需要再登一次。
@@ -23,7 +23,7 @@ import kotlinx.serialization.json.JsonPrimitive
  *
  * 签名和公共参数由 [KugouProvider.kugouYouthRequest] 统一构造
  * （`MD5(salt + 排序参数 + body + salt)`），和云盘写入、账号资料走同一套算法。
- * 领取日期按北京时间算：服务端会拒绝「日期小于今天」的请求，用设备本地时间在跨时区时会领不到。
+ * 领取日期按北京时间算：服务端会拒绝'日期小于今天'的请求，用设备本地时间在跨时区时会领不到。
  */
 object KugouWelfare {
     const val KUGOU_PROVIDER_ID = "kugou"
@@ -76,7 +76,7 @@ object KugouWelfare {
             AppLog.w(TAG, "概念版 VIP 状态请求失败：${it.javaClass.simpleName}: ${it.message}")
         }.getOrNull()
 
-        // 领取记录是锦上添花：解析不到不影响 VIP 状态，只是不显示「本月已领几天」
+        // 领取记录是锦上添花：解析不到不影响 VIP 状态，只是不显示'本月已领几天'
         val record = runCatching { provider.kugouYouthRequest(cookie, MONTH_RECORD_PATH) }
             .onFailure { AppLog.w(TAG, "概念版领取记录请求失败：${it.javaClass.simpleName}: ${it.message}") }
             .getOrNull()
@@ -124,12 +124,12 @@ object KugouWelfare {
     }
 
     /**
-     * 一次做完「领取 + 升级」：手动点击和启动时的自动领取都走这里。
+     * 一次做完'领取 + 升级'：手动点击和启动时的自动领取都走这里。
      * 升级失败不影响领取的结果，所以两步分开返回。
      */
     suspend fun claimAll(cookie: String, upgrade: Boolean = true): KugouClaimOutcome {
         val claim = claimDayVip(cookie)
-        // 领到了（含「今天已经领过了」）才值得升级；风控、登录过期就不要再打接口
+        // 领到了（含'今天已经领过了'）才值得升级；风控、登录过期就不要再打接口
         val upgraded = if (upgrade && (claim.success || claim.already)) upgradeConceptVip(cookie) else null
         return KugouClaimOutcome(claim = claim, upgrade = upgraded)
     }
@@ -172,7 +172,7 @@ object KugouWelfare {
         val errorCode = root.int("error_code", "errcode") ?: 0
         val errorMsg = root.string("error_msg", "error", "message").orEmpty()
         val message = when {
-            errorCode == ERROR_ALREADY -> "今天已经领过了"
+            errorCode == ERROR_ALREADY -> "Already claimed today"
             errorCode == ERROR_RISK -> "账号被风控，请到酷狗概念版客户端里领"
             errorCode == ERROR_LOGIN_EXPIRED -> "登录已过期，请重新扫码登录酷狗"
             status == 1 -> successMessage
@@ -188,7 +188,7 @@ object KugouWelfare {
     }
 
     /**
-     * 本月领取记录。返回「本月已领几天」和「今天是否已领」。
+     * 本月领取记录。返回'本月已领几天'和'今天是否已领'。
      *
      * 这个接口没有公开文档，所以按已知字段兜底解析：只认能明确读出 `yyyy-MM-dd` 的记录，
      * 读不出就返回 null，界面不显示这一段，不猜。
@@ -218,7 +218,7 @@ object KugouWelfare {
         }
     }
 
-    /** 服务端的「今天」按北京时间算，和领取日期保持一致。 */
+    /** 服务端的'今天'按北京时间算，和领取日期保持一致。 */
     fun beijingToday(): String {
         val now = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Shanghai"))
         return "%04d-%02d-%02d".format(now.year, now.monthValue, now.dayOfMonth)
@@ -285,7 +285,7 @@ data class KugouConceptCredentials(
 )
 
 /**
- * 概念版「听歌领会员」的状态。VIP 生效与到期以服务端为准，本机不存。
+ * 概念版'听歌领会员'的状态。VIP 生效与到期以服务端为准，本机不存。
  *
  * @param status 服务端 status：1=正常，0=失败，-1=本机还没请求过。
  * @param monthClaimedDays 本月已领天数；服务端没给可解析的记录时是 -1，界面不显示。
@@ -334,7 +334,7 @@ data class KugouRewardResult(
     val message: String = "",
 )
 
-/** 「领取 + 升级」一次的总体结果。 */
+/** '领取 + 升级'一次的总体结果。 */
 data class KugouClaimOutcome(
     val claim: KugouRewardResult,
     /** 没尝试升级时是 null（用户关了自动升级，或者领取就没成功）。 */

@@ -156,7 +156,7 @@ class AppNav(
     }
 }
 
-/** 设置里存的启动页路由 → 顶层入口；空或认不出来就回默认「榜单」。 */
+/** 设置里存的启动页路由 → 顶层入口；空或认不出来就回默认'榜单'。 */
 private fun String?.toTopTab(): TopTab =
     TopTab.entries.firstOrNull { it.route == this } ?: TopTab.Charts
 
@@ -216,7 +216,7 @@ fun MyMusicApp(model: MusicViewModel) {
         )
     }
     val swipeScope = rememberCoroutineScope()
-    // 滑动的提示走外壳的 Snackbar（和撤销条同一个），有撤销时带「撤销」按钮
+    // 滑动的提示走外壳的 Snackbar（和撤销条同一个），有撤销时带'撤销'按钮
     val swipeNotifier = remember(snackbar, swipeScope) {
         SwipeNotifier { message, undo ->
             swipeScope.launch {
@@ -540,7 +540,7 @@ fun MyMusicApp(model: MusicViewModel) {
         if (timerOpen) {
             PlayerTheme { SleepTimerSheet(state, sleep, actions, onDismiss = { timerOpen = false }) }
         }
-        // 列表滑动的「加到歌单」：和播放页同一个勾选面板
+        // 列表滑动的'加到歌单'：和播放页同一个勾选面板
         swipePlaylistSong?.let { song ->
             AddToPlaylistSheet(song = song, providers = state.providers, actions = actions, onDismiss = { swipePlaylistSong = null })
         }
@@ -548,7 +548,7 @@ fun MyMusicApp(model: MusicViewModel) {
         if (transfer !is TransferUi.Idle) {
             com.mytv.mymusic.ui.library.ImportPreviewSheet(transfer, actions)
         }
-        // 登录成功后问一次「把这些歌单导入成绑定歌单」（设计稿 docs/platform-import.html）
+        // 登录成功后问一次'把这些歌单导入成绑定歌单'（设计稿 docs/platform-import.html）
         if (platformImport.open) {
             com.mytv.mymusic.ui.library.PlatformImportSheet(platformImport, actions)
         }

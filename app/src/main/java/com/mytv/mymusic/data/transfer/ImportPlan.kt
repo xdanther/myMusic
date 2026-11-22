@@ -9,7 +9,7 @@ data class ImportedTrack(val song: Song?, val skip: SkipReason?, val platform: S
 
 /**
  * 文件里的一个歌单。[sourceId] 是它在这份文件里的身份（洛雪是歌单 id，myMusic 文件是序号），预览的勾选按它记。
- * [fixed] 只有洛雪的 default / love，以及 myMusic 文件里的「我的收藏」（[LxFixed.Love]）。
+ * [fixed] 只有洛雪的 default / love，以及 myMusic 文件里的'我的收藏'（[LxFixed.Love]）。
  */
 data class ImportedList(
     val sourceId: String,
@@ -36,21 +36,21 @@ data class SameName(val playlistId: String, val name: String, val bound: Boolean
 
 data class ImportPlan(
     val fileName: String,
-    /** 「洛雪音乐」/「myMusic」。 */
+    /** '洛雪音乐'/'myMusic'。 */
     val sourceLabel: String,
-    /** 洛雪 v1 旧格式，预览加一句「旧版格式，已按洛雪的规则转换」。 */
+    /** 洛雪 v1 旧格式，预览加一句'旧版格式，已按洛雪的规则转换'。 */
     val legacy: Boolean,
     /** myMusic 文件 version > 1。 */
     val newerVersion: Boolean,
     /** 不含洛雪的临时列表。 */
     val lists: List<ImportedList>,
-    /** 临时列表的首数，只在「导不了的」里说。 */
+    /** 临时列表的首数，只在'导不了的'里说。 */
     val skippedTemp: Int,
     /** [ImportedList.sourceId] → 本机同名歌单。 */
     val sameName: Map<String, SameName>,
     /** 电视扫码时手机传来的。 */
     val fromPhone: Boolean = false,
-    /** 本机已有的歌单名，算「新建」的名字用。 */
+    /** 本机已有的歌单名，算'新建'的名字用。 */
     val existingNames: Set<String> = emptySet(),
 ) {
     val lx: Boolean get() = sourceLabel == LX_LABEL
@@ -90,7 +90,7 @@ internal fun targetsFor(plan: ImportPlan, list: ImportedList): List<ImportTarget
 
 /**
  * 默认选择（设计稿 06 节、方案 9.2）：收藏合并进收藏；有没绑定的同名歌单按全局开关（[mergeSameName]）合并或另建；
- * 同名的是绑定歌单只能另建（名字加「（导入）」）；一首能导的都没有的不勾。
+ * 同名的是绑定歌单只能另建（名字加'（导入）'）；一首能导的都没有的不勾。
  */
 internal fun defaultChoices(plan: ImportPlan, mergeSameName: Boolean): Map<String, ImportChoice> =
     plan.lists.associate { list ->
@@ -103,7 +103,7 @@ internal fun defaultChoices(plan: ImportPlan, mergeSameName: Boolean): Map<Strin
         list.sourceId to ImportChoice(include, target)
     }
 
-/** 全局「合并 / 另建一个」改了：只动有没绑定的同名、用户没单独改过的行。 */
+/** 全局'合并 / 另建一个'改了：只动有没绑定的同名、用户没单独改过的行。 */
 internal fun applySameNameToggle(
     plan: ImportPlan,
     choices: Map<String, ImportChoice>,
@@ -119,7 +119,7 @@ internal fun applySameNameToggle(
 /** 名字比较：去首尾空白、忽略大小写。 */
 internal fun nameKey(name: String): String = name.trim().lowercase()
 
-/** 「跑步」被占了 →「跑步（2）」，再占 →「跑步（3）」。 */
+/** '跑步'被占了 →'跑步（2）'，再占 →'跑步（3）'。 */
 internal fun newListName(wanted: String, existing: Set<String>): String {
     val base = wanted.trim().ifBlank { "未命名歌单" }
     val taken = existing.mapTo(HashSet(), ::nameKey)
@@ -129,7 +129,7 @@ internal fun newListName(wanted: String, existing: Set<String>): String {
     return "$base（$n）"
 }
 
-/** 新建时用的名字：同名的是绑定歌单时先加「（导入）」，再避开已有的名字。 */
+/** 新建时用的名字：同名的是绑定歌单时先加'（导入）'，再避开已有的名字。 */
 internal fun newNameFor(plan: ImportPlan, list: ImportedList, existing: Set<String> = plan.existingNames): String {
     val wanted = if (plan.sameName[list.sourceId]?.bound == true) "${list.name}（导入）" else list.name
     return newListName(wanted, existing)
@@ -138,8 +138,8 @@ internal fun newNameFor(plan: ImportPlan, list: ImportedList, existing: Set<Stri
 /** 预览行上的目标文字。 */
 internal fun targetLabel(plan: ImportPlan, list: ImportedList, target: ImportTarget): String = when (target) {
     ImportTarget.Favorites -> target.label
-    ImportTarget.Merge -> "合并到「${plan.sameName[list.sourceId]?.name ?: list.name}」"
-    ImportTarget.New -> "新建歌单「${newNameFor(plan, list)}」"
+    ImportTarget.Merge -> "合并到'${plan.sameName[list.sourceId]?.name ?: list.name}'"
+    ImportTarget.New -> "新建歌单'${newNameFor(plan, list)}'"
 }
 
 /** 去重用的 key：酷狗 hash 大小写不敏感，按小写比。 */
@@ -151,7 +151,7 @@ internal fun selectedCount(plan: ImportPlan, choices: Map<String, ImportChoice>)
     return picked.size to picked.sumOf { it.importable }
 }
 
-/** 「导不了的」那段话：本地没找到、临时列表、咪咕换取、其它平台、格式不对或重复。 */
+/** '导不了的'那段话：本地没找到、临时列表、咪咕换取、其它平台、格式不对或重复。 */
 internal fun importSkippedText(plan: ImportPlan): String {
     fun sum(reason: SkipReason) = plan.lists.sumOf { it.skipped[reason] ?: 0 }
     val parts = mutableListOf<String>()
@@ -174,8 +174,8 @@ internal fun importSkippedText(plan: ImportPlan): String {
 }
 
 /**
- * 那段话里有没有真的导不进来的。只有「咪咕 N 首已在线换取」时什么都没丢，
- * 标题写「导不了的」就对不上了，界面改写「说明」。
+ * 那段话里有没有真的导不进来的。只有'咪咕 N 首已在线换取'时什么都没丢，
+ * 标题写'导不了的'就对不上了，界面改写'说明'。
  */
 internal fun importLosesSomething(plan: ImportPlan): Boolean {
     val skipped = plan.lists.sumOf { list -> list.skipped.values.sum() }

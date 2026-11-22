@@ -10,15 +10,15 @@ class PosterWallScreenTest {
 
     @Test
     fun queueSubtitleCountsFromOne() {
-        assertEquals("30 首 · 正在播放第 3 首", wallSubtitle(null, 30, 2))
-        assertEquals("30 首", wallSubtitle(null, 30, -1))
+        assertEquals("30 tracks · playing track 3", wallSubtitle(null, 30, 2))
+        assertEquals("30 tracks", wallSubtitle(null, 30, -1))
     }
 
     @Test
     fun feedSubtitleLeavesOutTheTotal() {
-        assertEquals("听歌模式 · 网易云音乐 · 已听 12 首 · 后面还有 5 首", wallSubtitle(feed, 18, 12))
+        assertEquals("Listening mode · 网易云音乐 · heard 12 tracks · 5 left", wallSubtitle(feed, 18, 12))
         assertEquals(
-            "听歌模式 · 网易云音乐 · 已听 0 首 · 后面还有 14 首 · 正在续取…",
+            "Listening mode · 网易云音乐 · heard 0 tracks · 14 left · loading more…",
             wallSubtitle(feed.copy(appending = true), 15, 0),
         )
     }

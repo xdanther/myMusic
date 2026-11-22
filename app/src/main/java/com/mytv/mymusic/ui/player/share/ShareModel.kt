@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 // 2026-11-18 myMusic 改写：乱排卡每个词的随机参数（大小写、字重 300–900、字号 40–70px、字宽 50–110、角度 −10°～9°、
-// 一半反色，长于 10 个字符的词字宽 100）取自 Rush（shub39/Rush@5a952bf）的 MessyCard；「随机一套」取自 ShareVM.randomize。
+// 一半反色，长于 10 个字符的词字宽 100）取自 Rush（shub39/Rush@5a952bf）的 MessyCard；'随机一套'取自 ShareVM.randomize。
 // 改动：随机数改成按句子和会话种子确定（缩略图、预览、导出三处一样），中文按词切（ICU BreakIterator）而不是按空格；
 // 随机一套只抽样式、配色（不含自定义）、圆角、形状。其余选句、省略行、文字、文件名、布局都是 myMusic 自己的。
 package com.mytv.mymusic.ui.player.share
@@ -57,7 +57,7 @@ internal data class PickLine(val order: Int, val source: Int, val timeMs: Long, 
 /** 一次最多选几句（稿子：最多 8 句）。 */
 internal const val SHARE_MAX_LINES = 8
 
-/** 全屏歌词的行表（已按「歌词下面那一行」换好副行）→ 选句列表：去掉正文为空白的行，[PickLine.order] 连续编号。 */
+/** 全屏歌词的行表（已按'歌词下面那一行'换好副行）→ 选句列表：去掉正文为空白的行，[PickLine.order] 连续编号。 */
 internal fun pickLines(lines: List<LyricLine>): List<PickLine> {
     val out = ArrayList<PickLine>(lines.size)
     lines.forEachIndexed { index, line ->
@@ -123,8 +123,8 @@ internal fun unusedLinesNote(style: ShareCardStyle, selected: Int): String? = wh
 // ---------- 文字、文件名、链接 ----------
 
 /**
- * 「复制文字」和分享时附带的文字。歌词用选中的全部句子（不按样式截），每句一行；[withSub] 时副行跟在下一行（多行照样），
- * 省略行写「…」。[ShareTextFormat.WithSong] 再空一行写「歌名 · 歌手」，[ShareTextFormat.WithLink] 再下一行写链接（没有就不写）。
+ * '复制文字'和分享时附带的文字。歌词用选中的全部句子（不按样式截），每句一行；[withSub] 时副行跟在下一行（多行照样），
+ * 省略行写'…'。[ShareTextFormat.WithSong] 再空一行写'歌名 · 歌手'，[ShareTextFormat.WithLink] 再下一行写链接（没有就不写）。
  */
 internal fun shareText(
     rows: List<ShareRow>,
@@ -150,7 +150,7 @@ internal fun shareText(
 
 private fun songLine(title: String, artist: String): String = listOf(title, artist).filter { it.isNotBlank() }.joinToString(" · ")
 
-/** 导出的 PNG 文件名：「歌名 - 歌手 yyyyMMdd-HHmmss.png」，去掉文件名里不能用的字符，歌名歌手部分最长 80 个字符。 */
+/** 导出的 PNG 文件名：'歌名 - 歌手 yyyyMMdd-HHmmss.png'，去掉文件名里不能用的字符，歌名歌手部分最长 80 个字符。 */
 internal fun shareFileName(title: String, artist: String, now: Long, zone: TimeZone = TimeZone.getDefault()): String {
     val name = listOf(title, artist).map(::cleanFileName).filter { it.isNotBlank() }.joinToString(" - ").ifBlank { "Lyrics" }
     val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).apply { timeZone = zone }.format(Date(now))

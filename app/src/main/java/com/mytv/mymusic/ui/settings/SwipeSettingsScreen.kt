@@ -60,24 +60,24 @@ import com.mytv.mymusic.ui.components.rememberDemoRowSwipe
 import com.mytv.mymusic.ui.components.swipeIcon
 import com.mytv.mymusic.ui.components.tvFocusRing
 
-/** 动作选择面板改的是哪一格：[index] 为 null 是「Pull to end」，等于按钮数是「Add button」。 */
+/** 动作选择面板改的是哪一格：[index] 为 null 是'Pull to end'，等于按钮数是'Add button'。 */
 private data class SwipeSlot(val side: SwipeSide, val index: Int?)
 
 /** 这一侧在界面上叫什么：从左往右排时起始边的按钮是Swipe right露出来的，从右往左排时反过来。 */
 internal fun swipeSideTitle(side: SwipeSide, rtl: Boolean): String =
     if ((side == SwipeSide.Start) != rtl) "Swipe right" else "Swipe left"
 
-/** 设置首页「滑动操作」一行的摘要：只写起始那一侧（Swipe right），关着写「已关闭」。 */
+/** 设置首页'滑动操作'一行的摘要：只写起始那一侧（Swipe right），关着写'已关闭'。 */
 internal fun swipeSummary(prefs: SwipePrefs, rtl: Boolean = false): String {
     if (!prefs.enabled) return "Off"
-    val title = swipeSideTitle(SwipeSide.Start, rtl).removePrefix("Toward")
-    val buttons = prefs.start.joinToString("、") { it.label }.ifBlank { "No buttons" }
+    val title = swipeSideTitle(SwipeSide.Start, rtl)
+    val buttons = prefs.start.joinToString(", ") { it.label }.ifBlank { "No buttons" }
     val full = prefs.startFull.takeIf { it != SwipeAction.None }?.let { " · Pull to end: ${it.label}" }.orEmpty()
     return "$title $buttons$full"
 }
 
 /**
- * 设置 › 滑动操作：顶部能拖的示例行，下面是两侧各两个按钮（上下箭头换顺序）和「Pull to end」。
+ * 设置 › 滑动操作：顶部能拖的示例行，下面是两侧各两个按钮（上下箭头换顺序）和'Pull to end'。
  * 点任意一格从列表里换动作；即改即存。电视上不列出这一项，深链接进来只给一句说明。
  */
 @Composable
@@ -244,7 +244,7 @@ private fun SlotNumber(number: Int) {
 
 /**
  * 换一格的动作。按钮位只列能当按钮的动作，同一侧另一个按钮已经用了的照样能选——选了两个对调；
- * 「Add button」时同侧已有的不能再加。Pull to end多一个「不做事」。选完立即写入，面板关上。
+ * 'Add button'时同侧已有的不能再加。Pull to end多一个'不做事'。选完立即写入，面板关上。
  */
 @Composable
 private fun SwipeActionPicker(slot: SwipeSlot, prefs: SwipePrefs, rtl: Boolean, actions: MusicActions, onDismiss: () -> Unit) {

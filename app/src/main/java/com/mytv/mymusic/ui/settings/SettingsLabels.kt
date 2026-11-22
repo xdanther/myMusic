@@ -10,7 +10,7 @@ import com.mytv.mymusic.data.SwipeAction
 /**
  * 设置首页的显示名。
  *
- * 只做「显示时映射」：枚举名、平台 id 和存进 DataStore 的值都不动，改文案不会让已保存的设置失效。
+ * 只做'显示时映射'：枚举名、平台 id 和存进 DataStore 的值都不动，改文案不会让已保存的设置失效。
  */
 internal fun Resources.coverShapeLabel(shape: CoverShapeChoice): String = getString(
     when (shape) {

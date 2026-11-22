@@ -176,7 +176,7 @@ fun PlayerScreen(
     val wideLayout = book || (window.widthDp >= 600 && window.widthDp > window.heightDp)
     // 暂停时也照样计时：控制栏几秒后淡出，按确认键或点按唤醒。桌面姿态下半屏是平放着用手点的那一面，不进入空闲
     var animationOpen by rememberSaveable { mutableStateOf(false) }
-    // 「Add to playlist」面板：打开那一刻的这首。面板开着时切了歌，勾的还是打开时那首，不会悄悄改到Next上
+    // 'Add to playlist'面板：打开那一刻的这首。面板开着时切了歌，勾的还是打开时那首，不会悄悄改到Next上
     var playlistSong by remember { mutableStateOf<Song?>(null) }
     // 歌词分享：Full-screen lyrics长按任意一句进选句层，再进分享页；会话是长按那一刻的快照。电视不做分享
     val shareAllowed = !window.isTv
@@ -209,7 +209,7 @@ fun PlayerScreen(
     }
     val pulse = rememberBackdropPulse()
     val favorite = remember(favorites, song.key) { favorites.any { it.key == song.key } }
-    // 这首（含同一首的其他平台版本）已经在任一自建歌单里：「Add to playlist」按钮换成打勾的图标、填上底色
+    // 这首（含同一首的其他平台版本）已经在任一自建歌单里：'Add to playlist'按钮换成打勾的图标、填上底色
     val inPlaylists by remember(song.key) { actions.playlistsContaining(song) }.collectAsState(initial = emptySet())
     val addedToPlaylist = inPlaylists.isNotEmpty()
     val onAddToPlaylist: () -> Unit = { playlistSong = song }
@@ -638,7 +638,7 @@ internal fun MoreMenu(
                     onClick = { open = false; commentsOpen = true },
                 )
             }
-            // 和歌名行的「Add to playlist」按钮是同一个面板；控件淡出、矮窗口里也总能在这里找到
+            // 和歌名行的'Add to playlist'按钮是同一个面板；控件淡出、矮窗口里也总能在这里找到
             DropdownMenuItem(
                 text = { Text("Add to playlist…") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, null) },
@@ -688,7 +688,7 @@ internal fun pulseWaveBpm(pulse: BackdropPulse): Float =
 /**
  * 收藏切换按钮（M3E）：48dp（专注歌词标题行是 40dp），未收藏是透明底的圆，收藏后变成 14dp 圆角的 primaryContainer 方块，
  * 圆角随快速空间弹簧过渡。读屏文案与原来的收藏按钮一致。
- * [onLongClick]：长按打开「Add to playlist」面板（和旁边那个按钮同一个面板），读屏用户走长按操作。
+ * [onLongClick]：长按打开'Add to playlist'面板（和旁边那个按钮同一个面板），读屏用户走长按操作。
  */
 @Composable
 internal fun FavoriteToggle(
@@ -740,7 +740,7 @@ internal fun FavoriteToggle(
 private fun checkedCorner(size: Dp): Dp = if (size >= 48.dp) 14.dp else 12.dp
 
 /**
- * 「Add to playlist」按钮：和收藏同尺寸，排在收藏左边，点了打开Add to playlist面板（[AddToPlaylistSheet]）。
+ * 'Add to playlist'按钮：和收藏同尺寸，排在收藏左边，点了打开Add to playlist面板（[AddToPlaylistSheet]）。
  * 这首已经在任一自建歌单里（[added]）时图标换成 PlaylistAddCheck，底色同收藏按钮的选中态（primaryContainer、14dp 圆角）。
  * 不是开关：点它不会直接加或移出，读屏读“Add to playlist”加上现在在Not in a playlist。
  */

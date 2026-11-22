@@ -1307,7 +1307,7 @@ private fun SearchSongRow(
             favoriteKeys = sourceKeys,
             onChooseSource = { ctx.openSource(track) },
         ),
-        // 平板行尾有「更多」菜单按钮：悬停按钮插在它前面
+        // 平板行尾有'更多'菜单按钮：悬停按钮插在它前面
         hoverReplacesTrailing = !window.isTablet,
     )
 }

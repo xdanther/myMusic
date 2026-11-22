@@ -181,7 +181,7 @@ interface NativeProvider {
         passwordLogin(username, password)
 
     /**
-     * 这个平台有没有账号侧的「收藏」：把一首歌加进平台账号的我喜欢 / 收藏夹。
+     * 这个平台有没有账号侧的'收藏'：把一首歌加进平台账号的我喜欢 / 收藏夹。
      * 和本机收藏是两件事：这个写去平台，换设备也在。默认 false，界面据此决定显不显示这一行。
      */
     fun supportsCollect(): Boolean = false

@@ -4,9 +4,9 @@ package com.mytv.mymusic.data.native
 internal data class BilibiliTrackTitle(val title: String, val artist: String)
 
 /**
- * B 站没有「歌曲」这一层：搜索和合集里的每条都是一个稿件，标题是 UP 主手写的宣传文案，
- * 接口里的「歌手」那一栏实际是 UP 主名。聚合匹配按歌名 + 歌手打分，拿 UP 主名去比一律判
- * 「歌手不匹配」直接拒掉候选；而塞一个错的歌手比留空更糟，所以这里的取舍是：
+ * B 站没有'歌曲'这一层：搜索和合集里的每条都是一个稿件，标题是 UP 主手写的宣传文案，
+ * 接口里的'歌手'那一栏实际是 UP 主名。聚合匹配按歌名 + 歌手打分，拿 UP 主名去比一律判
+ * '歌手不匹配'直接拒掉候选；而塞一个错的歌手比留空更糟，所以这里的取舍是：
  *
  *  - 能认出歌手就一定给（`周杰伦《晴天》`、`晴天-周杰伦`）；
  *  - 认不准就留空，交给歌名和时长去打分，别猜。
@@ -98,7 +98,7 @@ internal object BilibiliTitleParser {
             return when {
                 left != null && right == null -> listOf(BilibiliTrackTitle(titleOf(parts[1]), left))
                 right != null && left == null -> listOf(BilibiliTrackTitle(titleOf(parts[0]), right))
-                // 「晴天-周杰伦」和「周杰伦-晴天」都合法，两种都给，让匹配挑中的那个。
+                // '晴天-周杰伦'和'周杰伦-晴天'都合法，两种都给，让匹配挑中的那个。
                 // 两侧都通过了 nameLike，谁是歌手都可信
                 else -> listOf(
                     BilibiliTrackTitle(titleOf(parts[0]), parts[1]),
@@ -136,12 +136,12 @@ internal object BilibiliTitleParser {
         }
 
     /**
-     * 一段文字能不能当歌手。宁可返回 null 让匹配只看歌名，也不要把「这才是」「国语」这类词塞进去——
+     * 一段文字能不能当歌手。宁可返回 null 让匹配只看歌名，也不要把'这才是''国语'这类词塞进去——
      * 错的歌手会让整个候选被硬性拒绝，比留空差得多。
      */
     private fun nameLike(raw: String?): String? {
         if (raw == null) return null
-        // 「陈奕迅演唱」「五月天现场」：结尾的动作词是描述，不是名字的一部分
+        // '陈奕迅演唱''五月天现场'：结尾的动作词是描述，不是名字的一部分
         val text = roleSuffix.replace(raw, "").trim(*edge.toCharArray())
         if (text.isEmpty() || text.length > 16) return null
         if (text.any { it.isDigit() }) return null

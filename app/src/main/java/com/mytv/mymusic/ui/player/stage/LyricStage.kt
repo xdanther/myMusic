@@ -518,7 +518,7 @@ private class StageAudioFeed(private val analyzer: RhythmAnalyzer, private val a
 
 /**
  * 读屏：舞台对外是一个文本节点，内容是当前整句加翻译，不逐字播报。
- * 全屏歌词页能分享时多一个自定义操作「Select this line to share」（当前句，句间按最近唱过的那句）。
+ * 全屏歌词页能分享时多一个自定义操作'Select this line to share'（当前句，句间按最近唱过的那句）。
  */
 @Composable
 private fun StageSemantics(ctx: LyricStageContext) {

@@ -17,14 +17,14 @@ private val Context.accountProfileDataStore by preferencesDataStore("account_pro
  *
  * 资料是每个平台各自的用户信息接口，纯网络请求：失败一次就再也不重试（Cookie 不变就不会
  * 再触发），冷启动又要重新拉一遍。所以把上次成功的结果连时间戳一起存下来——
- * 界面一打开先显示上次那份，后台再静默刷新；刷新失败也保持上次的，不退化成一行「已登录」。
+ * 界面一打开先显示上次那份，后台再静默刷新；刷新失败也保持上次的，不退化成一行'已登录'。
  */
 @Serializable
 data class CachedAccountProfile(
     val providerId: String = "",
     val nickname: String = "",
     val avatar: String = "",
-    /** 会员等级，例如「豪华绿钻钻石 LV8」；没有会员的平台是空串。 */
+    /** 会员等级，例如'豪华绿钻钻石 LV8'；没有会员的平台是空串。 */
     val detail: String = "",
     /** 上次成功拉到的时间（毫秒）。 */
     val savedAt: Long = 0L,

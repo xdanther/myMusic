@@ -220,9 +220,9 @@ class LocalUploadRulesTest {
     @Test
     fun pausedTextNamesTheReason() {
         val risk = CloudException(CloudErrorKind.RiskControl, CloudMessages.RISK_CONTROL, CloudProvider.NeteaseCloud)
-        assertEquals("上传暂停：网易云要求重新验证", LocalUploadRules.pausedText(CloudProvider.NeteaseCloud, risk))
+        assertEquals("Upload paused: NetEase requires verification again", LocalUploadRules.pausedText(CloudProvider.NeteaseCloud, risk))
         val webdav = CloudException(CloudErrorKind.Unauthorized, CloudMessages.WEBDAV_UNAUTHORIZED, CloudProvider.WebDav)
-        assertEquals("上传暂停：WebDAV 密码不对或已失效", LocalUploadRules.pausedText(CloudProvider.WebDav, webdav))
+        assertEquals("Upload paused: The WebDAV password is wrong or has expired", LocalUploadRules.pausedText(CloudProvider.WebDav, webdav))
     }
 
     @Test

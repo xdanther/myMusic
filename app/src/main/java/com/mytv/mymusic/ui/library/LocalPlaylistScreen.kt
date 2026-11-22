@@ -392,7 +392,7 @@ fun LocalPlaylistScreen(
                     trailing = selectTrailing ?: durationTrailing,
                     onMore = rowMore,
                     onLongClick = rowLongPress,
-                    // 「删除」= Remove from playlist（绑定歌单照写回规则同步到平台，撤销按原位置插回）；收藏来的只读歌单没有
+                    // '删除'= Remove from playlist（绑定歌单照写回规则同步到平台，撤销按原位置插回）；收藏来的只读歌单没有
                     swipe = rememberRowSwipe(
                         song,
                         shownSongs,

@@ -16,7 +16,7 @@ sealed interface LocalPlayable {
     data class Cloud(val stream: CloudStream, val ref: CloudRef, val song: Song) : LocalPlayable
 
     /**
-     * 本机没有文件，用匹配到的平台版本（设置里「没有文件时用平台版本」开着）。
+     * 本机没有文件，用匹配到的平台版本（设置里'没有文件时用平台版本'开着）。
      * [note] 是前面云端副本没用上的原因（“云端文件已删除”等），提示和失败说明里带上，
      * 不然用户只看到换了版本、不知道云端那份出了什么事。
      */
@@ -51,7 +51,7 @@ class LocalResolveRequest(
 }
 
 /**
- * 解析链上的一步，返回 null 交给下一步。顺序是「本机文件 → 云端副本 → 平台版本」
+ * 解析链上的一步，返回 null 交给下一步。顺序是'本机文件 → 云端副本 → 平台版本'
  * （[LocalCloudStep]、[LocalPlatformStep]）；还要加步骤时用 [LocalLibrary.addResolveStep] 插在平台版本前面。
  */
 fun interface LocalResolveStep {

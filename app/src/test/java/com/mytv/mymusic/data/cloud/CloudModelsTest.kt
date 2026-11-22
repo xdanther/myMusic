@@ -44,8 +44,8 @@ class CloudModelsTest {
         assertEquals("2 GB", CloudMessages.formatSize(2L * 1024 * 1024 * 1024))
         assertEquals("412 MB", CloudMessages.formatSize(412L * 1024 * 1024))
         assertEquals("36 KB", CloudMessages.formatSize(36L * 1024))
-        assertEquals("云盘空间不够，还差 1.2 GB", CloudMessages.quotaExceeded((1.2 * 1024 * 1024 * 1024).toLong()))
-        assertEquals("单个文件超过 500 MB，云盘不收，已跳过", CloudMessages.fileTooLarge(500L * 1024 * 1024))
+        assertEquals("Not enough cloud space; 1.2 GB short", CloudMessages.quotaExceeded((1.2 * 1024 * 1024 * 1024).toLong()))
+        assertEquals("Files over 500 MB aren't accepted and were skipped", CloudMessages.fileTooLarge(500L * 1024 * 1024))
     }
 
     @Test

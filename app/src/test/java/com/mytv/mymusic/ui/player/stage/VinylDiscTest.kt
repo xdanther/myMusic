@@ -238,7 +238,7 @@ class VinylDiscTest {
         val size = VinylDiscVisualizer.settings.first { it.key == "discSize" } as LyricSetting.Number
         assertEquals("62%", size.format(0.62f))
         val spin = VinylDiscVisualizer.settings.first { it.key == "spinSeconds" } as LyricSetting.Number
-        assertEquals("20 秒", spin.format(20f))
+        assertEquals("20 s", spin.format(20f))
     }
 
     private fun assertInside(safe: Rect, rect: Rect, armReach: Float = 0f) {

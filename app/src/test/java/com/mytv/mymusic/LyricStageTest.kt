@@ -283,9 +283,9 @@ class LyricStageTest {
 
     @Test
     fun tempoRangeLabels() {
-        assertEquals("每分钟 90 拍以下", tempoRange(DefaultTempoRules, 0))
-        assertEquals("每分钟 90–120 拍", tempoRange(DefaultTempoRules, 1))
-        assertEquals("每分钟 150 拍及以上", tempoRange(DefaultTempoRules, 3))
+        assertEquals("Below 90 BPM", tempoRange(DefaultTempoRules, 0))
+        assertEquals("90–120 BPM", tempoRange(DefaultTempoRules, 1))
+        assertEquals("150 BPM and above", tempoRange(DefaultTempoRules, 3))
     }
 
     @Test

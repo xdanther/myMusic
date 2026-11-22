@@ -19,7 +19,7 @@ class ChartsHeroTest {
 
     @Test
     fun searchesAllGroupsBeforeFallback() {
-        val charts = listOf(Item("a", "榜单"))
+        val charts = listOf(Item("a", "Charts"))
         val history = listOf(Item("h", "最近播放"))
 
         assertEquals("最近播放", findFocusedHero("h", listOf(charts, history)) { it.key }?.label)
@@ -27,10 +27,10 @@ class ChartsHeroTest {
 
     @Test
     fun staleKeyFallsBackToFirstAvailableGroup() {
-        val charts = listOf(Item("a", "榜单"))
+        val charts = listOf(Item("a", "Charts"))
         val hot = listOf(Item("hot", "热歌"))
 
-        assertEquals("榜单", findFocusedHero("missing", listOf(charts, hot)) { it.key }?.label)
+        assertEquals("Charts", findFocusedHero("missing", listOf(charts, hot)) { it.key }?.label)
         assertNull(findFocusedHero<Item>("missing", listOf(emptyList(), emptyList())) { it.key })
     }
 }

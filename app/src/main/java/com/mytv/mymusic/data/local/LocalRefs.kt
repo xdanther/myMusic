@@ -47,7 +47,7 @@ data class LocalRefEntity(
 ) {
     val key: String get() = "$LOCAL_SOURCE:$localId"
 
-    /** 用户（在哪台设备上都行）点过「不匹配」：这里的 matchMethod 存的是同步文件里的写法。 */
+    /** 用户（在哪台设备上都行）点过'不匹配'：这里的 matchMethod 存的是同步文件里的写法。 */
     val rejected: Boolean get() = matchMethod == SyncMatch.METHOD_REJECTED
     val matched: Boolean get() = !rejected && matchProvider.isNotBlank() && matchId.isNotBlank()
 

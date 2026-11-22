@@ -38,9 +38,9 @@ class PosterTileTest {
     @Test
     fun descriptionReadsNumberTitleArtistAndState() {
         val song = Song(name = "独上西楼", artist = "邓丽君")
-        assertEquals("第 3 首，独上西楼，邓丽君，正在播放", tileDescription(2, song, current = true))
-        assertEquals("第 3 首，独上西楼，邓丽君", tileDescription(2, song, current = false))
-        assertEquals("第 1 首，未命名歌曲", tileDescription(0, Song(), current = false))
+        assertEquals("Track 3, 独上西楼, 邓丽君, now playing", tileDescription(2, song, current = true))
+        assertEquals("Track 3, 独上西楼, 邓丽君", tileDescription(2, song, current = false))
+        assertEquals("Track 1, 未命名歌曲", tileDescription(0, Song(), current = false))
     }
 
     @Test

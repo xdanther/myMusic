@@ -26,7 +26,7 @@ import kotlin.coroutines.resumeWithException
  * 汽水扫码登录的**纯 HTTP** 通道：不经隐藏 WebView、不要 a_bogus、不带 x-helios/x-medusa，
  * 直接用 OkHttp 发 passport 请求，登录态从 `Set-Cookie` 里收。
  *
- * 这是 libresoda 8d35f59（「纯 HTTP 扫码登录与二次验证桥接」）之后的形态：桌面版原来靠
+ * 这是 libresoda 8d35f59（'纯 HTTP 扫码登录与二次验证桥接'）之后的形态：桌面版原来靠
  * CDP 拉起 Chromium 当签名页，上游已把整条 `cdp_signer` 删掉，改成本地 HTTP 直连。
  * `docs/QR-LOGIN.md` 记录了两个二维码共用同一浏览器上下文会被护照服务限流
  * （`error_code=7`），所以这里一个二维码一份独立的 cookie jar（对齐上游的 `session_key`）。
@@ -131,7 +131,7 @@ internal class SodaQrHttpGateway : SodaQrGateway {
      * 二次验证：官方组件要浏览器环境，转交 [SodaQrSigner] 开可见窗口跑。
      * 组件发出的请求跑在那个 WebView 里，所以先把本会话 jar 里的 cookie 种进
      * 全局 CookieManager——否则验证请求带的身份和轮询时不是同一份。
-     * 返回 false（用户取消 / 超时）时上层按「已取消」收尾。
+     * 返回 false（用户取消 / 超时）时上层按'已取消'收尾。
      */
     override suspend fun showSecondVerify(decisionJson: String, generalParamsJson: String): Boolean {
         seedWebViewCookies()

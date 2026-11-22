@@ -33,8 +33,8 @@ class KugouWelfareTest {
         assertFalse(result.success)
         assertTrue(result.already)
         assertEquals(KugouWelfare.ERROR_ALREADY, result.errorCode)
-        // 服务端的 error_msg 可能是「今日已领取」，界面上统一说「今天已经领过了」
-        assertEquals("今天已经领过了", result.message)
+        // 服务端的 error_msg 可能是「今日已领取」，界面上统一说「Already claimed today」
+        assertEquals("Already claimed today", result.message)
     }
 
     @Test

@@ -372,7 +372,7 @@ class YouTubeMusicProvider : BaseNativeProvider(YTM_INFO) {
     }
 
     /**
-     * 头部副标题是「类型 • 作者 • 年份」这样的分段，第一段是 Playlist/Album 这类类型词。
+     * 头部副标题是'类型 • 作者 • 年份'这样的分段，第一段是 Playlist/Album 这类类型词。
      * 作者优先取带歌手页跳转的那一段，没有就跳过类型词取第一段。
      */
     private fun headerCreator(header: JsonElement?): String {
@@ -422,7 +422,7 @@ class YouTubeMusicProvider : BaseNativeProvider(YTM_INFO) {
     }
 
     /**
-     * 搜索结果的两行结构：第一列歌名，第二列是「歌手 • 专辑 • 4:30」，
+     * 搜索结果的两行结构：第一列歌名，第二列是'歌手 • 专辑 • 4:30'，
      * 第三列是播放次数。和歌单页的列含义不同，单独解析。
      */
     internal fun parseSearchTracks(root: JsonElement): List<Song> {

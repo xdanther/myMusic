@@ -204,7 +204,7 @@ class MusicActions(private val model: MusicViewModel) {
     fun moveQueueItemNext(index: Int) = model.moveQueueItemNext(index)
     /** 任意一首（不一定在队列里）的“Next播放”，详情页海报视图的大卡用。 */
     fun playSongNext(song: Song) = model.playSongNext(song)
-    /** 一首接到队列末尾（滑动的「加到播放队列」）。 */
+    /** 一首接到队列末尾（滑动的'加到播放队列'）。 */
     fun addToQueue(song: Song) = model.addToQueue(song)
     /** 播放队列移出一首；正在放的不能移，返回 null。返回值交给 [restoreQueueItem] 撤销。 */
     fun removeQueueIndex(index: Int, songKey: String? = null): QueueRemoval? = model.removeQueueIndex(index, songKey)
@@ -214,7 +214,7 @@ class MusicActions(private val model: MusicViewModel) {
     fun clearQueue() = model.clearQueue()
     fun favorite(song: Song) = model.toggleFavorite(song)
     fun download(song: Song) = model.download(song)
-    /** 收藏到平台账号（汽水的「我喜欢的音乐」）；平台没实现或没登录时由界面提示。 */
+    /** 收藏到平台账号（汽水的'我喜欢的音乐'）；平台没实现或没登录时由界面提示。 */
     fun collectOnPlatform(song: Song) = model.collectOnPlatform(song)
     fun openDeepLink() = model.openDeepLink()
     fun supportsComments(song: Song): Boolean = model.supportsComments(song)
@@ -229,11 +229,11 @@ class MusicActions(private val model: MusicViewModel) {
     fun addSongsToPlaylist(id: String, songs: List<Song>) = model.addSongsToPlaylist(id, songs)
     fun addSongsToNewPlaylist(name: String, songs: List<Song>) = model.addSongsToNewPlaylist(name, songs)
 
-    /** 自建歌单列表（「Add to playlist」面板自己取，播放页不用为它多传一层参数）。 */
+    /** 自建歌单列表（'Add to playlist'面板自己取，播放页不用为它多传一层参数）。 */
     val localPlaylists: kotlinx.coroutines.flow.StateFlow<List<LocalPlaylistSummary>> get() = model.localPlaylists
     /** 这首（含同一首的其他平台版本）在哪些自建歌单里，按歌单 id。 */
     fun playlistsContaining(song: Song): kotlinx.coroutines.flow.Flow<Set<String>> = model.playlistsContaining(song)
-    /** 「Add to playlist」面板的加入 / 移出 / 新建并加入：提示交回面板显示（见 [PlaylistEditResult]）。 */
+    /** 'Add to playlist'面板的加入 / 移出 / 新建并加入：提示交回面板显示（见 [PlaylistEditResult]）。 */
     fun addSongToPlaylistQuietly(id: String, song: Song) = model.addSongToPlaylistQuietly(id, song)
     fun removeSongFromPlaylist(id: String, song: Song) = model.removeSongFromPlaylistQuietly(id, song)
     fun createPlaylistWithSong(name: String, song: Song) = model.createPlaylistWithSongQuietly(name, song)
@@ -710,7 +710,7 @@ fun TrackActionsSheet(
     onMerge: (() -> Unit)? = null,
     wallPage: WallPageActions? = null,
     /**
-     * 本地歌的「Choose another match」。这台设备没有文件、正在用匹配到的平台版本播放时，这是唯一能改匹配的入口
+     * 本地歌的'Choose another match'。这台设备没有文件、正在用匹配到的平台版本播放时，这是唯一能改匹配的入口
      * （歌曲信息只在本地音乐页里），选好的匹配记进线索表并同步回有文件的设备。非本地歌为 null。
      */
     onRematch: (() -> Unit)? = null,
@@ -720,7 +720,7 @@ fun TrackActionsSheet(
     onOpenArtist: ((String) -> Unit)? = null,
     /** “查看专辑：某某”。歌曲没有专辑名时不显示。 */
     onOpenAlbum: (() -> Unit)? = null,
-    /** 收藏到平台账号（汽水的「我喜欢的音乐」）；平台没有这个能力时为 null，不显示这一行。 */
+    /** 收藏到平台账号（汽水的'我喜欢的音乐'）；平台没有这个能力时为 null，不显示这一行。 */
     onCollect: (() -> Unit)? = null,
     /** 已经在这位歌手的页面里：不再给他自己那一行。 */
     hideArtist: String = "",
@@ -885,10 +885,10 @@ class PlaylistCheck(val checked: Boolean, val busy: Boolean = false, val note: S
  * Add to playlist：列出本地歌单，也可以新建一个并直接加入。
  * 默认是多选的批量加入：点一行就加入并关面板。常规单曲入口在 TrackActionsSheet 里。
  *
- * 传了 [checks] 是单曲勾选模式（播放页「Add to playlist」，见 [AddToPlaylistSheet]）：每行右边是勾选框，已经有这首的勾上，
+ * 传了 [checks] 是单曲勾选模式（播放页'Add to playlist'，见 [AddToPlaylistSheet]）：每行右边是勾选框，已经有这首的勾上，
  * 点一下由 [onPick] 加入或移出；New playlist后回到列表；面板不自动关，可以一次加到几个歌单。
  * [snackbar] 是面板自己的提示条（撤销）：面板是单独的窗口，外壳的 Snackbar 被它盖着，看不见也点不到。
- * [focusId] 是电视上打开时焦点落的那一行（第一个还没加入的歌单），没有就落在「New playlist」。
+ * [focusId] 是电视上打开时焦点落的那一行（第一个还没加入的歌单），没有就落在'New playlist'。
  */
 @Composable
 fun PlaylistPickerSheet(
@@ -921,7 +921,7 @@ fun PlaylistPickerSheet(
             name = ""
         }
     }
-    // 电视：打开时焦点落在第一个还没加入的歌单上（没有就落在「New playlist」），确认键直接勾。
+    // 电视：打开时焦点落在第一个还没加入的歌单上（没有就落在'New playlist'），确认键直接勾。
     // 面板是滑进来的，内容晚几帧才摆好，没接住就下一帧再试；只在打开时落一次，之后焦点跟着用户走
     val target by androidx.compose.runtime.rememberUpdatedState(
         if (focusId == null) 0 else playlists.indexOfFirst { it.id == focusId } + 1,
@@ -946,8 +946,8 @@ fun PlaylistPickerSheet(
         }
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             if (creating) {
-                // 点掉的「New playlist」行已经不在了，焦点直接放进输入框（电视上不然会丢）。
-                // 电视遥控器的方向键在输入框里只挪光标，走不到旁边的「Create and add」，所以键盘的完成键也能建
+                // 点掉的'New playlist'行已经不在了，焦点直接放进输入框（电视上不然会丢）。
+                // 电视遥控器的方向键在输入框里只挪光标，走不到旁边的'Create and add'，所以键盘的完成键也能建
                 androidx.compose.runtime.LaunchedEffect(Unit) { runCatching { focusField.requestFocus() } }
                 OutlinedTextField(
                     value = name,

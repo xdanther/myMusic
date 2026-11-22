@@ -60,7 +60,7 @@ import com.mytv.mymusic.ui.components.segmentShape
 import com.mytv.mymusic.ui.components.tvFocusRing
 
 /**
- * 登录成功后「把这些歌单导入成绑定歌单」（设计稿 docs/platform-import.html）。
+ * 登录成功后'把这些歌单导入成绑定歌单'（设计稿 docs/platform-import.html）。
  *
  * 外壳挂在 [com.mytv.mymusic.ui.AppNavigation]，从哪一页登录都盖在上面。导入的每一条都走
  * [MusicActions] 的绑定流程，所以之后平台增删歌会跟着更新，和从链接导入一致。
@@ -239,7 +239,7 @@ private fun ColumnScope.PlatformImportBody(state: PlatformImportUi, actions: Mus
     }
 }
 
-/** 一行歌单：勾选框 + 名字 + 首数；已绑定的灰掉并标「已绑定」。整行点一下切换勾选。 */
+/** 一行歌单：勾选框 + 名字 + 首数；已绑定的灰掉并标'已绑定'。整行点一下切换勾选。 */
 @Composable
 private fun PlatformImportRow(
     playlist: Playlist,

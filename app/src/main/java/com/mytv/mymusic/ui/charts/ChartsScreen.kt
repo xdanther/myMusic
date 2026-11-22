@@ -1290,5 +1290,5 @@ internal fun rememberCoverTint(url: String, actions: MusicActions): State<Color>
     )
 }
 
-/** 播放量：12.3K / 4.5M，和界面语言无关（原来是「万 / 亿」）。 */
+/** 播放量：12.3K / 4.5M，和界面语言无关（原来是'万 / 亿'）。 */
 internal fun formatPlayCount(count: Long): String = com.mytv.mymusic.ui.text.formatCompactCount(count)

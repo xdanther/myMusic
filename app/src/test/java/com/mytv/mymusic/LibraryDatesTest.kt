@@ -26,12 +26,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * 历史分组的日期语义：按本地日历日比较，跨夏令时也保持“今天 / 昨天 / 更早”；
+ * 历史分组的日期语义：按本地日历日比较，跨夏令时也保持“Today / Yesterday / 更早”；
  * 同时验证后台准备数据（分组、播放队列）和下载页分组不受纯 payload 变化影响。
  */
 class LibraryDatesTest {
     private val zone = ZoneId.of("America/New_York")
-    private val dayFormatter = DateTimeFormatter.ofPattern("M 月 d 日", Locale.US)
+    private val dayFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
 
     private fun millis(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
         ZonedDateTime.of(year, month, day, hour, minute, 0, 0, zone).toInstant().toEpochMilli()
@@ -45,7 +45,7 @@ class LibraryDatesTest {
 
     @Test
     fun dayLabelStillCallsYesterdayAfterFallBackDst() {
-        // 2026-11-01 是 25 小时的一天。旧实现用“今天零点减 24 小时”，
+        // 2026-11-01 是 25 小时的一天。旧实现用“Today零点减 24 小时”，
         // 会把 11 月 1 日凌晨算成更早的日期。
         val now = millis(2026, 11, 2, 12, 0)
         val record = millis(2026, 11, 1, 0, 30)
@@ -54,14 +54,14 @@ class LibraryDatesTest {
             .toInstant().toEpochMilli() - 24L * 60 * 60 * 1000
 
         assertTrue("测试前提：记录早于旧的 24 小时阈值", record < oldThreshold)
-        assertEquals("昨天", LibraryDates.dayLabel(record, today, zone, dayFormatter))
-        assertEquals("今天", LibraryDates.dayLabel(now, today, zone, dayFormatter))
+        assertEquals("Yesterday", LibraryDates.dayLabel(record, today, zone, dayFormatter))
+        assertEquals("Today", LibraryDates.dayLabel(now, today, zone, dayFormatter))
     }
 
     @Test
     fun dayLabelDoesNotCallPreviousDayYesterdayAfterSpringForwardDst() {
-        // 2026-03-08 是 23 小时的一天：今天零点减 24 小时会落到 3 月 7 日 23 点，
-        // 旧实现会把 3 月 7 日深夜误标成“昨天”。
+        // 2026-03-08 是 23 小时的一天：Today零点减 24 小时会落到 3 月 7 日 23 点，
+        // 旧实现会把 3 月 7 日深夜误标成“Yesterday”。
         val now = millis(2026, 3, 9, 12, 0)
         val record = millis(2026, 3, 7, 23, 30)
         val today = LocalDate.of(2026, 3, 9)
@@ -69,17 +69,17 @@ class LibraryDatesTest {
             .toInstant().toEpochMilli() - 24L * 60 * 60 * 1000
 
         assertTrue("测试前提：旧的 24 小时阈值已越过本地零点", record >= oldThreshold)
-        assertEquals("3 月 7 日", LibraryDates.dayLabel(record, today, zone, dayFormatter))
-        assertNotEquals("昨天", LibraryDates.dayLabel(record, today, zone, dayFormatter))
-        assertEquals("昨天", LibraryDates.dayLabel(millis(2026, 3, 8, 0, 10), today, zone, dayFormatter))
+        assertEquals("Mar 7", LibraryDates.dayLabel(record, today, zone, dayFormatter))
+        assertNotEquals("Yesterday", LibraryDates.dayLabel(record, today, zone, dayFormatter))
+        assertEquals("Yesterday", LibraryDates.dayLabel(millis(2026, 3, 8, 0, 10), today, zone, dayFormatter))
     }
 
     @Test
     fun dayLabelKeepsTodayYesterdayAndOlderSemantics() {
         val today = LocalDate.of(2026, 10, 25)
-        assertEquals("今天", LibraryDates.dayLabel(millis(2026, 10, 25, 8, 0), today, zone, dayFormatter))
-        assertEquals("昨天", LibraryDates.dayLabel(millis(2026, 10, 24, 23, 50), today, zone, dayFormatter))
-        assertEquals("10 月 20 日", LibraryDates.dayLabel(millis(2026, 10, 20, 7, 0), today, zone, dayFormatter))
+        assertEquals("Today", LibraryDates.dayLabel(millis(2026, 10, 25, 8, 0), today, zone, dayFormatter))
+        assertEquals("Yesterday", LibraryDates.dayLabel(millis(2026, 10, 24, 23, 50), today, zone, dayFormatter))
+        assertEquals("Oct 20", LibraryDates.dayLabel(millis(2026, 10, 20, 7, 0), today, zone, dayFormatter))
     }
 
     @Test
@@ -102,7 +102,7 @@ class LibraryDatesTest {
 
         val prepared = prepareHistory(records, now, zone)
 
-        assertEquals(listOf("今天", "昨天", "10 月 20 日"), prepared.groups.map { it.label })
+        assertEquals(listOf("Today", "Yesterday", "Oct 20"), prepared.groups.map { it.label })
         assertEquals(listOf(1, 2, 1), prepared.groups.map { it.items.size })
         assertEquals(listOf("test:a", "test:b", "test:c", "test:d"), prepared.queue.map { it.key })
         assertEquals(listOf("Song a", "Song b", "Song c", "Song d"), prepared.queue.map { it.title })
@@ -121,7 +121,7 @@ class LibraryDatesTest {
             now,
             zone,
         )
-        // 今天最后一条删掉：落到昨天第一条；中间的落到下一条；最后一条落回前一条
+        // Today最后一条删掉：落到Yesterday第一条；中间的落到下一条；最后一条落回前一条
         assertEquals("test:b", prepared.keyAfterRemoving("test:a"))
         assertEquals("test:c", prepared.keyAfterRemoving("test:b"))
         assertEquals("test:b", prepared.keyAfterRemoving("test:c"))

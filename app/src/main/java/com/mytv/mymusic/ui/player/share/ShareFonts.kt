@@ -23,7 +23,7 @@ import com.mytv.mymusic.R
  * - Android 8.0 以下不支持可变字体的轴：只声明常规字重，让系统合成粗体（同 Theme.kt），卡片照常出图。
  * - 字体只含拉丁字符。中文、日文、韩文由系统回落字体（通常是 Noto Sans CJK）画，轴只作用在我们这份 Typeface 上，
  *   回落字体不吃字宽和斜度：竖排卡的中文不斜、乱排的中文词不变宽窄、粗糙卡的中文是正常宽度。
- * - 回落字体按 Typeface 的「样式字重」挑字重，请求 ≥ 600 而系统只有常规时合成粗体，所以中文只有「常规」「粗」两档。
+ * - 回落字体按 Typeface 的'样式字重'挑字重，请求 ≥ 600 而系统只有常规时合成粗体，所以中文只有'常规''粗'两档。
  *   Compose 从资源建的可变字体样式字重固定是字体表里的 400（不调 setWeight），中文就一直是常规体；
  *   所以 Android 10+ 自己建：拉丁字形用 [android.graphics.fonts.Font.Builder] 按轴取实例并声明同样的字重（拉丁不再合成），
  *   [Typeface.CustomFallbackBuilder] 把样式字重设成请求值、回落到系统 sans-serif。Android 8.0–9 没有这两个 API，中文是常规体。

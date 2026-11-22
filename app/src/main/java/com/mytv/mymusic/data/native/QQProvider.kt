@@ -1401,7 +1401,7 @@ class QQProvider : BaseNativeProvider(QQ_INFO) {
             if (batch.isEmpty()) break
         }
         if (songs.isEmpty()) {
-            throw IllegalStateException(if (cookie.isBlank()) "「${mode.name}」需要登录后播放" else "「${mode.name}」暂时没有歌曲")
+            throw IllegalStateException(if (cookie.isBlank()) "'${mode.name}'需要登录后播放" else "'${mode.name}'暂时没有歌曲")
         }
         return songs
     }

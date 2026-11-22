@@ -213,7 +213,7 @@ fun FavoritesScreen(
                     }
                 },
                 onMore = { actionSong = saved to song },
-                // 收藏里「删除」就是取消收藏（和行尾的心一样带撤销）；两个都露出来时只留一个
+                // 收藏里'删除'就是取消收藏（和行尾的心一样带撤销）；两个都露出来时只留一个
                 swipe = rememberRowSwipe(
                     song,
                     songs,
@@ -403,7 +403,7 @@ fun HistoryScreen(
                     )
                 },
                 onMore = { actionItem = saved to song },
-                // 左滑「删除」= 删这条记录，和 ⋮ 面板里的「从最近播放删除」同一份（撤销按原时间写回）
+                // 左滑'删除'= 删这条记录，和 ⋮ 面板里的'从最近播放删除'同一份（撤销按原时间写回）
                 swipe = rememberRowSwipe(
                     song,
                     queue,
@@ -657,7 +657,7 @@ fun DownloadsScreen(
                         )
                     }
                 },
-                // 「删除」在下载里是删文件：和行尾按钮一样先弹确认框
+                // '删除'在下载里是删文件：和行尾按钮一样先弹确认框
                 swipe = rememberRowSwipe(
                     item.song,
                     doneSongs,

@@ -11,7 +11,7 @@ import java.net.Inet6Address
 import java.net.InetAddress
 
 /**
- * Android 17（API 37）起的本地网络保护：targetSdk ≥ 37 的应用连「接受局域网入站连接」也要持有
+ * Android 17（API 37）起的本地网络保护：targetSdk ≥ 37 的应用连'接受局域网入站连接'也要持有
  * ACCESS_LOCAL_NETWORK，否则手机扫了码也打不开电视上的配置面板——127.0.0.1 是 loopback，不算
  * 本地网络，本机永远能访问，只有局域网 IP 被内核丢包，服务端日志里什么异常都没有。
  *

@@ -203,16 +203,16 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-/** 设置里存的是枚举名字；旧数据或空值都回到默认的「推荐」。 */
+/** 设置里存的是枚举名字；旧数据或空值都回到默认的'推荐'。 */
 private fun String?.toPlaylistMode(): PlaylistMode =
     PlaylistMode.entries.firstOrNull { it.name == this } ?: PlaylistMode.Recommend
 
 /**
- * 汽水「天天送会员」的界面状态。任务阈值、完成数、VIP 到期都以服务端为准
+ * 汽水'天天送会员'的界面状态。任务阈值、完成数、VIP 到期都以服务端为准
  *  (见 [com.mytv.mymusic.data.native.SodaWelfare]），本机只存加载态。
  */
 data class SodaWelfareUi(
-    // 首帧当成正在读，入口卡才不会闪一下「获取失败」
+    // 首帧当成正在读，入口卡才不会闪一下'获取失败'
     val loading: Boolean = true,
     val applying: Boolean = false,
     /** 是否已登录汽水音乐；未登录时界面引导去扫码。 */
@@ -222,17 +222,17 @@ data class SodaWelfareUi(
 )
 
 /**
- * 酷狗概念版「听歌领会员」的界面状态。VIP 生效、到期和领取结果都以服务端为准
+ * 酷狗概念版'听歌领会员'的界面状态。VIP 生效、到期和领取结果都以服务端为准
  *  (见 [com.mytv.mymusic.data.native.KugouWelfare]），本机只存加载态和领取态。
  */
 data class KugouWelfareUi(
-    // 首帧当成正在读，入口卡才不会闪一下「获取失败」
+    // 首帧当成正在读，入口卡才不会闪一下'获取失败'
     val loading: Boolean = true,
     val claiming: Boolean = false,
     /** 是否已登录酷狗 (概念版）；未登录时界面引导去扫码。 */
     val loggedIn: Boolean = true,
     val info: KugouWelfareInfo = KugouWelfareInfo(),
-    /** 今天手动领取的结果，用来在卡片上显示「已领取 / 风控」这类反馈。 */
+    /** 今天手动领取的结果，用来在卡片上显示'已领取 / 风控'这类反馈。 */
     val lastClaim: KugouRewardResult? = null,
     val error: String = "",
 ) {
@@ -248,9 +248,9 @@ data class MusicUiState(
     val playlistsSource: String = "",
     /** 冷启动打开的顶层入口 (TopTab.route），空表示还没读到设置。 */
     val startupTab: String = "",
-    /** 歌单页上次用的浏览方式；还没读到设置时是默认的「推荐」。 */
+    /** 歌单页上次用的浏览方式；还没读到设置时是默认的'推荐'。 */
     val playlistsMode: PlaylistMode = PlaylistMode.Recommend,
-    /** 听歌模式页上次选的分组，空表示「全部」。 */
+    /** 听歌模式页上次选的分组，空表示'全部'。 */
     val listenGroup: String = GROUP_ALL,
     val theme: String = "system",
     val appearance: Appearance = Appearance(),
@@ -287,7 +287,7 @@ data class MusicUiState(
     val miniPlayerTarget: MiniPlayerTarget = MiniPlayerTarget.Player,
     /** 上报总开关；关掉后不再把记录回传给任何平台。 */
     val playReportEnabled: Boolean = true,
-    /** 酷狗概念版「听歌领会员」是否启动时自动领一天。 */
+    /** 酷狗概念版'听歌领会员'是否启动时自动领一天。 */
     val kugouWelfareAuto: Boolean = true,
     val coverSeed: Int = 0,
     val sleepFade: Boolean = true,
@@ -369,7 +369,7 @@ data class MusicUiState(
  * 绑定歌单在当前账号下能不能改。[supported] 为 false 表示平台没有写接口 (仍按老行为编辑即解绑）；
  * [writable] 为 null 表示还没判断出来，先按可写处理，真写失败时再提示。
  */
-/** 歌单增删的提示出口：(文字, 是不是失败)。平常就是 [MusicViewModel] 的 message，「加到歌单」面板换成自己收着。 */
+/** 歌单增删的提示出口：(文字, 是不是失败)。平常就是 [MusicViewModel] 的 message，'加到歌单'面板换成自己收着。 */
 internal typealias EditReport = (text: String, error: Boolean) -> Unit
 
 data class BoundPlaylistAccess(
@@ -521,10 +521,10 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     val equalizerState = app.equalizer.state
     val sleepTimer = app.sleepTimer.state
 
-    /** 「天天听歌」的本机听歌计时，只给汽水的任务进度当个参考。 */
+    /** '天天听歌'的本机听歌计时，只给汽水的任务进度当个参考。 */
     val listenTaskState: StateFlow<ListenTaskState> = app.listenTasks.state
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListenTaskState())
-    /** 汽水音乐「天天送会员」：服务端的任务状态和免费 VIP 领取。 */
+    /** 汽水音乐'天天送会员'：服务端的任务状态和免费 VIP 领取。 */
     private val _sodaWelfare = MutableStateFlow(SodaWelfareUi())
     val sodaWelfare: StateFlow<SodaWelfareUi> = _sodaWelfare.asStateFlow()
     private var sodaWelfareJob: Job? = null
@@ -534,12 +534,12 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         if (_sodaWelfare.value.info.statusCode < 0) refreshSodaWelfare()
     }
 
-    /** 酷狗概念版「听歌领会员」：服务端的 VIP 状态和领取。 */
+    /** 酷狗概念版'听歌领会员'：服务端的 VIP 状态和领取。 */
     private val _kugouWelfare = MutableStateFlow(KugouWelfareUi())
     val kugouWelfare: StateFlow<KugouWelfareUi> = _kugouWelfare.asStateFlow()
     private var kugouWelfareJob: Job? = null
 
-    /** 和汽水一样：只在没读过时请求，进「我的」页调。 */
+    /** 和汽水一样：只在没读过时请求，进'我的'页调。 */
     fun ensureKugouWelfareLoaded() {
         if (_kugouWelfare.value.info.status < 0) refreshKugouWelfare()
     }
@@ -699,7 +699,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     init {
         val downloadsAtStart = System.currentTimeMillis()
         viewModelScope.launch(Dispatchers.IO) {
-            // 「下载中」只活在当前进程：上次进程被杀留下的记录永远等不到「已完成」，
+            // '下载中'只活在当前进程：上次进程被杀留下的记录永远等不到'已完成'，
             // 启动时连同半截文件一起清掉。只清本进程创建之前留下的，避免误删刚点的下载。
             runCatching {
                 val dao = app.database.dao()
@@ -718,7 +718,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             AppleLyricsConfig.configure(settingsState.value.thirdPartyLyrics)
             _settingsReady.value = true
         }
-        // 酷狗概念版「听歌领会员」：进程里第一次拿到设置就试着把今天那一份领了，
+        // 酷狗概念版'听歌领会员'：进程里第一次拿到设置就试着把今天那一份领了，
         // 同一天只试一次；领不到就等用户手动点，见 autoClaimKugouWelfareIfNeeded
         viewModelScope.launch { autoClaimKugouWelfareIfNeeded() }
         viewModelScope.launch {
@@ -982,7 +982,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             val result = runCatching { app.repository.listeningModes(providerId, cookieFor(providerId)) }
             if (generation != listenGeneration) return@launch
             result.onSuccess { modes ->
-                // 记住的分组在这个平台上可能不存在 (换源、平台改了分组): 落回「全部」并一起记住。
+                // 记住的分组在这个平台上可能不存在 (换源、平台改了分组): 落回'全部'并一起记住。
                 // 读最新状态而不是函数开头那份：拉列表时用户可能已经点了别的分组
                 val remembered = _playlists.value.listenGroup
                 val group = remembered
@@ -1012,7 +1012,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     /** 点一个听歌模式：取一批歌直接开播，队列末尾由器自动续取。 */
     fun playListeningMode(mode: ListeningMode) {
         val providerId = mode.source.ifBlank { _playlists.value.providerId.ifBlank { settingsState.value.provider } }
-        // 会取消掉正在跑的「随便听听」，把它的转圈一起收掉
+        // 会取消掉正在跑的'随便听听'，把它的转圈一起收掉
         _playlists.update { it.copy(listenStarting = mode.id, quickListenStarting = false) }
         directPlayJob?.cancel()
         directPlayJob = viewModelScope.launch {
@@ -1023,7 +1023,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 推荐页的「随便听听」：不用先选模式，按顺序试到第一个真能出歌的。 */
+    /** 推荐页的'随便听听'：不用先选模式，按顺序试到第一个真能出歌的。 */
     fun quickListen() {
         val current = _playlists.value
         if (!current.canListen) return
@@ -1060,7 +1060,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 「随便听听」先试哪个模式：上次在播的那个 → 平台自己的主推荐 (偏好模式、私人漫游这些非场景入口）
+     * '随便听听'先试哪个模式：上次在播的那个 → 平台自己的主推荐 (偏好模式、私人漫游这些非场景入口）
      * → 场景电台兜底。场景类入口未登录也出歌，但那是兜底，不该盖过平台给的主推荐。
      */
     private fun quickListenCandidates(modes: List<ListeningMode>): List<ListeningMode> {
@@ -1091,7 +1091,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             if (it is CancellationException) throw it
             return it.message ?: "Couldn't read listening modes"
         }
-        if (songs.isEmpty()) return "「${mode.name}' has no tracks yet"
+        if (songs.isEmpty()) return "'${mode.name}' has no tracks yet"
         // 给队列里的歌打上模式标记：换队列后靠它判断还要不要继续续流
         val marked = songs.map { it.copy(extra = it.extra + (FEED_MARK to mode.id)) }
         val feed = ActiveFeed(providerId, mode, cookie)
@@ -1099,10 +1099,10 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             play(marked.first(), marked)
             activeFeed = feed
         } else if (!playNow(marked.first(), marked, openPlayer = false, feed = feed)) {
-            return base.value.playbackNotice.ifBlank { "「${mode.name}' can't play right now" }
+            return base.value.playbackNotice.ifBlank { "'${mode.name}' can't play right now" }
         }
         _playlists.update { it.copy(listenActive = mode.id) }
-        message("Turned on '${mode.name}」")
+        message("Turned on '${mode.name}'")
         return null
     }
 
@@ -2513,7 +2513,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * [addSongsToPlaylist] 的本体，调用方已经拿着 [playlistMutex]。提示交给 [report]：平常就是外壳的 Snackbar，
-     * 「加到歌单」面板换成自己收着 (见 [EditSink]）。加进去了返回 true。
+     * '加到歌单'面板换成自己收着 (见 [EditSink]）。加进去了返回 true。
      */
     private suspend fun addSongsLocked(playlistId: String, songs: List<Song>, report: EditReport): Boolean {
         val playlist = libraryDao.playlistOnce(playlistId) ?: return false
@@ -2578,7 +2578,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         scheduleBoundReload(playlistId)
         val skipped = songs.size - resolved.size
         val text = buildString {
-            append("Added ${resolved.size} tracks to '${playlist.name}」")
+            append("Added ${resolved.size} tracks to '${playlist.name}'")
             if (skipped > 0) append(", $skipped not found or already present")
         }
         addedMessage(text, resolved, report)
@@ -2605,7 +2605,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         app.sync.onLocalChange()
         val skipped = songs.size - candidates.size
         addedMessage(
-            if (skipped > 0) "Added ${candidates.size} tracks, $skipped already present" else "Added ${candidates.size} tracks to '${playlist.name}」",
+            if (skipped > 0) "Added ${candidates.size} tracks, $skipped already present" else "Added ${candidates.size} tracks to '${playlist.name}'",
             candidates,
             report,
         )
@@ -2715,7 +2715,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         app.sync.onLocalChange()
     }
 
-    // ---------- 页「加到歌单」面板 ----------
+    // ---------- 页'加到歌单'面板 ----------
 
     /**
      * 加歌单时解析出来的平台Version: 正在放的这首 key → 写进绑定歌单的平台曲目 key。只在进程里记，
@@ -2736,7 +2736,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         (siblings + song.key).toSet()
     }
 
-    /** 这首 (含同一首的其他平台版本）在哪些自建歌单里：页「加到歌单」按钮的图标和面板的勾都看它。 */
+    /** 这首 (含同一首的其他平台版本）在哪些自建歌单里：页'加到歌单'按钮的图标和面板的勾都看它。 */
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     fun playlistsContaining(song: Song): Flow<Set<String>> = kotlinx.coroutines.flow.flow {
         val base = sameSongKeys(song)
@@ -2773,7 +2773,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 面板顶上的「新建歌单」：建好直接把这首放进去，面板不关。 */
+    /** 面板顶上的'新建歌单'：建好直接把这首放进去，面板不关。 */
     fun createPlaylistWithSongQuietly(name: String, song: Song): Deferred<PlaylistEditResult> = viewModelScope.async {
         val value = name.trim()
         if (value.isBlank()) return@async PlaylistEditResult(changed = false)
@@ -3144,7 +3144,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 },
             )
             app.sync.onLocalChange()
-            message("Saved as '${name.trim().ifBlank { "Untitled playlist" }}」")
+            message("Saved as '${name.trim().ifBlank { "Untitled playlist" }}'")
         }
     }
 
@@ -3196,7 +3196,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             )
             app.sync.onLocalChange()
             _boundAccess.update { it - id }
-            message("Linked '$trimmed」'; platform updates sync automatically")
+            message("Linked '$trimmed''; platform updates sync automatically")
         } else {
             libraryDao.putPlaylist(
                 target.copy(
@@ -3215,7 +3215,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             libraryDao.markDirty(target.id, now)
             app.sync.onLocalChange()
             _boundAccess.update { it - target.id }
-            message("Linked '${target.name}」' with ${songs.size} tracks")
+            message("Linked '${target.name}'' with ${songs.size} tracks")
         }
     }
 
@@ -3228,7 +3228,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
      * 退出登录、同步推过来的 Cookie 都不弹；[promptPlatformImportEnabled] 为假的平台也不弹。
      */
     private fun maybePromptPlatformImport(providerId: String, previousCookie: String, cookie: String) {
-        // 只在「从没登录过 → 登录上」时问：退出再登、换账号 (Cookie 非空变非空）都不再弹，
+        // 只在'从没登录过 → 登录上'时问：退出再登、换账号 (Cookie 非空变非空）都不再弹，
         // 需要的话去平台账号页的 ⋮ 里手动打开
         if (previousCookie.isNotBlank() || cookie.isBlank()) return
         if (promptPlatformImportEnabled[providerId] == false) return
@@ -3251,7 +3251,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 平台账号页的「导入歌单…」：随时能再打开，不看「已问过」。 */
+    /** 平台账号页的'导入歌单…'：随时能再打开，不看'已问过'。 */
     fun openPlatformImport(providerId: String) {
         val cookie = cookieFor(providerId)
         if (cookie.isBlank()) {
@@ -3283,7 +3283,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 关面板。[forever] 为真即「这个平台不再询问」，之后登录不再自动弹。 */
+    /** 关面板。[forever] 为真即'这个平台不再询问'，之后登录不再自动弹。 */
     /** 关面板。导入中关掉＝取消剩下的，已经写进去的照留 (面板里先问过一句）。 */
     fun dismissPlatformImport(forever: Boolean = false) {
         val current = _platformImport.value
@@ -3334,7 +3334,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             } finally {
-                // 半路关掉也要把已经写进去的算清楚；整条走完则关面板并记下「问过了」
+                // 半路关掉也要把已经写进去的算清楚；整条走完则关面板并记下'问过了'
                 platformImportJob = null
                 _platformImport.value = PlatformImportUi()
                 if (imported > 0) message("Imported $imported playlists · $songs tracks")
@@ -3399,8 +3399,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     if (diff.removed > 0) add("${diff.removed} removed")
                 }
                 message(
-                    if (parts.isEmpty()) "「${latest.name}' synced; platform content unchanged"
-                    else "「${latest.name}' synced: ${parts.joinToString("，")}"
+                    if (parts.isEmpty()) "'${latest.name}' synced; platform content unchanged"
+                    else "'${latest.name}' synced: ${parts.joinToString("，")}"
                 )
             }
         }
@@ -3484,14 +3484,14 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         if (song.source == LOCAL_SOURCE) {
             // 云端副本只当在线歌放 (可以进缓存），不另存一份到“下载'
             if (app.localLibrary.playableItem(song.id) != null) {
-                message("「${song.title}' is local music and the file is already on this device")
+                message("'${song.title}' is local music and the file is already on this device")
             } else {
-                message("「${song.title}' is local music on another device; it can stream online but can't be downloaded")
+                message("'${song.title}' is local music on another device; it can stream online but can't be downloaded")
             }
             return@launch
         }
         if (!downloading.add(song.key)) {
-            message("「${song.title}' is downloading")
+            message("'${song.title}' is downloading")
             return@launch
         }
         try {
@@ -3519,7 +3519,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 .replace(Regex("[\\\\/:*?\"<>|]"), "_"),
         )
         // 先落库再取流：汽水要整曲下载解密，跨源回退还要搜别的平台，第一次可能很慢。
-        // 这期间下载页要能看到「正在下载」，而不是一片空白。已经下好过的保留原记录，
+        // 这期间下载页要能看到'正在下载'，而不是一片空白。已经下好过的保留原记录，
         // 重下期间和进程被杀时都不会把旧文件和记录一起顶掉。
         val keepExisting = previous != null && File(previous.path).isFile
         if (!keepExisting) {
@@ -3533,7 +3533,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 )
             )
         }
-        message("Starting download of '${song.title}」")
+        message("Starting download of '${song.title}'")
 
         var failure: Throwable? = null
         val resolved = runCatching { resolvePlayable(canonicalForSong(song), forDownload = true) }
@@ -3552,9 +3552,9 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             message(text, error = true)
             return
         }
-        // 试听片段不是整曲，不能落成「已下载」 (正常流程里 forDownload 已经排除了它，这里兜底）
+        // 试听片段不是整曲，不能落成'已下载' (正常流程里 forDownload 已经排除了它，这里兜底）
         if (ready.isPreview) {
-            val text = "「${song.title}': this account can only preview it, full track download is unavailable"
+            val text = "'${song.title}': this account can only preview it, full track download is unavailable"
             markDownloadFailed(song, previous, text)
             message(text, error = true)
             return
@@ -3627,7 +3627,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    /** 下载没成时恢复上一次已完成的记录；没有旧记录就删掉「下载中」占位。 */
+    /** 下载没成时恢复上一次已完成的记录；没有旧记录就删掉'下载中'占位。 */
     private suspend fun restoreDownload(key: String, previous: DownloadRecord?) {
         if (previous != null && File(previous.path).isFile) {
             app.database.dao().saveDownload(previous)
@@ -3800,7 +3800,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * MediaController 的命令要经会话转给器，会话正好在换器 (交叉淡化换主）或刚重连时会被顶掉：
-     * 界面已经换了歌，器却还是上一份队列，听感就是「点了没切」。装上以后核对一次，对不上补装一遍。
+     * 界面已经换了歌，器却还是上一份队列，听感就是'点了没切'。装上以后核对一次，对不上补装一遍。
      */
     private fun verifyQueueApplied(player: MediaController, requestId: Int, retried: Boolean = false) {
         viewModelScope.launch {
@@ -4025,7 +4025,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     source.id, target.id -> merged
                     else -> base.value.sourcePickerTrack
                 },
-                playbackNotice = "Merged into '${target.title}」",
+                playbackNotice = "Merged into '${target.title}'",
             )
         }
     }
@@ -4249,7 +4249,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         when (action) {
             "play" -> if (player.isPlaying) player.pause() else player.play()
             "next" -> {
-                // 上报要知道Previous是被「Next」切走的，不是自己播完的
+                // 上报要知道Previous是被'Next'切走的，不是自己播完的
                 base.value.current?.let { PlayReportHub.userAction(it.source, PlayEndReason.Next) }
                 player.seekToNextMediaItem()
             }
@@ -4351,7 +4351,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         message("Play next: ${song.title}")
     }
 
-    /** 一首接到队列末尾 (滑动的「加到队列」）；队列空着就直接放，已经在队列里只提示。 */
+    /** 一首接到队列末尾 (滑动的'加到队列'）；队列空着就直接放，已经在队列里只提示。 */
     fun addToQueue(song: Song) = enqueueSongs(listOf(song))
 
     /**
@@ -4544,7 +4544,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 收藏到平台账号 (汽水的「我喜欢的音乐」）。和本机收藏是两件事：这个写去平台，
+     * 收藏到平台账号 (汽水的'我喜欢的音乐'）。和本机收藏是两件事：这个写去平台，
      * 换设备也在。平台没实现、没登录、接口报错都转成一条提示，不让界面崩。
      */
     fun collectOnPlatform(song: Song) {
@@ -4782,7 +4782,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * 本地歌的解析：先问本地音乐库 (本机文件 → 云端副本 → 匹配到的平台版本）；
-     * 这台设备上从没扫到过、也没有匹配记录 (别的设备加进歌单的）时，「没有文件时用平台版本」开着
+     * 这台设备上从没扫到过、也没有匹配记录 (别的设备加进歌单的）时，'没有文件时用平台版本'开着
      * 就按歌名歌手走一遍现有的自动匹配。都不行返回 None，原因记在本地那条尝试里；歌单条目不动。
      * 刚放失败的本机文件或云端副本 ([excludeProviders] 里有 local）不再拿回来：两者是同一份内容，
      * 格式放不了换哪份都一样，直接去平台版本，免得在同一个坏文件上来回重试。
@@ -5279,7 +5279,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 val customFailed = failedSource?.song?.extra?.containsKey("lx_source_id") == true
                 if (customFailed) LxSources.reportPlaybackFailure(failedSource.song)
                 // 排除集要跨重试累积：只排除上一次失败的那个源，两个源会互相顶替、来回切个不停
-                //  (真机上 DRM 每轮都失败，就一直在「排除 apple」「排除 netease」之间打转）。
+                //  (真机上 DRM 每轮都失败，就一直在'排除 apple''排除 netease'之间打转）。
                 val excluded = if (live) {
                     emptySet()
                 } else {
@@ -5520,7 +5520,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         app.listenTasks.addListening(ms)
     }
 
-    /** 刷新汽水「天天送会员」状态；没登录汽水时只回一个未登录态。 */
+    /** 刷新汽水'天天送会员'状态；没登录汽水时只回一个未登录态。 */
     fun refreshSodaWelfare() {
         val cookie = settingsState.value.cookies[SodaProvider.SODA_PROVIDER_ID].orEmpty()
         if (cookie.isBlank()) {
@@ -5571,7 +5571,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 刷新酷狗概念版「听歌领会员」状态；没登录酷狗时只回一个未登录态。 */
+    /** 刷新酷狗概念版'听歌领会员'状态；没登录酷狗时只回一个未登录态。 */
     fun refreshKugouWelfare() {
         val cookie = settingsState.value.cookies[KugouWelfare.KUGOU_PROVIDER_ID].orEmpty()
         if (cookie.isBlank()) {
@@ -6215,7 +6215,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * 音乐源开关。关掉的平台从启用列表和优先列表里一起消失：聚合搜索、来源条、换源都不再用它，
-     * 之后想用得在「音乐源'重新打开。
+     * 之后想用得在'音乐源'重新打开。
      */
     fun toggleAggregateProvider(id: String) = viewModelScope.launch {
         val current = settingsState.value.aggregation
@@ -6375,7 +6375,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 拉取登录账号的资料给账号卡片；失败就保持上次那份 (缓存或空），界面退化成「已登录」。
+     * 拉取登录账号的资料给账号卡片；失败就保持上次那份 (缓存或空），界面退化成'已登录'。
      *
      * 两个坑都在这里堵：
      * - 资料接口是每个平台各自的用户信息，Cookie 不变就只会在冷启动触发一次，失败一次等于
@@ -6651,19 +6651,19 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _platformImport = MutableStateFlow(PlatformImportUi())
 
-    /** Signed in后「把这些歌单导入成绑定歌单」的面板；外壳按它挂面板。 */
+    /** Signed in后'把这些歌单导入成绑定歌单'的面板；外壳按它挂面板。 */
     val platformImport: StateFlow<PlatformImportUi> = _platformImport.asStateFlow()
 
     /** 正在跑的那次批量导入；关面板时取消剩下的。 */
     private var platformImportJob: Job? = null
 
     /**
-     * 登录后要不要自动问「导入歌单」。只活在本进程：触发条件本身是「这个平台的 Cookie 从空变非空」，
+     * 登录后要不要自动问'导入歌单'。只活在本进程：触发条件本身是'这个平台的 Cookie 从空变非空'，
      * 所以退出再登录不会重复问、换账号也不会问；要再问就在平台账号页的 ⋮ 里打开。
      */
     private val promptPlatformImportEnabled = ConcurrentHashMap<String, Boolean>()
 
-    /** 导入完成 (写了至少一playlists，或整库备份合并成功）就加一；电视扫码网页据此显示「已导入」。 */
+    /** 导入完成 (写了至少一playlists，或整库备份合并成功）就加一；电视扫码网页据此显示'已导入'。 */
     private val _importDone = MutableStateFlow(0)
     val importDone: StateFlow<Int> = _importDone.asStateFlow()
 
@@ -6672,7 +6672,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     /** 手机传来的整库备份正在合并：合并到一半不能取消。 */
     private var mergingLibrary = false
 
-    /** 正在预览的文件：「重新换取」按它重算。 */
+    /** 正在预览的文件：'重新换取'按它重算。 */
     private var importSource: ImportSource? = null
 
     private class ImportSource(
@@ -6707,7 +6707,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 电视扫码时手机传来的文件也走这里；立刻出「正在读取」，电视上扫码面板一收起导入面板就接上。 */
+    /** 电视扫码时手机传来的文件也走这里；立刻出'正在读取'，电视上扫码面板一收起导入面板就接上。 */
     fun openImport(bytes: ByteArray, displayName: String, fromPhone: Boolean = false) {
         importJob?.cancel()
         _transfer.value = TransferUi.Reading(displayName, "Reading…", fromPhone)
@@ -6816,7 +6816,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         "myMusic ${info.versionName} ($code)"
     }.getOrDefault("myMusic")
 
-    /** 导入完的提示：「已导入 3 playlists，共 298 首 (12 were already there)」；有失败的写清几个失败。 */
+    /** 导入完的提示：'已导入 3 playlists，共 298 首 (12 were already there)'；有失败的写清几个失败。 */
     private fun importResultText(result: com.mytv.mymusic.data.transfer.ImportResult): String = buildString {
         if (result.lists == 0) {
             append(if (result.failed > 0) "Import failed: ${result.firstError}" else "No playlists were imported")
@@ -6863,7 +6863,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 「保存到文件」：系统文件选择器建好的文档里写字节。 */
+    /** '保存到文件'：系统文件选择器建好的文档里写字节。 */
     fun saveExport(preview: com.mytv.mymusic.data.transfer.ExportPreview, uri: Uri) {
         viewModelScope.launch {
             val context = getApplication<Application>()
@@ -6875,8 +6875,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     file
                 }
             }.onSuccess { file ->
-                // 一playlists写名字，几playlists写个数 (标题「4 playlists」套上书名号不通）
-                val what = if (preview.lists.size == 1) "「${preview.title}」" else " ${preview.lists.size} playlists "
+                // 一playlists写名字，几playlists写个数 (标题'4 playlists'套上书名号不通）
+                val what = if (preview.lists.size == 1) "'${preview.title}'" else " ${preview.lists.size} playlists "
                 message("Exported$what· ${file.counts.kept} tracks")
             }.onFailure { error ->
                 if (error is CancellationException) throw error
@@ -6920,7 +6920,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
      * 电视上默认离开应用即暂停，避免回到桌面后还在响；手机和平板保留后台。
      * 设置 › 页 › 电视 › 后台打开后电视也一样：离开应用不暂停，通知栏、页都能停。
      *
-     * [resumeOnReturn] 为真时记下「这不是用户自己要停的」，回到前台由 [resumeIfInterrupted] 接着放：
+     * [resumeOnReturn] 为真时记下'这不是用户自己要停的'，回到前台由 [resumeIfInterrupted] 接着放：
      * 电视上按 Home、被别的应用盖住都会走到这儿，音乐跟着人回来，不会因为屏保 (有些电视的屏保就是
      * 别的应用拉起来的前台界面）弹一下就一直停着。退出应用 (finish）不算，回前台不自动放。
      */
@@ -7083,7 +7083,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         /** 听歌模式队列剩这么多首时开始续取，避免放到最后一首才去请求。 */
         const val FEED_EXTEND_THRESHOLD = 3
 
-        /** 「随便听听」最多试几个模式，避免一个都出不了歌时连打太多请求。 */
+        /** '随便听听'最多试几个模式，避免一个都出不了歌时连打太多请求。 */
         const val QUICK_LISTEN_TRIES = 3
 
         /** 听歌模式队列的标记，写在 Song.extra 里。 */

@@ -19,7 +19,7 @@ import java.util.UUID
  *
  * @param localSongs 这台设备本地音乐里的歌（文件在的），只在文件里有本地歌时取一次。
  * @param migu 按 songId 换咪咕歌（`MiguProvider.songsBySongId`），回调是已完成批数 / 总批数。
- * @param knownProvider 本应用认得的平台；myMusic 文件里别的平台（比如以后删掉的）算「本应用没有这个平台」。
+ * @param knownProvider 本应用认得的平台；myMusic 文件里别的平台（比如以后删掉的）算'本应用没有这个平台'。
  */
 class PlaylistTransfer(
     private val library: LibraryDao,
@@ -173,7 +173,7 @@ class PlaylistTransfer(
                 throw error
             } catch (error: Exception) {
                 failed++
-                if (firstError.isEmpty()) firstError = "「${list.name}」${error.message.orEmpty()}"
+                if (firstError.isEmpty()) firstError = "'${list.name}'${error.message.orEmpty()}"
             }
         }
         return ImportResult(lists, added, alreadyIn, favorites, failed, created, firstError)
@@ -209,7 +209,7 @@ internal fun buildImportPlan(
     val byName = alive.groupBy { nameKey(it.name) }
     fun sameName(name: String): SameName? {
         val hits = byName[nameKey(name)].orEmpty()
-        // 有没绑定的同名就合并进它；同名的全是绑定歌单才算「绑定」
+        // 有没绑定的同名就合并进它；同名的全是绑定歌单才算'绑定'
         val target = hits.firstOrNull { !it.bound } ?: hits.firstOrNull() ?: return null
         return SameName(target.id, target.name, target.bound)
     }

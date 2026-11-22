@@ -69,7 +69,7 @@ class WebDavCertificatePinningTest {
         assertFalse(error.certificate!!.systemTrusted)
         // 握手阶段就停了：服务器一个请求都没收到，带密码的 Authorization 头也就没发出去
         assertEquals(0, server.requestCount)
-        assertTrue(WebDavMessages.describe(error, account()).startsWith("服务器证书变了，和上次信任的不一样"))
+        assertTrue(WebDavMessages.describe(error, account()).startsWith("The server certificate changed and differs from the one trusted before"))
     }
 
     @Test
@@ -81,7 +81,7 @@ class WebDavCertificatePinningTest {
 
         assertEquals(WebDavErrorKind.UntrustedCertificate, error.kind)
         assertEquals(0, server.requestCount)
-        assertTrue(WebDavMessages.describe(error, account()).contains("也不是本机确认过的那张"))
+        assertTrue(WebDavMessages.describe(error, account()).contains("doesn't match the one confirmed on this device"))
     }
 
     @Test
@@ -115,7 +115,7 @@ class WebDavCertificatePinningTest {
         val error = failure { client(account(trust = false)).stat("") }
 
         assertEquals(WebDavErrorKind.UntrustedCertificate, error.kind)
-        assertTrue(WebDavMessages.describe(error, account(trust = false)).contains("可以打开“信任自签名证书”"))
+        assertTrue(WebDavMessages.describe(error, account(trust = false)).contains("enable Trust self-signed certificate"))
     }
 
     @Test
@@ -206,7 +206,7 @@ class WebDavCertificatePinningTest {
 
         assertNotNull(error)
         assertEquals(SyncFailureKind.Network, error!!.kind)
-        assertTrue(error.message.startsWith("服务器证书变了，和上次信任的不一样"))
+        assertTrue(error.message.startsWith("The server certificate changed and differs from the one trusted before"))
         assertEquals(0, server.requestCount)
     }
 
@@ -247,11 +247,11 @@ class WebDavCertificatePinningTest {
         val certificate = fakeCertificate("AB").copy(notAfter = notAfter)
 
         assertEquals(
-            "证书指纹 ${"AB:".repeat(31)}AB（颁发给 nas.local，自签名，2027-03 到期）",
+            "Certificate fingerprint ${"AB:".repeat(31)}AB (issued to nas.local, Self-signed, expires 2027-03)",
             WebDavMessages.certificate(certificate, now),
         )
         assertEquals(
-            "证书指纹 ${"AB:".repeat(31)}AB（颁发给 nas.local，由 Home CA 签发，已于 2027-03 过期）",
+            "Certificate fingerprint ${"AB:".repeat(31)}AB (issued to nas.local, Issued by Home CA, expired 2027-03)",
             WebDavMessages.certificate(certificate.copy(selfSigned = false, issuer = "Home CA"), notAfter + 1),
         )
     }

@@ -127,7 +127,7 @@ class AppleWidevineDrmCallback(
         // 按 gamdl 的方式从字典里取值，其余字段一概不管。
         val license = licenseField(body, "license")
         if (license.isBlank()) {
-            // Apple 的 failureType 2002 是「会话过期，重新登录」，原样带在消息里好排查
+            // Apple 的 failureType 2002 是'会话过期，重新登录'，原样带在消息里好排查
             val detail = listOf(licenseField(body, "failureType"), licenseField(body, "customerMessage"))
                 .filter { it.isNotBlank() }
                 .joinToString(" ")

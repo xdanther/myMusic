@@ -28,7 +28,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
  */
 @Stable
 internal class LyricPickProbe {
-    /** 此刻是不是「全屏歌词页」且能分享（有歌词、没在加载、没开着分享）：PlayerScreen 每次组合时写，手势和读屏操作都先看它。 */
+    /** 此刻是不是'全屏歌词页'且能分享（有歌词、没在加载、没开着分享）：PlayerScreen 每次组合时写，手势和读屏操作都先看它。 */
     var enabled by mutableStateOf(false)
 
     /** 长按 / 读屏操作命中后回调；参数是全屏歌词行表的下标，认不出是哪句时为 null（用当前句）。 */
@@ -59,7 +59,7 @@ internal class LyricPickProbe {
 
 internal val LocalLyricPickProbe = staticCompositionLocalOf<LyricPickProbe?> { null }
 
-/** 读屏的自定义操作「Select this line to share」：[line] 为 null 时用当前句。TalkBack 的双击长按本来也会走长按手势。 */
+/** 读屏的自定义操作'Select this line to share'：[line] 为 null 时用当前句。TalkBack 的双击长按本来也会走长按手势。 */
 internal fun pickShareAction(probe: LyricPickProbe, line: Int?): CustomAccessibilityAction =
     CustomAccessibilityAction("Select this line to share") {
         probe.request(line)

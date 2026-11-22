@@ -51,10 +51,10 @@ class SwipeResolveTest {
         val done = resolveSwipe(defaults, SwipeFacts(download = DOWNLOAD_DONE)).start.first()
         assertEquals(SwipeAction.Download, done.action)
         assertFalse(done.enabled)
-        assertEquals("已下载", done.label)
+        assertEquals("Downloaded", done.label)
         val active = resolveSwipe(defaults, SwipeFacts(download = DOWNLOAD_ACTIVE)).start.first()
         assertFalse(active.enabled)
-        assertEquals("下载中", active.label)
+        assertEquals("Downloading", active.label)
         // 失败的可以重下
         assertTrue(resolveSwipe(defaults, SwipeFacts(download = DOWNLOAD_FAILED)).start.first().enabled)
     }

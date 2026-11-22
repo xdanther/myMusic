@@ -18,7 +18,7 @@
 // WaveVisualizer、GradientVisualizer。两个 AGSL 着色器和三种律动的画法、弹簧刚度照原样；改动：律动输入从系统 Visualizer
 // 的波形字节换成舞台的低 / 中 / 高频（0..1，按交互稿换算到原来的 0..128 刻度），不需要录音权限；
 // RuntimeShader 只建一次、每帧只更新 uniform（原版每次重组都新建）；弹簧在绘制阶段按舞台时钟积分，减少动画时背景停住。
-// 2026-11-18 myMusic 改动：流光着色器开放给歌词分享的「流光」卡画静止帧（drawRushHypnoticStill），对应 Rush 分享卡的 animated = false。
+// 2026-11-18 myMusic 改动：流光着色器开放给歌词分享的'流光'卡画静止帧（drawRushHypnoticStill），对应 Rush 分享卡的 animated = false。
 package com.mytv.mymusic.ui.player.stage.modes
 
 import android.graphics.RuntimeShader
@@ -136,7 +136,7 @@ private fun RushHypnoticBackground(clock: StageClock, colors: RushBackgroundColo
 }
 
 /**
- * 流光的静止帧（时间 0）：歌词分享的「流光」卡用，导出结果确定。[shader] 在 Android 13 起由调用方建一次
+ * 流光的静止帧（时间 0）：歌词分享的'流光'卡用，导出结果确定。[shader] 在 Android 13 起由调用方建一次
  * （[RushHypnoticShader.createOrNull]），更早或建不出来时退回上下渐变（Rush 自己也这样退）。
  */
 internal fun DrawScope.drawRushHypnoticStill(shader: Any?, colors: List<Color>) {

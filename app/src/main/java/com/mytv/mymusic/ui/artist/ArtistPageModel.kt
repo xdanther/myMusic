@@ -340,7 +340,7 @@ internal fun pickArtist(name: String, candidates: List<Playlist>): Playlist? {
 internal fun splitArtistNames(value: String): List<String> =
     value.split(ArtistSeparator)
         .map { it.trim() }
-        .filter { it.isNotBlank() && it != "Unknown artist" && !it.equals("various artists", ignoreCase = true) }
+        .filter { it.isNotBlank() && it != "Unknown artist" && it != "未知歌手" && !it.equals("various artists", ignoreCase = true) }
         .distinct()
 
 private val ArtistSeparator = Regex("""\s*(?:/|、|,|，|;|；|\bfeat\.?\s|\bft\.?\s)\s*""", RegexOption.IGNORE_CASE)

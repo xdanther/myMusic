@@ -71,7 +71,7 @@ private val NETEASE_INFO = ProviderInfo(
 /** 分享文本里的链接；取到后去掉紧跟在链接后的中文/英文标点。 */
 private val NETEASE_URL_PATTERN = Regex("""https?://\S+""", RegexOption.IGNORE_CASE)
 private val NETEASE_URL_TRAILING = charArrayOf(
-    ')', '）', ']', '】', '》', '」', '』', '"', '\'', ',', '，', '。', '、', ';', '；', '!', '！', '?', '？',
+    ')', '）', ']', '】', '》', '「', '』', '"', '\'', ',', '，', '。', '、', ';', '；', '!', '！', '?', '？',
 )
 
 class NetEaseProvider : BaseNativeProvider(NETEASE_INFO) {
@@ -847,7 +847,7 @@ class NetEaseProvider : BaseNativeProvider(NETEASE_INFO) {
             if (songs.size >= NETEASE_FM_ROUNDS * NETEASE_FM_BATCH) break
         }
         if (songs.isEmpty()) {
-            throw IllegalStateException(if (cookie.isBlank()) "「${mode.name}」需要登录后播放" else "「${mode.name}」暂时没有歌曲")
+            throw IllegalStateException(if (cookie.isBlank()) "'${mode.name}'需要登录后播放" else "'${mode.name}'暂时没有歌曲")
         }
         return songs
     }
@@ -1377,7 +1377,7 @@ private const val NETEASE_QUALITY_PROBE_KEYWORD = "周杰伦"
 
 /**
  * 网易云的可选音质档，从高到低。档名与 [NETEASE_LEVEL_ORDER] 是一套：阶梯给界面和
- * 「有没有降档」判断用，档名给取流接口用。移植自 music-lib 的 netease/quality.go。
+ * '有没有降档'判断用，档名给取流接口用。移植自 music-lib 的 netease/quality.go。
  */
 internal val NETEASE_QUALITY_LADDER: AudioQualityLadder = AudioQualityLadder.of(
     listOf(

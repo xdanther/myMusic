@@ -130,7 +130,7 @@ class WebDavSyncProviderTest {
         val wrong = account.copy(password = "nope").encode()
         val error = expectSync { provider.validate(wrong) }
         assertEquals(SyncFailureKind.Auth, error.kind)
-        assertEquals("用户名或密码不对。", error.message)
+        assertEquals("Wrong username or password.", error.message)
         // Basic 被拒后不重试，免得 Nextcloud 之类把账号锁掉
         assertEquals(1, dav.requests.size)
     }
@@ -139,9 +139,9 @@ class WebDavSyncProviderTest {
     fun jianguoyunUnauthorizedMentionsAppPassword() {
         val jianguoyun = WebDavAccount("https://dav.jianguoyun.com/dav/", "alice@example.com", "login-password")
         val message = WebDavMessages.describe(WebDavException(WebDavErrorKind.Unauthorized, "401", 401), jianguoyun)
-        assertTrue(message.startsWith("用户名或密码不对"))
-        assertTrue(message.contains("应用密码"))
-        assertFalse(WebDavMessages.describe(WebDavException(WebDavErrorKind.Unauthorized, "401", 401), account).contains("应用密码"))
+        assertTrue(message.startsWith("Wrong username or password"))
+        assertTrue(message.contains("app password"))
+        assertFalse(WebDavMessages.describe(WebDavException(WebDavErrorKind.Unauthorized, "401", 401), account).contains("app password"))
     }
 
     @Test
@@ -192,7 +192,7 @@ class WebDavSyncProviderTest {
     fun fileInPlaceOfDirectoryIsReported() = runBlocking {
         dav.putFromElsewhere("/dav/myMusic", "not a folder")
         val error = expectSync { provider.validate(token) }
-        assertTrue(error.message, error.message.contains("不是目录"))
+        assertTrue(error.message, error.message.contains("please choose another directory"))
     }
 
     @Test
@@ -209,7 +209,7 @@ class WebDavSyncProviderTest {
         val probe = dav.requests.first { it.method == "PUT" }
         assertEquals("*", probe.headers["If-None-Match"])
         assertEquals("bytes=0-0", dav.requests.first { it.headers["Range"] != null }.headers["Range"])
-        assertTrue(WebDavMessages.checkSummary(fresh, account).contains("已新建目录 myMusic/"))
+        assertTrue(WebDavMessages.checkSummary(fresh, account).contains("created directory myMusic/"))
 
         provider.create(token, "{}")
         val existing = client.check(lookFor = WebDavSyncProvider.FILE_NAME)
@@ -224,7 +224,7 @@ class WebDavSyncProviderTest {
         assertFalse(result.ok)
         assertEquals(WebDavCheckStep.ReadDirectory, result.failedStep)
         assertNotNull(result.error)
-        assertEquals("读取目录失败：用户名或密码不对。", WebDavMessages.checkSummary(result, account))
+        assertEquals("Read directory failed: Wrong username or password.", WebDavMessages.checkSummary(result, account))
     }
 
     @Test

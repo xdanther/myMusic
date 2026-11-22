@@ -13,7 +13,7 @@ import java.util.UUID
  * - 二维码内容必须是服务端下发的 `qrcode_index_url` **原样**（改写成
  *   light/invoke/scan_login 只会上报已扫码、确认落不了地）；
  * - `error_code=7` 是临时限流：冷却 5 秒继续，绝不判失败（60 秒会把
- *   「扫码→确认」窗口整段跳过）；
+ *   '扫码→确认'窗口整段跳过）；
  * - 确认只认服务端状态（status=3/confirmed/success、logged_in、session_cookie）；
  * - 登录态不在响应体里，在签名页 cookie jar：确认后跟一跳 redirect_url，
  *   再校验 sessionid/sessionid_ss/sid_guard/sid_tt。
@@ -328,7 +328,7 @@ internal object SodaQrLogin {
 
     /**
      * 二维码内容 = 服务端下发的 `qrcode_index_url` 原样返回；改写成
-     * light/invoke/scan_login 的二维码实测只能停在「已扫码」。
+     * light/invoke/scan_login 的二维码实测只能停在'已扫码'。
      */
     fun officialScanUrl(indexUrl: String): String {
         val url = indexUrl.trim()

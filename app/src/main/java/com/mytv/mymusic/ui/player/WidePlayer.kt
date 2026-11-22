@@ -104,7 +104,7 @@ import kotlin.math.roundToInt
 /**
  * 平板横屏播放页（非电视、宽 ≥ 600dp 且横屏）：左栏播放，右栏整栏歌词。
  * 左栏自上而下是形状封面、标题与收藏、音源胶囊、波浪进度、连接按钮组、浮动工具栏；左上角收起，右上角更多。
- * 工具栏里的「歌词」进入专注歌词：左栏收成竖向浮动工具栏（小圆封面、Previous、播放、Next、歌词、队列），
+ * 工具栏里的'歌词'进入专注歌词：左栏收成竖向浮动工具栏（小圆封面、Previous、播放、Next、歌词、队列），
  * 歌词放大到 48sp，进度条横跨底部。过渡沿慢速空间弹簧；减少动画时位置直接切换，只留淡入淡出。
  *
  * 尺寸按设计稿 1280×800 摆放，其他窗口见 [wideStackSlots]：先压间距、再缩封面；
@@ -338,7 +338,7 @@ private fun WideGuard(idle: IdleState?, blocked: Boolean, modifier: Modifier, co
     Box(modifier.blockTouchesWhen(blocked || idle?.idle == true)) { content() }
 }
 
-/** 歌名 34sp 粗体，两行内放不下才逐级缩小；歌手名 19sp primary 色；右侧「加到歌单」（够宽时）和收藏。切歌时文字淡出淡入。 */
+/** 歌名 34sp 粗体，两行内放不下才逐级缩小；歌手名 19sp primary 色；右侧'加到歌单'（够宽时）和收藏。切歌时文字淡出淡入。 */
 @Composable
 private fun WideMeta(
     song: Song,
@@ -394,7 +394,7 @@ private fun WideMeta(
 }
 
 /**
- * 专注歌词顶部的标题行：“歌名 · 歌手”，右端「加到歌单」和收藏两个 40dp 按钮（左边的竖向工具栏已经塞满，放不下）。
+ * 专注歌词顶部的标题行：“歌名 · 歌手”，右端'加到歌单'和收藏两个 40dp 按钮（左边的竖向工具栏已经塞满，放不下）。
  * 空闲时整行和控件一起淡出、不接点按。行比文字高，摆放时按文字那一行的中线对齐（见 [WideStagePolicy]），歌词位置不变。
  */
 @Composable
@@ -426,7 +426,7 @@ private fun FocusHeader(
 
 /**
  * 专注歌词左侧的竖向浮动工具栏：顶上空出 64dp 给小圆封面（封面节点由舞台飞到这里，整页只有一个封面），
- * 下面是Previous、72dp 播放键、Next，分隔线后是选中的「歌词」（点了退出专注）和队列。空闲时整条淡出。
+ * 下面是Previous、72dp 播放键、Next，分隔线后是选中的'歌词'（点了退出专注）和队列。空闲时整条淡出。
  */
 @Composable
 private fun FocusDock(
@@ -895,9 +895,9 @@ private val ShortIdealGaps = intArrayOf(44, 18, 16, 12, 22, 30)
 private val ShortMinGaps = intArrayOf(12, 12, 8, 6, 12, 12)
 
 private val ToolbarHeight = 56.dp
-/** 专注歌词标题行右端「加到歌单」和收藏的尺寸。 */
+/** 专注歌词标题行右端'加到歌单'和收藏的尺寸。 */
 private val FocusHeaderButton = 40.dp
-/** 歌名行至少这么宽才放「加到歌单」：两个按钮 100dp 之外歌名还剩 150dp 上下。 */
+/** 歌名行至少这么宽才放'加到歌单'：两个按钮 100dp 之外歌名还剩 150dp 上下。 */
 private val WideMetaAddMinWidth = 260.dp
 private val PillHeight = 32.dp
 private val CornerMargin = 16.dp

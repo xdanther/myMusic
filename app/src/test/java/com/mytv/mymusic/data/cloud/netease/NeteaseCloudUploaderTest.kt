@@ -372,7 +372,7 @@ class NeteaseCloudUploaderTest {
 
         assertEquals(CloudErrorKind.FileTooLarge, last.error!!.kind)
         assertFalse(last.error!!.retryable)
-        assertTrue(last.error!!.message.startsWith("单个文件超过"))
+        assertTrue(last.error!!.message.startsWith("Files over"))
         assertTrue(transport.calls.isEmpty())
     }
 
@@ -385,7 +385,7 @@ class NeteaseCloudUploaderTest {
         val error = last.error!!
         assertEquals(CloudErrorKind.QuotaExceeded, error.kind)
         assertEquals(5L, error.shortfall)
-        assertEquals("云盘空间不够，还差 5 B", error.message)
+        assertEquals("Not enough cloud space; 5 B short", error.message)
         assertEquals(0, transport.count(CHECK))
     }
 

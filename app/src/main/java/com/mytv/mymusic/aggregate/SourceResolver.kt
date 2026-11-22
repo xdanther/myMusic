@@ -163,7 +163,7 @@ class SourceResolver(
             // 换过音质偏好就不能复用旧地址：用户选了无损，缓存里那条 128k 必须作废
             val qualityId = quality().id
             if (cached != null && cached.quality == qualityId && cached.generation == customGeneration && now - cached.at < URL_TTL_MS) {
-                // 汽水这类取流后才知道是试听的源，缓存里带着试听标记：同样受「允许试听」约束
+                // 汽水这类取流后才知道是试听的源，缓存里带着试听标记：同样受'允许试听'约束
                 if (cached.preview && !policy.allowPreview && !explicit) {
                     attempts += Attempt(source, "仅提供试听")
                     continue
@@ -211,7 +211,7 @@ class SourceResolver(
             }
             val url = stream?.url.orEmpty()
             if (url.isBlank()) {
-                // 洛雪是「换源点了却回退」的主要出处，失败原因要进应用内日志，用户导日志时能看见
+                // 洛雪是'换源点了却回退'的主要出处，失败原因要进应用内日志，用户导日志时能看见
                 if (source.providerId == LxPlatform.PROVIDER_ID) {
                     val reason = repository.customSourceFailure().ifBlank { failure?.message.orEmpty() }
                     AppLog.w("SourceResolver", "洛雪取流失败《${track.title}》：${reason.take(300)}")
@@ -249,7 +249,7 @@ class SourceResolver(
                 )
             }
             // 地址拿到了但只是片段，而设置里不允许试听：当没有可用地址，继续试下一个平台；
-            // 缓存里留着这份试听地址，用户打开「允许试听」后可以直接复用
+            // 缓存里留着这份试听地址，用户打开'允许试听'后可以直接复用
             if (preview && !policy.allowPreview && !explicit) {
                 attempts += Attempt(source, "仅提供试听")
                 continue

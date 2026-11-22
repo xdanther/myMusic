@@ -229,7 +229,7 @@ object LocalPlatformStep : LocalResolveStep {
     override suspend fun resolve(request: LocalResolveRequest): LocalPlayable? {
         if (!request.prefs.platformFallback) return null
         request.item?.match?.let { return LocalPlayable.Platform(it, request.row?.matchConfidence ?: 0f) }
-        // 用户（在这台或别的设备上）点过「不匹配」就是不要平台版本：哪怕手里还有一份旧的匹配也不用
+        // 用户（在这台或别的设备上）点过'不匹配'就是不要平台版本：哪怕手里还有一份旧的匹配也不用
         if (request.ref?.rejected == true || request.row?.matchMethod == LocalMatchMethod.REJECTED) return null
         val match = request.refMatch ?: return null
         return LocalPlayable.Platform(match, request.ref?.matchConfidence ?: 0f)
@@ -243,7 +243,7 @@ suspend fun runResolveChain(steps: List<LocalResolveStep>, request: LocalResolve
 }
 
 /**
- * 「换一个匹配」面板的对象：可以是这台设备上的本地歌（有文件，能听歌识曲、能点“不匹配”），
+ * '换一个匹配'面板的对象：可以是这台设备上的本地歌（有文件，能听歌识曲、能点“不匹配”），
  * 也可以是别的设备加进歌单、这台设备上没有文件的歌（只有歌单里的歌名歌手和同步来的线索）。
  * 在哪台设备上选的匹配都会随同步回到有文件的那台。
  */

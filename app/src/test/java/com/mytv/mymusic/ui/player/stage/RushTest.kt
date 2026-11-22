@@ -138,14 +138,14 @@ class RushTest {
 
     @Test
     fun blurLabelNamesTheLevel() {
-        assertEquals("关", rushBlurLabel(0f))
-        assertEquals("关", rushBlurLabel(0.01f))
-        assertEquals("弱 · 每离一句多 1.5dp，最多 5dp", rushBlurLabel(0.5f))
-        assertEquals("中 · 每离一句多 3.0dp，最多 10dp", rushBlurLabel(1f))
-        assertEquals("中 · 每离一句多 2.3dp，最多 8dp", rushBlurLabel(0.75f))
-        assertEquals("强 · 每离一句多 4.5dp，最多 15dp", rushBlurLabel(1.5f))
-        assertTrue(rushBlurLabel(0.74f).startsWith("弱"))
-        assertTrue(rushBlurLabel(1.25f).startsWith("强"))
+        assertEquals("Off", rushBlurLabel(0f))
+        assertEquals("Off", rushBlurLabel(0.01f))
+        assertEquals("Light · 1.5dp more per line away, up to 5dp", rushBlurLabel(0.5f))
+        assertEquals("Medium · 3.0dp more per line away, up to 10dp", rushBlurLabel(1f))
+        assertEquals("Medium · 2.3dp more per line away, up to 8dp", rushBlurLabel(0.75f))
+        assertEquals("Strong · 4.5dp more per line away, up to 15dp", rushBlurLabel(1.5f))
+        assertTrue(rushBlurLabel(0.74f).startsWith("Light"))
+        assertTrue(rushBlurLabel(1.25f).startsWith("Strong"))
     }
 
     // ---- 间奏三点 ----
@@ -295,7 +295,7 @@ class RushTest {
         assertEquals(6, palette.hypnotic.size)
         assertEquals(background.lighten(2f), palette.hypnotic.first())
         assertEquals(background.darken(2f), palette.hypnotic.last())
-        // 自定义不跟封面变
+        // Custom不跟封面变
         val otherCover = stage.copy(coverVibrant = Color(0xFF203040), cover = List(4) { Color(0xFF00FF00) })
         assertEquals(palette.background, rushPalette(otherCover, RUSH_COLORS_CUSTOM, background, text).background)
     }
@@ -305,12 +305,12 @@ class RushTest {
         val schema = RushVisualizer.settings
         val colors = schema[2] as LyricSetting.Choice
         assertEquals(listOf("vibrant", "muted", "player", "custom"), colors.options.map { it.first })
-        assertEquals("自定义", colors.options.last().second)
+        assertEquals("Custom", colors.options.last().second)
         assertEquals(setOf("custom"), colors.shuffleExclude)
         val background = schema[3] as LyricSetting.Color
         val text = schema[4] as LyricSetting.Color
-        assertEquals("背景", background.label)
-        assertEquals("文字", text.label)
+        assertEquals("Background", background.label)
+        assertEquals("Text", text.label)
         assertEquals(SettingCondition("colors", setOf("custom")), background.visibleWhen)
         assertEquals(SettingCondition("colors", setOf("custom")), text.visibleWhen)
         // 初值取封面的鲜艳色和它的文字色
@@ -325,7 +325,7 @@ class RushTest {
         val defaults = rushLook(SettingValues(schema, emptyMap()))
         assertEquals(Color(0xFF2C5F5A), defaults.customBackground)
         assertEquals(Color(0xFFFFE9B8), defaults.customText)
-        // 只有选了自定义才显示两个色块
+        // 只有选了Custom才显示两个色块
         assertFalse(SettingValues(schema, emptyMap()).visible(background))
         assertTrue(SettingValues(schema, mapOf("colors" to "custom")).visible(text))
     }
@@ -416,7 +416,7 @@ class RushTest {
         assertEquals("rush", RushVisualizer.id)
         assertEquals("Rush", RushVisualizer.label)
         assertEquals(1, RushVisualizer.order)
-        assertEquals(ModOrigin("Rush", "7.2.1", "shub39", "GPL-3.0", kind = "应用"), RushVisualizer.origin)
+        assertEquals(ModOrigin("Rush", "7.2.1", "shub39", "GPL-3.0", kind = "App"), RushVisualizer.origin)
         assertEquals(2, RushVisualizer.hiddenSettings)
         assertFalse(RushVisualizer.hostBackground)
         assertFalse(RushVisualizer.hostSubtitles)
@@ -446,7 +446,7 @@ class RushTest {
         assertEquals(1f, look.blur, 0f)
         assertFalse(look.expressive)
         assertEquals(0, defaults.changed)
-        assertEquals("背景选“律动”时生效", schema[1].summary)
+        assertEquals("Applies when the Rhythm background is selected", schema[1].summary)
 
         val size = schema[6] as LyricSetting.Number
         assertEquals(0.8f, size.min, 0f)
@@ -461,7 +461,7 @@ class RushTest {
         assertEquals(0f, blur.min, 0f)
         assertEquals(1.5f, blur.max, 0f)
         assertEquals(listOf(0f, 0.5f, 1f, 1.5f), blur.ticks)
-        assertEquals(listOf("关", "弱", "中", "强"), blur.tickLabels)
+        assertEquals(listOf("Off", "Light", "Medium", "Strong"), blur.tickLabels)
         assertEquals(31, blur.minSdk)
         assertEquals(1.5f, rushLook(SettingValues(schema, mapOf("blur" to "1.5"))).blur, 0f)
     }
@@ -469,7 +469,7 @@ class RushTest {
     @Test
     fun oldBlurToggleMigrates() {
         val schema = RushVisualizer.settings
-        // 旧版本存的是开关
+        // 旧版本存的是开Off
         assertEquals(0f, rushLook(SettingValues(schema, mapOf("blur" to "false"))).blur, 0f)
         assertEquals(1f, rushLook(SettingValues(schema, mapOf("blur" to "true"))).blur, 0f)
         // 下次写设置时改写成数（等于默认的“中”就不存）

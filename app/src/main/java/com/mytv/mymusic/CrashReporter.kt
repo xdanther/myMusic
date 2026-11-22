@@ -60,7 +60,7 @@ object CrashReporter {
         }
     }
 
-    /** 下次启动只取一次；报告本身保留，仍可从「设置 › 关于 › 问题反馈」打开。 */
+    /** 下次启动只取一次；报告本身保留，仍可从'设置 › 关于 › 问题反馈'打开。 */
     fun consumePending(context: Context): CrashReport? = synchronized(lock) {
         val notified = File(directory(context), NOTIFIED_FILE)
         if (notified.exists()) return@synchronized null

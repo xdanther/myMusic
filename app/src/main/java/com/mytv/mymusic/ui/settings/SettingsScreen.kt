@@ -225,7 +225,7 @@ private fun sourceSummary(resources: Resources, state: MusicUiState): String {
     }
 }
 
-/** 滑动操作的摘要：只写起始那一侧（向右滑），关着写「已关闭」。 */
+/** 滑动操作的摘要：只写起始那一侧（向右滑），关着写'已关闭'。 */
 private fun swipeSummaryText(resources: Resources, prefs: SwipePrefs, rtl: Boolean): String {
     if (!prefs.enabled) return resources.getString(R.string.settings_summary_swipe_off)
     val side = resources.getString(

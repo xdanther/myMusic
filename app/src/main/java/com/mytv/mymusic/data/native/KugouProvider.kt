@@ -1183,7 +1183,7 @@ class KugouProvider : BaseNativeProvider(KUGOU_INFO) {
         val token = cookieMap["token"].orEmpty().trim()
         val userid = cookieMap["userid"].orEmpty().trim()
         // mid/dfid 是设备指纹，接口收 "-" 当匿名值（登录态那几个接口就是这么兜的）。
-        // 粘贴来的 Cookie 常常不带它们，这里不能因此判定「没登录」，否则账号卡片永远空着。
+        // 粘贴来的 Cookie 常常不带它们，这里不能因此判定'没登录'，否则账号卡片永远空着。
         val mid = firstNonEmpty(
             cookieMap["KUGOU_API_MID"].orEmpty(),
             cookieMap["kg_mid"].orEmpty(),
@@ -3543,7 +3543,7 @@ internal fun kugouHashesForQuality(song: Song, quality: AudioQuality): List<Stri
 
 /**
  * 取回来的流实际是哪一档：接口给的码率优先，缺码率时按 size/时长反推。
- * 用于「不静默降档」校验，口径与 Go 侧 kugouSongQuality 一致。
+ * 用于'不静默降档'校验，口径与 Go 侧 kugouSongQuality 一致。
  */
 internal fun kugouSongQuality(song: Song): AudioQuality {
     val ext = song.ext.trim().lowercase(Locale.ROOT)

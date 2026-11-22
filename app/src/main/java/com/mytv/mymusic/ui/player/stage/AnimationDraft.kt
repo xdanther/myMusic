@@ -69,8 +69,8 @@ private fun settingChanges(saved: LyricStagePrefs, draft: LyricStagePrefs, id: S
 
 /**
  * 改动摘要，一行一处：保存条的“N 处改动”和关面板时的对话框都用它。
- * 写法照稿子：“换法：固定 → 随机”“所有歌都用：Rush → 黑胶唱片”“随机池：9 个 → 6 个”“「慢」：黑胶唱片 → Rush”
- * “频谱：关 → 开”“「Rush」的设置：改了 3 项”。
+ * 写法照稿子：“换法：固定 → 随机”“所有歌都用：Rush → 黑胶唱片”“随机池：9 个 → 6 个”“'慢': 黑胶唱片 → Rush”
+ * “频谱：关 → 开”“'Rush'的设置：改了 3 项”。
  */
 internal fun animationDiff(saved: LyricStagePrefs, draft: LyricStagePrefs): List<String> {
     val out = ArrayList<String>()
@@ -84,7 +84,7 @@ internal fun animationDiff(saved: LyricStagePrefs, draft: LyricStagePrefs): List
     draft.tempoRules.forEachIndexed { index, rule ->
         val before = saved.tempoRules.getOrNull(index)?.mode
         if (before != rule.mode) {
-            out += "「${TEMPO_NAMES.getOrElse(index) { "Tier ${index + 1}" }}」：" +
+            out += "'${TEMPO_NAMES.getOrElse(index) { "Tier ${index + 1}" }}': " +
                 "${saved.modeOf(before.orEmpty()).label} → ${draft.modeOf(rule.mode).label}"
         }
     }

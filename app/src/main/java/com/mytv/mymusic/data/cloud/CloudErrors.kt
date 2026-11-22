@@ -41,7 +41,7 @@ enum class CloudErrorKind(val retryable: Boolean) {
     /** 平台和云盘都没有这首的歌词。 */
     NoLyrics(false),
 
-    /** 云端文件已删除（404）；调用方把 remote.status 置成 missing，不删歌单条目。 */
+    /** The cloud file was deleted（404）；调用方把 remote.status 置成 missing，不删歌单条目。 */
     NotFound(false),
 
     /** WebDAV 401：密码不对或已失效。 */
@@ -53,7 +53,7 @@ enum class CloudErrorKind(val retryable: Boolean) {
     /** WebDAV 同一位置已有大小不同的文件。 */
     Conflict(false),
 
-    /** 云端暂时连不上（断网、超时）。不写进同步文件，网络恢复自动好。 */
+    /** The cloud can't be reached right now（断网、超时）。不写进同步文件，网络恢复自动好。 */
     Network(true),
 
     /** 平台返回了错误码或 HTTP 错误。 */
@@ -91,35 +91,35 @@ class CloudException(
 
 /** 设计稿“出错时用户看到什么”那张表的文案，集中在这里。 */
 object CloudMessages {
-    const val RISK_CONTROL = "网易云说网络环境有风险，先暂停上传"
+    const val RISK_CONTROL = "NetEase flagged the network as risky; uploads are paused"
 
     /** 我的页那一行的说明（设计稿第 09 节）。 */
-    const val RISK_CONTROL_PAUSED = "上传暂停：网易云要求重新验证"
-    const val QQ_UPLOAD_UNSUPPORTED = "QQ 音乐云盘只能读取，暂不支持上传"
-    const val QQ_ORIGINAL_UNPLAYABLE = "QQ 云盘里的原文件放不了"
-    const val NETEASE_UNPLAYABLE = "网易云盘里的这首暂时取不到播放地址"
-    const val TRANSCODE_TIMEOUT = "网易云盘转码超过 10 分钟还没完成，可以稍后重试"
-    const val CLOUD_UNREACHABLE = "云端暂时连不上"
-    const val CLOUD_DELETED = "云端文件已删除"
-    const val WEBDAV_UNAUTHORIZED = "WebDAV 密码不对或已失效"
-    const val WEBDAV_NO_RANGE = "这个服务器要整首下载后才能播"
-    const val CANCELLED = "已取消"
-    const val EMPTY_FILE = "文件是空的，没法上传"
-    const val NO_LYRICS = "这首没有找到歌词"
+    const val RISK_CONTROL_PAUSED = "Upload paused: NetEase requires verification again"
+    const val QQ_UPLOAD_UNSUPPORTED = "The QQ Music cloud drive is read only; uploads aren't supported yet"
+    const val QQ_ORIGINAL_UNPLAYABLE = "The original file in the QQ cloud drive can't play"
+    const val NETEASE_UNPLAYABLE = "No playback URL for this NetEase cloud track right now"
+    const val TRANSCODE_TIMEOUT = "NetEase transcoding took over 10 minutes; try again later"
+    const val CLOUD_UNREACHABLE = "The cloud can't be reached right now"
+    const val CLOUD_DELETED = "The cloud file was deleted"
+    const val WEBDAV_UNAUTHORIZED = "The WebDAV password is wrong or has expired"
+    const val WEBDAV_NO_RANGE = "This server requires a full download before playback"
+    const val CANCELLED = "Cancelled"
+    const val EMPTY_FILE = "The file is empty and can't be uploaded"
+    const val NO_LYRICS = "No lyrics found for this track"
 
     fun notLoggedIn(provider: CloudProvider): String = when (provider) {
-        CloudProvider.NeteaseCloud -> "网易云音乐没有登录，或者登录已失效"
-        CloudProvider.QqCloud -> "QQ 音乐没有登录，或者登录已失效"
-        CloudProvider.WebDav -> "还没有配置 WebDAV"
+        CloudProvider.NeteaseCloud -> "Not signed in to NetEase Cloud Music, or the session expired"
+        CloudProvider.QqCloud -> "Not signed in to QQ Music, or the session expired"
+        CloudProvider.WebDav -> "WebDAV isn't configured"
     }
 
-    fun quotaExceeded(shortfall: Long): String = "云盘空间不够，还差 ${formatSize(shortfall)}"
+    fun quotaExceeded(shortfall: Long): String = "Not enough cloud space; ${formatSize(shortfall)} short"
 
-    fun fileTooLarge(limit: Long): String = "单个文件超过 ${formatSize(limit)}，云盘不收，已跳过"
+    fun fileTooLarge(limit: Long): String = "Files over ${formatSize(limit)} aren't accepted and were skipped"
 
-    fun transcodeFailed(status: Int): String = "网易云盘处理这个文件失败（状态 $status），可以重试"
+    fun transcodeFailed(status: Int): String = "The NetEase cloud drive failed on this file (status $status); you can retry"
 
-    fun server(provider: CloudProvider, code: Int): String = "${provider.label}返回错误（$code）"
+    fun server(provider: CloudProvider, code: Int): String = "${provider.label} returned error $code"
 
     /** `1.2 GB` / `412 MB` / `36 KB`，按 1024 进位；GB 保留一位小数，整数时不写 `.0`。 */
     fun formatSize(bytes: Long): String {

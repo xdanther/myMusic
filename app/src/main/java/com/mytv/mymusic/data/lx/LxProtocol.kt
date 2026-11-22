@@ -162,7 +162,7 @@ internal object LxProtocol {
     }
 
     /**
-     * 桌面版插件导出的是函数表，没有按平台声明能力。取流脚本一律当作「所有平台都能试」：
+     * 桌面版插件导出的是函数表，没有按平台声明能力。取流脚本一律当作'所有平台都能试'：
      * 真取不到就按失败回退，不能让它在换源面板里凭空消失。
      */
     fun parseDesktopCapabilities(descriptor: String): Map<String, LxCapability> {

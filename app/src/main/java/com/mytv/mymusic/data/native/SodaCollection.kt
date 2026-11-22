@@ -7,7 +7,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 /**
- * 汽水收藏（「我喜欢的音乐」、收藏的歌单 / 专辑 / 艺人），逐条对齐 libresoda
+ * 汽水收藏（'我喜欢的音乐'、收藏的歌单 / 专辑 / 艺人），逐条对齐 libresoda
  * `collection.rs`（AGPL-3.0，见 THIRD_PARTY_NOTICES.md）。
  *
  * | 能力 | 收藏 | 取消收藏 |
@@ -17,7 +17,7 @@ import kotlinx.serialization.json.put
  * | 专辑 | `POST /luna/pc/me/collection/album` | `.../album/delete` |
  * | 艺人 | `POST /luna/pc/me/collection/artist` | `.../artist/delete` |
  *
- * 读「我收藏的」走 `GET /luna/me/collection/mixed`，数组参数编成重复 key
+ * 读'我收藏的'走 `GET /luna/me/collection/mixed`，数组参数编成重复 key
  * （`item_types=album&item_types=playlist`），和官方客户端一致。
  *
  * 请求体形状（实测自官方客户端 `collect.ts`）：
@@ -26,7 +26,7 @@ import kotlinx.serialization.json.put
  * ```
  * 取消收藏时**没有** `scene` 字段。
  *
- * 这些路径在客户端里属「零信任加签」名单（bdticket 的 `session_guard`），
+ * 这些路径在客户端里属'零信任加签'名单（bdticket 的 `session_guard`），
  * 但实测只需应用级签名（`x-helios` / `x-medusa`）就能写入；服务端哪天开始强制
  * 校验 ticket guard，只需在签名那一层补一个提供者，这里的形状不用改。
  */
@@ -41,7 +41,7 @@ internal object SodaCollection {
     const val UNCOLLECT_ARTIST_PATH = "/luna/pc/me/collection/artist/delete"
 
     /**
-     * 「我收藏的」混合列表。客户端 IDL 同时登记了 PC / 非 PC 两条路径，实测
+     * '我收藏的'混合列表。客户端 IDL 同时登记了 PC / 非 PC 两条路径，实测
      * `/luna/pc/me/collection/mixed` 只回 `status_info` 空信封，所以用非 PC 这条。
      */
     const val COLLECTED_MIXED_PATH = "/luna/me/collection/mixed"
@@ -49,7 +49,7 @@ internal object SodaCollection {
     /** 我收藏的艺人（客户端 `GetArtistCollection`）。 */
     const val ARTIST_COLLECTION_PATH = "/luna/me/collection/artist"
 
-    /** 指定用户的收藏混合列表（传自己的 user_id 就是「我收藏的」）。 */
+    /** 指定用户的收藏混合列表（传自己的 user_id 就是'我收藏的'）。 */
     const val USER_MIXED_PATH = "/luna/pc/user/collection/mixed"
 
     /** 已购 / 收藏的数字专辑。 */
@@ -109,7 +109,7 @@ internal object SodaCollection {
 }
 
 /**
- * 「我收藏的」列表项。服务端每个条目只会填充其中一种类型，未建模的类型保留原始 JSON。
+ * '我收藏的'列表项。服务端每个条目只会填充其中一种类型，未建模的类型保留原始 JSON。
  * 空收藏时服务端**根本不返回** `mixed_collections` 字段，解析成空列表而不是失败。
  */
 internal data class SodaCollectedItem(
@@ -127,8 +127,8 @@ internal data class SodaCollectedItem(
 
 internal object SodaCollectedParser {
     /**
-     * 解析「我收藏的」。空列表（服务端只回 `status_info`）返回空列表——
-     * 直接读原始 JSON 会把「没有收藏」误判成失败。
+     * 解析'我收藏的'。空列表（服务端只回 `status_info`）返回空列表——
+     * 直接读原始 JSON 会把'没有收藏'误判成失败。
      */
     fun parse(root: JsonObject?): List<SodaCollectedItem> {
         val items = jsonObjList(root, "mixed_collections")

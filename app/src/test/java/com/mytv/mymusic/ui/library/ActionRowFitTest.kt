@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** 歌单详情操作行按宽度排；宽度是模拟器上量出来的（播放全部约 163dp，“添加”写全约 108dp）。 */
+/** 歌单详情操作行按宽度排；宽度是模拟器上量出来的（Play all约 163dp，“添加”写全约 108dp）。 */
 class ActionRowFitTest {
     private val play = 163.dp
     private val addLabel = 108.dp
@@ -38,7 +38,7 @@ class ActionRowFitTest {
 
     @Test
     fun tooNarrowEvenForAddPutsAddInMore() {
-        // 字放大后播放全部更宽
+        // 字放大后Play all更宽
         val fit = fitActionRow(276.dp, 200.dp, addLabel, hasMenu = true, add = true, multi = true, poster = true, edit = true)
         assertEquals(ActionRowFit(add = false, addLabel = false, multi = false, poster = false, edit = false), fit)
     }

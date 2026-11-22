@@ -318,7 +318,7 @@ object ModeStore {
 }
 
 /**
- * 组件用的平台列表：按设置里的音乐源顺序排，没启用的平台不出现——用户在「音乐源」里关掉的源，
+ * 组件用的平台列表：按设置里的音乐源顺序排，没启用的平台不出现——用户在'音乐源'里关掉的源，
  * 不该再由组件默认选中。已经配过的组件不受影响：它们存的是明确的平台 id。
  */
 private suspend fun List<ProviderInfo>.bySourceOrder(app: MyMusicApp): List<ProviderInfo> {

@@ -59,7 +59,7 @@ import java.time.format.FormatStyle
 import java.util.Locale
 
 /**
- * 汽水音乐「天天送会员」：活动期内每天打开汽水 App 听歌就能领 1 天Free VIP，
+ * 汽水音乐'天天送会员'：活动期内每天打开汽水 App 听歌就能领 1 天Free VIP，
  * 直接领到用户的汽水账号上。任务阈值、领取情况和会员到期都以汽水服务端为准
  * （见 [com.mytv.mymusic.data.native.SodaWelfare]），本机只听歌计时给个参考进度。
  * 未登录汽水时引导去平台账号扫码。
@@ -139,7 +139,7 @@ fun WelfareScreen(
     LaunchedEffect(soda.loggedIn) { if (soda.loggedIn) onRefresh() }
 }
 
-/** 「我的」页入口：Soda daily VIP的状态摘要。 */
+/** '我的'页入口：Soda daily VIP的状态摘要。 */
 @Composable
 internal fun WelfareEntryCard(
     soda: SodaWelfareUi,

@@ -27,7 +27,7 @@ class LocalMatchNetworkException(message: String, cause: Throwable? = null) : IO
  * 本地歌的封面 / 歌词匹配（规格 5.1）：
  * 1. 标题和歌手都像样 → 在已启用的平台里搜，TrackMatcher 打分 ≥ 0.85 直接用；
  * 2. 没有像样的标签或分数不够 → 取 3 秒 8kHz 单声道，本机算网易云指纹，交给网易云识曲；
- * 3. 还不行 → 没匹配，等用户在「换一个」里手动选。
+ * 3. 还不行 → 没匹配，等用户在'换一个'里手动选。
  * 识曲只发指纹，不发音频；搜索只发歌名和歌手。
  */
 class LocalMatcher(

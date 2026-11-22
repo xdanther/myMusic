@@ -157,13 +157,13 @@ class ArtistAlbumPagesTest {
     @Test
     fun `counts and durations read naturally`() {
         assertEquals("591", compactCount(591))
-        assertEquals("1.9 万", compactCount(19_230))
-        assertEquals("5102 万", compactCount(51_023_750))
-        assertEquals("1.2 亿", compactCount(123_000_000))
-        assertEquals("3 万", compactCount(30_000))
+        assertEquals("1.9K", compactCount(19_230))
+        assertEquals("5102K", compactCount(51_023_750))
+        assertEquals("1.2M", compactCount(123_000_000))
+        assertEquals("3K", compactCount(30_000))
         assertEquals("", totalDurationLabel(listOf(Song(duration = 0))))
-        assertEquals("52 分钟", totalDurationLabel(List(13) { Song(duration = 240) }))
-        assertEquals("1 小时 12 分钟", totalDurationLabel(List(18) { Song(duration = 240) }))
+        assertEquals("52 min", totalDurationLabel(List(13) { Song(duration = 240) }))
+        assertEquals("1 h 12 min", totalDurationLabel(List(18) { Song(duration = 240) }))
     }
 
     @Test

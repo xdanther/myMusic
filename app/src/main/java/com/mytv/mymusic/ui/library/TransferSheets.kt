@@ -134,7 +134,7 @@ import kotlinx.coroutines.withContext
 // ======================= Export playlist（设计稿 06 节 ⑪ ⑫） =======================
 
 /**
- * Export playlist面板。[ids] 为 null 时先选歌单（同步页「Export playlist…」多选，可以勾上我的收藏），选好再到确认这一步；
+ * Export playlist面板。[ids] 为 null 时先选歌单（同步页'Export playlist…'多选，可以勾上我的收藏），选好再到确认这一步；
  * 从歌单 ⋮ 进来直接是确认这一步。只出 myMusic 歌单文件一种格式，没有格式选择。
  */
 @Composable
@@ -148,7 +148,7 @@ internal fun ExportSheet(ids: List<String>?, actions: MusicActions, onDismiss: (
         if (current != null) value = actions.exportPreview(current)
     }
     val loaded = preview?.takeIf { current != null }
-    // 「Save to file」没有系统文件选择器（电视）：同一个面板换成扫码下载
+    // 'Save to file'没有系统文件选择器（电视）：同一个面板换成扫码下载
     var download by remember { mutableStateOf<ExportFile?>(null) }
     val tv = LocalAppWindow.current.isTv
     AdaptiveSheet(
@@ -189,7 +189,7 @@ internal fun ExportSheet(ids: List<String>?, actions: MusicActions, onDismiss: (
     }
 }
 
-/** 第 1 步：我的收藏 + 没删的自建 / 绑定歌单，勾选后「下一步」。 */
+/** 第 1 步：我的收藏 + 没删的自建 / 绑定歌单，勾选后'下一步'。 */
 @Composable
 private fun ColumnScope.ExportPickStep(
     actions: MusicActions,
@@ -281,7 +281,7 @@ private fun ColumnScope.ExportConfirmStep(
     val context = LocalContext.current
     val tv = LocalAppWindow.current.isTv
     val close = LocalSheetClose.current
-    // 电视多半没有能接收文件的应用，没有就不出「分享」；系统占位应用不算
+    // 电视多半没有能接收文件的应用，没有就不出'分享'；系统占位应用不算
     val canShare = remember(context) { hasRealActivity(context, Intent(Intent.ACTION_SEND).setType(PLAYLIST_FILE_MIME)) }
     val canSave = remember(context) { hasRealActivity(context, Intent(Intent.ACTION_CREATE_DOCUMENT).setType(PLAYLIST_FILE_MIME)) }
     val scope = rememberCoroutineScope()
@@ -579,7 +579,7 @@ private fun ImportListRow(
     val usable = list.importable > 0
     val shape = segmentShape(index, count)
     val checked = choice.include && usable
-    // 「合并到收藏 ▾」在可点的整行里面：方向键的二维搜索跳不进子项，电视上只能靠这里指路——
+    // '合并到收藏 ▾'在可点的整行里面：方向键的二维搜索跳不进子项，电视上只能靠这里指路——
     // 行上按下 / 右进下拉，下拉上按上 / 左回到行
     val rowFocus = remember { FocusRequester() }
     val pickerFocus = remember { FocusRequester() }
@@ -648,7 +648,7 @@ private fun ImportListRow(
     }
 }
 
-/** 目标「合并到收藏 ▾」：只有一个可选时不出下拉。电视上它是行里单独一个可聚焦按钮，[focus] / [back] 见 ImportListRow。 */
+/** 目标'合并到收藏 ▾'：只有一个可选时不出下拉。电视上它是行里单独一个可聚焦按钮，[focus] / [back] 见 ImportListRow。 */
 @Composable
 private fun TargetPicker(
     plan: ImportPlan,
@@ -709,7 +709,7 @@ private sealed interface FileTransferSession {
 }
 
 /**
- * 没有系统文件选择器时「Import from file」：出二维码，手机扫码在网页里选文件传过来。
+ * 没有系统文件选择器时'Import from file'：出二维码，手机扫码在网页里选文件传过来。
  * 文件到了扫码面板收起、导入预览接着弹；服务留到导入完成或放弃，网页那边能看到结果，再过几秒关掉。
  */
 @Composable
@@ -758,7 +758,7 @@ internal fun TvFileUploadHost(actions: MusicActions, onDismiss: () -> Unit) {
     }
 }
 
-/** 导出面板里「Save to file」没有选择器时换成这一页：手机扫码下载。下载完电视不自动关（不知道手机存好没有）。 */
+/** 导出面板里'Save to file'没有选择器时换成这一页：手机扫码下载。下载完电视不自动关（不知道手机存好没有）。 */
 @Composable
 private fun ColumnScope.FileDownloadBody(file: ExportFile) {
     var generation by remember { mutableIntStateOf(0) }
@@ -767,13 +767,13 @@ private fun ColumnScope.FileDownloadBody(file: ExportFile) {
     FileTransferBody(mode, session, onRegenerate = { generation++ })
 }
 
-/** 照稿子 tvFilesHTML：二维码 → 两行说明 → 同一网络提示 → 附近的设备权限（Android 17）→「关闭」。 */
+/** 照稿子 tvFilesHTML：二维码 → 两行说明 → 同一网络提示 → 附近的设备权限（Android 17）→'关闭'。 */
 @Composable
 private fun ColumnScope.FileTransferBody(mode: TransferMode, session: FileTransferSession, onRegenerate: () -> Unit) {
     val tv = LocalAppWindow.current.isTv
     val close = LocalSheetClose.current
     val upload = mode is TransferMode.Upload
-    // 电视面板只有 540dp 高、手机横屏也矮：二维码跟着缩（最小 160dp），下面的说明和「关闭」一屏放得下；再矮才滚动
+    // 电视面板只有 540dp 高、手机横屏也矮：二维码跟着缩（最小 160dp），下面的说明和'关闭'一屏放得下；再矮才滚动
     BoxWithConstraints(Modifier.fillMaxWidth().weight(1f, fill = false)) {
         val qrSize = if (constraints.hasBoundedHeight) (maxHeight - QR_RESERVED).coerceIn(160.dp, 240.dp) else 240.dp
         Column(
@@ -851,7 +851,7 @@ private fun ColumnScope.FileTransferBody(mode: TransferMode, session: FileTransf
     }
 }
 
-/** 二维码下面那些东西（两行说明、网络提示、「关闭」）大约占的高度。 */
+/** 二维码下面那些东西（两行说明、网络提示、'关闭'）大约占的高度。 */
 private val QR_RESERVED = 240.dp
 
 /**
@@ -896,7 +896,7 @@ private fun rememberFileTransferSession(
             value = FileTransferSession.Ready(started.url, server!!)
             launch {
                 // 和服务端 isExpired 对同一个墙上时钟；delay 走单调时钟，两个钟对不上时（模拟器上见过开了二十来秒就
-                // 提前「过期」）醒了就再对一次，最多隔 30 秒
+                // 提前'过期'）醒了就再对一次，最多隔 30 秒
                 while (true) {
                     val left = started.expiresAt - System.currentTimeMillis()
                     if (left <= 0) break
@@ -920,7 +920,7 @@ private const val EXPIRY_CHECK_MILLIS = 30_000L
 
 // ======================= 共用小件 =======================
 
-/** Android TV 系统自带的占位应用：文件选择器、分享、邮件这些 intent 都解析得到它，打开只弹一句「没有可以执行此操作的应用」。 */
+/** Android TV 系统自带的占位应用：文件选择器、分享、邮件这些 intent 都解析得到它，打开只弹一句'没有可以执行此操作的应用'。 */
 private const val TV_STUB_PACKAGE = "com.android.tv.frameworkpackagestubs"
 
 /**
@@ -951,7 +951,7 @@ internal fun Modifier.sheetDefaultFocus(enabled: Boolean, key: Any? = Unit): Mod
     return this.focusRequester(requester).onFocusChanged { focused = it.isFocused || it.hasFocus }
 }
 
-/** 平台小块：图标 + 「网易云 30」；[skipped] 的画删除线（导入时本应用没有的平台）。 */
+/** 平台小块：图标 + '网易云 30'；[skipped] 的画删除线（导入时本应用没有的平台）。 */
 @Composable
 internal fun PlatformChip(provider: String, count: Int, skipped: Boolean = false) {
     Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {

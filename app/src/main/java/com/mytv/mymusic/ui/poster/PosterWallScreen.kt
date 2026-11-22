@@ -357,7 +357,7 @@ internal fun wallSubtitle(feed: ListeningFeedUi?, count: Int, currentIndex: Int)
     return buildString {
         append("Listening mode")
         if (feed.providerName.isNotBlank()) append(" · ").append(feed.providerName)
-        append(" · heard ").append(heard).append(" tracks · ").append(left).append(" tracks")
+        append(" · heard ").append(heard).append(" tracks · ").append(left).append(" left")
         if (feed.appending) append(" · loading more…")
     }
 }

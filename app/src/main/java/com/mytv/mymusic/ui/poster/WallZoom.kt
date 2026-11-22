@@ -6,7 +6,7 @@ package com.mytv.mymusic.ui.poster
 import kotlin.math.max
 import kotlin.math.min
 
-/** 大卡显示尺寸离可用区边缘至少留的距离（稿子「屏宽减 24dp」）。 */
+/** 大卡显示尺寸离可用区边缘至少留的距离（稿子'屏宽减 24dp'）。 */
 private const val GROWN_EDGE = 24f
 
 /**

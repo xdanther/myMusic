@@ -173,7 +173,7 @@ internal fun rushIsCjk(text: String): Boolean {
     }
 }
 
-/** 整段都是收尾的标点（，。！？」等）：不能放到行首。 */
+/** 整段都是收尾的标点（，。！？'等）：不能放到行首。 */
 private fun isClosingPunctuation(text: String): Boolean = text.all {
     when (Character.getType(it).toByte()) {
         Character.END_PUNCTUATION, Character.FINAL_QUOTE_PUNCTUATION, Character.OTHER_PUNCTUATION -> true

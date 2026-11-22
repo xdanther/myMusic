@@ -11,25 +11,25 @@ import org.junit.Test
 class SwipeSettingsSummaryTest {
     @Test
     fun `default summary names the right swipe buttons and the full action`() {
-        assertEquals("右滑 下载、加到歌单 · 拉到头 收藏", swipeSummary(SwipePrefs()))
+        assertEquals("Swipe right Download, Add to playlist · Pull to end: Save", swipeSummary(SwipePrefs()))
     }
 
     @Test
     fun `switched off says so`() {
-        assertEquals("已关闭", swipeSummary(SwipePrefs(enabled = false)))
+        assertEquals("Off", swipeSummary(SwipePrefs(enabled = false)))
     }
 
     @Test
     fun `no buttons and nothing at full`() {
-        assertEquals("右滑 无按钮", swipeSummary(SwipePrefs(start = emptyList(), startFull = SwipeAction.None)))
+        assertEquals("Swipe right No buttons", swipeSummary(SwipePrefs(start = emptyList(), startFull = SwipeAction.None)))
     }
 
     @Test
     fun `right to left swaps which side is called right`() {
-        assertEquals("向右滑", swipeSideTitle(SwipeSide.Start, rtl = false))
-        assertEquals("向左滑", swipeSideTitle(SwipeSide.End, rtl = false))
-        assertEquals("向左滑", swipeSideTitle(SwipeSide.Start, rtl = true))
-        assertEquals("左滑 下载、加到歌单 · 拉到头 收藏", swipeSummary(SwipePrefs(), rtl = true))
+        assertEquals("Swipe right", swipeSideTitle(SwipeSide.Start, rtl = false))
+        assertEquals("Swipe left", swipeSideTitle(SwipeSide.End, rtl = false))
+        assertEquals("Swipe left", swipeSideTitle(SwipeSide.Start, rtl = true))
+        assertEquals("Swipe left Download, Add to playlist · Pull to end: Save", swipeSummary(SwipePrefs(), rtl = true))
     }
 
     @Test

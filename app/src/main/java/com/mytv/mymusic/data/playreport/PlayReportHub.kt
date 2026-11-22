@@ -31,7 +31,7 @@ data class PlayFrame(
  */
 enum class PlayEndReason { Finished, Pause, Next, Previous, ChangeQueue }
 
-/** 一条已播记录：推荐流请求里回传「最近放了什么、放了多久」用。 */
+/** 一条已播记录：推荐流请求里回传'最近放了什么、放了多久'用。 */
 data class PlayedMedia(val id: String, val durationSeconds: Long, val playedMs: Long)
 
 /**

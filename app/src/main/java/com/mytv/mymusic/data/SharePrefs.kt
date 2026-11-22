@@ -11,23 +11,23 @@ import androidx.datastore.preferences.core.stringPreferencesKey
  * [lines]：卡上放几句，null = 按选的句数（含省略行），0 = 不放歌词。名字（[name]）写进 DataStore，改名时不能动。
  */
 enum class ShareCardStyle(val label: String, val rushName: String, val lines: Int?) {
-    Spotify("色块", "Spotify", null),
-    Rushed("叠卡", "Rushed", null),
-    Vertical("竖排", "Vertical", null),
-    Couplet("对句", "Couplet", 2),
-    AlbumArt("封面", "Album Art", 0),
-    Hypnotic("流光", "Hypnotic", null),
-    Quote("引言", "Quote", 1),
-    Messy("乱排", "Messy", 1),
-    Brat("粗糙", "Brat", 1),
-    Player("播放页", "本应用", null),
+    Spotify("Color blocks", "Spotify", null),
+    Rushed("Stacked cards", "Rushed", null),
+    Vertical("Vertical", "Vertical", null),
+    Couplet("Line pairs", "Couplet", 2),
+    AlbumArt("Cover", "Album Art", 0),
+    Hypnotic("Light trails", "Hypnotic", null),
+    Quote("Quote", "Quote", 1),
+    Messy("Scattered", "Messy", 1),
+    Brat("Rough", "Brat", 1),
+    Player("Player", "This app", null),
 }
 
 /** 卡片配色：鲜艳 / 柔和是封面色（Rush 的 VIBRANT / MUTED），播放页是 PlayerTheme 的表面色和文字色，自定义是两个色块。 */
-enum class ShareCardPalette(val label: String) { Vibrant("鲜艳"), Muted("柔和"), Player("播放页"), Custom("自定义") }
+enum class ShareCardPalette(val label: String) { Vibrant("Vivid"), Muted("Soft"), Player("Player"), Custom("Custom") }
 
 /** 卡片圆角：照 Rush，直角 0px、圆角 32px（卡片按 720px 宽排版）。 */
-enum class ShareCardCorners(val label: String, val px: Int) { Square("直角", 0), Rounded("圆角", 32) }
+enum class ShareCardCorners(val label: String, val px: Int) { Square("Sharp", 0), Rounded("Rounded", 32) }
 
 /** 封面形状，顺序照 Rush 的 AlbumArtShape（7 列 × 3 行正好排满）；多边形映射在 ui/player/share/ShareCardShapes.kt。 */
 enum class ShareCardShape {
@@ -35,11 +35,11 @@ enum class ShareCardShape {
     Cookie4, Cookie6, Cookie9, Cookie12, Clover4, Clover8, Ghostish, Flower, SoftBurst, PuffyDiamond, Bun, Rectangle,
 }
 
-/** 「复制文字」和系统分享里附带的文字。 */
+/** '复制文字'和系统分享里附带的文字。 */
 enum class ShareTextFormat(val label: String) {
-    Lyrics("只有歌词"),
-    WithSong("歌词 ＋ 歌名 · 歌手"),
-    WithLink("歌词 ＋ 歌名 · 歌手 ＋ 链接"),
+    Lyrics("Lyrics only"),
+    WithSong("Lyrics + title · artist"),
+    WithLink("Lyrics + title · artist + link"),
 }
 
 /**

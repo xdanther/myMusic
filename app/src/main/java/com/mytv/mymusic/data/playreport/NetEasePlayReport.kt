@@ -10,13 +10,13 @@ import kotlinx.serialization.json.putJsonObject
 /**
  * 网易云音乐播放上报（听歌打卡）。
  *
- * 官方客户端把「最近播放」和「听歌排行」都走 `POST /eapi/feedback/weblog`，
+ * 官方客户端把'最近播放'和'听歌排行'都走 `POST /eapi/feedback/weblog`，
  * 一条 `startplay`（开播）+ 一条 `play`（结束，带播放秒数）两条日志。
  *
  * ⚠️ 只有 `clientlog.music.163.com` + `os=osx` 身份这一组组合实测能入账；
  * `music.163.com` / `interface.music.163.com` 上的同一条路径会返回 200 但被服务端静默丢弃，
  * 而且这个通道随服务端策略变化，随时可能失效。返回 200 不代表入账，
- * 只能由账号主人在官方 App 的「最近播放 / 听歌排行」里核对。
+ * 只能由账号主人在官方 App 的'最近播放 / 听歌排行'里核对。
  *
  * 触发时机对齐官方：开播发 `startplay`；自然播完或播放量达到整曲 80% 才发 `play`
  * （听歌排行只计有效播放）。

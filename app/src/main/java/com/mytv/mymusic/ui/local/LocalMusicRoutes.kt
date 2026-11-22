@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import com.mytv.mymusic.data.sync.WebDavSyncProvider
 import com.mytv.mymusic.ui.AppNav
 
-/** 「我的 › 本地音乐」的路由。设置在 settings/local，页右上角的 ⚙ 直接进那里。 */
+/** '我的 › 本地音乐'的路由。设置在 settings/local，页右上角的 ⚙ 直接进那里。 */
 const val LOCAL_MUSIC_ROUTE = "localMusic"
 
 /** 云端视图里 WebDAV / QQ 云盘那一行点进来的列表。 */

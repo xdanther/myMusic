@@ -135,7 +135,7 @@ fun PlayPauseButton(
  * 选中项变成满圆角，其余保持内侧小圆角。[selectedFocus] 挂在选中的那个按钮上（电视默认焦点落在当前选项上）。
  * [compact] 收窄按钮左右内边距：选项多、面板窄（电视侧栏里四个三字选项）时字不被省略。
  *
- * 每组等分宽度，文字只给一行，所以放不下时会被截成「…」。真实宽度要先量一遍：所有选项按各自
+ * 每组等分宽度，文字只给一行，所以放不下时会被截成'…'。真实宽度要先量一遍：所有选项按各自
  * 文字算出来的最窄宽度加间距超过可用宽度，整组换成可换行的 [WrapToggleGroup]，字一律完整显示。
  */
 @Composable
@@ -254,7 +254,7 @@ private val CompactTogglePadding = PaddingValues(horizontal = 6.dp, vertical = 8
 private fun PaddingValues.horizontalPx(): Dp = calculateLeftPadding(LayoutDirection.Ltr) + calculateRightPadding(LayoutDirection.Ltr)
 
 /**
- * 连接式按钮组排一行最少要多宽。每格宽度取「文字 + 左右内边距 + 图标」和自己 48dp 触摸目标中较大的那个，
+ * 连接式按钮组排一行最少要多宽。每格宽度取'文字 + 左右内边距 + 图标'和自己 48dp 触摸目标中较大的那个，
  * 再逐格加上间距。调用方给的实际宽度不到这个值时，整组换成换行布局。
  */
 internal fun toggleGroupMinWidth(

@@ -11,9 +11,10 @@
 - APK 输出命名为 `myMusic-<versionName>.apk`（如 `myMusic-1.0.apk`），格式与 myDV
   （`myDV-$appVersionName.apk`）一致，在 `app/build.gradle.kts` 的
   `androidComponents.onVariants` 里统一设置。
-- 版本号策略：`versionName` 固定，`versionCode` 取 `VERSION_CODE` 环境变量。
-- CI（`.github/workflows/build.yml`）只构建 debug APK，
-  以 artifact `myMusic-debug` 上传 `app/build/outputs/apk/debug/*.apk`，不签名、不发布。
+- 版本号策略：`versionName` 固定，`versionCode` 取 `VERSION_CODE` 环境变量；
+  CI 用 `v<versionName>.<versionCode>` 标签区分每次发布。
+- `.github/workflows/build.yml` 以通配取 APK、下载 URL 由实际文件名推导，
+  改名不影响发布流程。
 - 应用内没有更新功能，版本检查交给用户自己安装新包。
 
 ## 构建

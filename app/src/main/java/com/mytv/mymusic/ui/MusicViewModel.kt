@@ -334,7 +334,7 @@ data class MusicUiState(
     val locateSongKey: String = "",
     val locateRequestId: Long = 0,
     val lyrics: String = "",
-    /** [lyrics] 是哪首歌 (Song.key）的；切歌后新歌词取回来之前还是上一首的，和 current 对不上就是还在取。 */
+    /** [lyrics] 是哪首歌 (Song.key）的；切歌后新歌词取回来之前还是Previous的，和 current 对不上就是还在取。 */
     val lyricsKey: String = "",
     val playerOpen: Boolean = false,
     /** 队列海报墙开着；页可以盖在它上面，关掉页回到墙。 */
@@ -384,7 +384,7 @@ data class BoundPlaylistAccess(
 
 /**
  * 整个进程只有一份 ([MyMusicApp.musicViewModel]): 界面、桌面小组件、服务的继续都通过它控制器，
- * 界面关掉以后组件照样能切歌、续接下一首的解析。
+ * 界面关掉以后组件照样能切歌、续接Next的解析。
  */
 @OptIn(FlowPreview::class)
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -406,12 +406,12 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     private val _settingsReady = MutableStateFlow(false)
     val settingsReady: StateFlow<Boolean> = _settingsReady.asStateFlow()
     private var controller: MediaController? = null
-    /** 交叉淡化：已经提前解析过的下一首 (下标 + 曲目 id），同一首不重复解析。 */
+    /** 交叉淡化：已经提前解析过的Next (下标 + 曲目 id），同一首不重复解析。 */
     private var prefetchIndex = -1
     private var prefetchKey = ""
     /** 上一次解析的时间：失败后隔几秒再试，别每轮进度都重来一遍。 */
     private var prefetchAt = 0L
-    /** 已经交给离线分析的下一首，别每 100ms 重复请求。 */
+    /** 已经交给离线分析的Next，别每 100ms 重复请求。 */
     private var analysisRequested = ""
     /** 当前这首也要分析：第一首的接法同样需要它。 */
     private var analysisCurrentRequested = ""
@@ -4249,7 +4249,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         when (action) {
             "play" -> if (player.isPlaying) player.pause() else player.play()
             "next" -> {
-                // 上报要知道上一首是被「下一首」切走的，不是自己播完的
+                // 上报要知道Previous是被「Next」切走的，不是自己播完的
                 base.value.current?.let { PlayReportHub.userAction(it.source, PlayEndReason.Next) }
                 player.seekToNextMediaItem()
             }
@@ -4303,8 +4303,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * “下一首'：把队列里第 [index] 首挪到正在放的这首后面，队列不增不减，听歌模式照常续流。
-     * 已经是当前这首或下一首时不动。从前面挪过来时当前这首往前退一位，器自己跟着改当前位置。
+     * “Next'：把队列里第 [index] 首挪到正在放的这首后面，队列不增不减，听歌模式照常续流。
+     * 已经是当前这首或Next时不动。从前面挪过来时当前这首往前退一位，器自己跟着改当前位置。
      */
     fun moveQueueItemNext(index: Int) {
         val player = controller ?: return
@@ -4323,7 +4323,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 详情页海报视图大卡上的“下一首'：这首已在队列里就挪到正在放的这首后面 (同 [moveQueueItemNext]），
+     * 详情页海报视图大卡上的“Next'：这首已在队列里就挪到正在放的这首后面 (同 [moveQueueItemNext]），
      * 不在就插到它后面，队列其余不动；队列是空的就直接放这首，不弹出页。
      */
     fun playSongNext(song: Song) {
@@ -4405,7 +4405,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    /** 第 [hint] 位原来是 [track]；解析、换源要等一阵，期间“下一首'可能把它挪了位：按歌找回现在的位置，不在队列里了返回 -1。 */
+    /** 第 [hint] 位原来是 [track]；解析、换源要等一阵，期间“Next'可能把它挪了位：按歌找回现在的位置，不在队列里了返回 -1。 */
     private fun queueIndexOf(track: CanonicalTrack, hint: Int): Int {
         val queue = base.value.canonicalQueue
         return if (queue.getOrNull(hint)?.id == track.id) hint else queue.indexOfFirst { it.id == track.id }
@@ -4467,7 +4467,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     subscriberEnabled = settings.lyriconSubscriberEnabled,
                 )
             }.distinctUntilChanged().collectLatest { input ->
-                // 简繁、拆双语和罗马音都走现有管线；快速切歌时取消上一首的转换。
+                // 简繁、拆双语和罗马音都走现有管线；快速切歌时取消Previous的转换。
                 val update = withContext(Dispatchers.Default) { LyriconMapper.prepare(input) }
                 lyricon.update(update)
             }
@@ -4482,7 +4482,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     private var lyricsJob: Job? = null
 
     private fun loadLyrics(song: Song) {
-        // 快速切歌时上一首的请求可能比新歌晚返回，只保留最新一次
+        // 快速切歌时Previous的请求可能比新歌晚返回，只保留最新一次
         lyricsJob?.cancel()
         lyricsJob = viewModelScope.launch {
             val nativeLyrics = try {
@@ -4587,7 +4587,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             setMediaArtist(item, song.artist)
             return
         }
-        // 歌词还是上一首的 (新歌还没取回来): 先留着歌手名，免得显示串了的歌词
+        // 歌词还是Previous的 (新歌还没取回来): 先留着歌手名，免得显示串了的歌词
         val key = base.value.lyricsKey
         if (key.isBlank() || key != song.key) return
         // 按歌词文字设置拆双语、简转繁 (罗马音这里用不上）；转换放后台，算好之前这一行先显示歌手名
@@ -4623,7 +4623,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     private fun canonicalForSong(song: Song): CanonicalTrack {
         val providerId = song.source.ifBlank { settingsState.value.provider }
         val track = TrackMatcher.singleSource(song, providerName(providerId), providerId, cookieFor(providerId))
-        // 本地歌的标签常是“Track 01 / 未知歌手'，按标题歌手时长算的规范 id 会撞车，
+        // 本地歌的标签常是“Track 01 / Unknown artist'，按标题歌手时长算的规范 id 会撞车，
         // 队列按 id 去重时就把别的歌吞掉了；本地歌的身份本来就唯一，直接用它
         return if (providerId == LOCAL_SOURCE) track.copy(id = song.key) else track
     }
@@ -4987,7 +4987,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         private var resolving: Job? = null
         private var resolvingIndex = -1
 
-        // 连续跳过的放不了的歌数，整个队列都试过一遍就停下；跳过时的提示要留到下一首解析完
+        // 连续跳过的放不了的歌数，整个队列都试过一遍就停下；跳过时的提示要留到Next解析完
         private var unplayableSkips = 0
         private var skipNotice: String? = null
 
@@ -5039,8 +5039,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     reason
                 }
             AppLog.d("Player", "Track change reason=$reason${if (crossfaded) " (crossfaded)" else ""} index=${controller?.currentMediaItemIndex}")
-            // 上报要知道上一首是怎么结束的：自动接下一首是自然播完，换了队列是 change_queue。
-            // base.value.current 此刻还是上一首 (onEvents 之后才更新），正好是要结束的那首
+            // 上报要知道Previous是怎么结束的：自动接Next是自然播完，换了队列是 change_queue。
+            // base.value.current 此刻还是Previous (onEvents 之后才更新），正好是要结束的那首
             val finishedBy = when (effectiveReason) {
                 Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> PlayEndReason.Finished
                 Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> PlayEndReason.ChangeQueue
@@ -5068,7 +5068,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
         /**
          * 解析队列里还没有地址的这一首。器里它是空地址，切过来时多半已经因为打开 "" 报错停下，
-         * 所以换上解析出的地址后要重新准备；解析不出来就提示原因并跳到下一首，不停在一首放不了的歌上。
+         * 所以换上解析出的地址后要重新准备；解析不出来就提示原因并跳到Next，不停在一首放不了的歌上。
          */
         private fun resolveQueueItem(index: Int, track: CanonicalTrack) {
             if (resolvingIndex == index && resolving?.isActive == true) return
@@ -5171,7 +5171,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         /**
-         * 第 [index] 首解析不出来：还停在它上面就用提示说明原因并跳到下一首；没有下一首，或连着跳过了整个队列 /
+         * 第 [index] 首解析不出来：还停在它上面就用提示说明原因并跳到Next；没有Next，或连着跳过了整个队列 /
          * [MAX_UNPLAYABLE_SKIPS] 首 (多半是断网或账号问题，再跳也是白跑），就暂停只留提示。用户已经切走时只提示，不再动器。
          */
         private fun skipUnplayable(index: Int, title: String, message: String) {
@@ -5193,7 +5193,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             skipNotice = notice
             base.value = base.value.copy(playbackNotice = notice)
             player.seekToNextMediaItem()
-            // 下一首已经有地址就直接重新准备；还是空地址的等它切歌解析完再准备，不让器再去打开 ""
+            // Next已经有地址就直接重新准备；还是空地址的等它切歌解析完再准备，不让器再去打开 ""
             if (base.value.queue.getOrNull(player.currentMediaItemIndex)?.url?.isNotBlank() == true) prepareIfStopped()
         }
 
@@ -5207,7 +5207,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
         override fun onPlayerError(error: PlaybackException) {
             // 失败原因必须进日志：DRM 会话这类错误只在 onPlayerError 里露头，UI 提示之外没人看得见。
-            // 之前这里一条不打，整曲失败时只能看到"Full track ready"然后每隔 11 秒自动跳下一首。
+            // 之前这里一条不打，整曲失败时只能看到"Full track ready"然后每隔 11 秒自动跳Next。
             val errorIndex = controller?.currentMediaItemIndex ?: -1
             AppLog.e(
                 "Player",
@@ -5433,8 +5433,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 交叉淡化要提前把下一首的地址解析出来：队列里除当前这首以外通常还是空地址，等切过去才解析就来不及叠了。
-     * 只补地址、不动器状态；解析失败就这一首放弃，下一首再试。
+     * 交叉淡化要提前把Next的地址解析出来：队列里除当前这首以外通常还是空地址，等切过去才解析就来不及叠了。
+     * 只补地址、不动器状态；解析失败就这一首放弃，Next再试。
      */
     private fun maybePrefetchNextForCrossfade(player: Player, position: Long, duration: Long) {
         if (!settingsState.value.crossfadeEnabled) return
@@ -5443,7 +5443,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         if (duration == C.TIME_UNSET || duration <= 0) return
         if (duration - position <= 0) return
         val queue = base.value.queue
-        // 当前这首也要分析：接法是两首歌一起挑的，只有下一首的结果挑不出切拍。队列里的那份才有地址。
+        // 当前这首也要分析：接法是两首歌一起挑的，只有Next的结果挑不出切拍。队列里的那份才有地址。
         val current = queue.getOrNull(player.currentMediaItemIndex)
         if (current != null && current.url.isNotBlank() && current.key != analysisCurrentRequested) {
             analysisCurrentRequested = current.key
@@ -5453,7 +5453,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         if (nextIndex == C.INDEX_UNSET || nextIndex == player.currentMediaItemIndex) return
         val song = queue.getOrNull(nextIndex) ?: return
         if (song.url.isNotBlank()) {
-            // 切歌前先分析：下一首整个开头放的时候就能拿到，不用等歌尾
+            // 切歌前先分析：Next整个开头放的时候就能拿到，不用等歌尾
             if (analysisRequested != song.key) {
                 analysisRequested = song.key
                 app.automixAnalyzer.request(song)
@@ -6028,7 +6028,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 组件上的、上一首、下一首 ([action] 为 play / next / previous）。器里有歌就直接操作；
+     * 组件上的、Previous、Next ([action] 为 play / next / previous）。器里有歌就直接操作；
      * 空的 (进程刚被组件拉起）就从上次的位置接着放。开始放了才返回，返回值是成没成。
      */
     suspend fun widgetTransport(action: String): Boolean {
@@ -7146,8 +7146,8 @@ private const val MAX_LIVE_RETRIES = 2
 private const val QR_POLL_WINDOW_MS = 310_000L
 
 /**
- * “下一首'要把第 [from] 首挪到哪一位 (器 moveMediaItem 的 newIndex，即挪完后的位置）。
- * 当前是第 [current] 首；本来就是当前或下一首、或者越界时返回 null。
+ * “Next'要把第 [from] 首挪到哪一位 (器 moveMediaItem 的 newIndex，即挪完后的位置）。
+ * 当前是第 [current] 首；本来就是当前或Next、或者越界时返回 null。
  */
 internal fun queueMoveNextTarget(from: Int, current: Int, size: Int): Int? {
     if (from !in 0 until size || current !in 0 until size) return null
@@ -7162,7 +7162,7 @@ internal fun queueRemovalAllowed(index: Int, current: Int, size: Int): Boolean =
 /** Undo移出时插回哪一位：原位置还在就是原位置，队列变短了接在末尾。 */
 internal fun queueRestoreAt(index: Int, size: Int): Int = index.coerceIn(0, size)
 
-/** “下一首'插入一首不在队列里的歌：插到当前第 [current] 首后面；当前位置无效时接在队尾。 */
+/** “Next'插入一首不在队列里的歌：插到当前第 [current] 首后面；当前位置无效时接在队尾。 */
 internal fun queueInsertNextAt(current: Int, size: Int): Int = if (current in 0 until size) current + 1 else size
 
 /** 和 Player.moveMediaItem 同样的语义：先取出 [from]，再插到 [to]。 */

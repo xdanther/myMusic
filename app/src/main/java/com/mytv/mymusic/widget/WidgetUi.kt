@@ -182,7 +182,7 @@ fun WPlayButton(
     palette: WidgetPalette,
     action: Action?,
     modifier: GlanceModifier = GlanceModifier,
-    description: String = if (playing) "暂停，正在播放" else "播放，已暂停",
+    description: String = if (playing) "Paused, now playing" else "Playing, paused",
     ring: Dp = 0.dp,
     ringRole: WidgetScheme.() -> Int = { surface },
 ) {
@@ -229,8 +229,8 @@ fun WIconButton(
 }
 
 /**
- * 按钮组（.grp）：上一首、播放、下一首连成一条，两端 20dp 圆角、中间 8dp，间隔 2dp。
- * [width] 给定时铺满（上一首 : 播放 : 下一首 = 1 : 1.5 : 1）；不给时上一首 / 下一首 40dp、播放 50dp。
+ * 按钮组（.grp）：Previous、播放、Next连成一条，两端 20dp 圆角、中间 8dp，间隔 2dp。
+ * [width] 给定时铺满（Previous : 播放 : Next = 1 : 1.5 : 1）；不给时Previous / Next 40dp、播放 50dp。
  */
 @Composable
 fun WButtonGroup(
@@ -252,16 +252,16 @@ fun WButtonGroup(
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (prev) {
-            Segment(R.drawable.ic_w_prev, 20.dp, side, height, R.drawable.widget_seg_start, palette, accent = false, actions.previous, "上一首")
+            Segment(R.drawable.ic_w_prev, 20.dp, side, height, R.drawable.widget_seg_start, palette, accent = false, actions.previous, "Previous")
             Spacer(GlanceModifier.width(gap))
         }
         Segment(
             if (playing) R.drawable.ic_w_pause else R.drawable.ic_w_play, 24.dp, middle, height,
             if (prev) R.drawable.widget_seg_mid else R.drawable.widget_seg_start, palette, accent = true,
-            actions.play, if (playing) "暂停，正在播放" else "播放，已暂停",
+            actions.play, if (playing) "Paused, now playing" else "Playing, paused",
         )
         Spacer(GlanceModifier.width(gap))
-        Segment(R.drawable.ic_w_next, 20.dp, side, height, R.drawable.widget_seg_end, palette, accent = false, actions.next, "下一首")
+        Segment(R.drawable.ic_w_next, 20.dp, side, height, R.drawable.widget_seg_end, palette, accent = false, actions.next, "Next")
     }
 }
 
@@ -288,7 +288,7 @@ private fun Segment(
     }
 }
 
-/** 播放、上一首、下一首三个按钮的动作。 */
+/** 播放、Previous、Next三个按钮的动作。 */
 data class TransportActions(val play: Action?, val previous: Action?, val next: Action?)
 
 /** M3E 波浪进度条：已播段播放时是波浪、暂停时拉直（primary），未播段是 secondaryContainer 直线，末端一个主色点。 */
@@ -305,7 +305,7 @@ fun WWave(width: Dp, fraction: Float, playing: Boolean, palette: WidgetPalette) 
 
 /**
  * 计时文字（Chronometer）：系统每秒自己走字，组件不用推。[positionMs] 是现在听到的位置，[running] 时往前走，停着时只是普通文字；
- * [countDown] 时倒数到 0（定时关闭，Android 7 起）。[longestMs] 是这段计时会走到的最长时间，用来定宽度。
+ * [countDown] 时倒数到 0（Sleep timer，Android 7 起）。[longestMs] 是这段计时会走到的最长时间，用来定宽度。
  *
  * Glance 给 AndroidRemoteViews 套的容器会撑满一行，把同一行后面的文字挤出去，所以宽度按最长的字算好给死；
  * 数字是等宽的（tnum），走字时宽度不变。
@@ -369,12 +369,12 @@ fun WTimes(positionMs: Long, durationMs: Long, playing: Boolean, palette: Widget
     }
 }
 
-/** 定时关闭标签：tertiaryContainer 底，月亮图标加倒数。Android 6 没有倒数的 Chronometer，只显示到分钟。 */
+/** Sleep timer标签：tertiaryContainer 底，月亮图标加倒数。Android 6 没有倒数的 Chronometer，只显示到分钟。 */
 @Composable
 fun WTimerChip(remainingMs: Long, palette: WidgetPalette) {
     Row(
         modifier = GlanceModifier.tinted(R.drawable.widget_r10, palette.color { tertiaryContainer }).padding(start = 5.dp, top = 2.dp, end = 7.dp, bottom = 2.dp)
-            .describe("定时关闭，还剩 ${ceil(remainingMs / 60_000.0).toInt()} 分钟"),
+            .describe("Sleep timer, ${ceil(remainingMs / 60_000.0).toInt()} min left"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         WIcon(R.drawable.ic_w_bedtime, 12.dp, palette.color { onTertiaryContainer })
@@ -382,7 +382,7 @@ fun WTimerChip(remainingMs: Long, palette: WidgetPalette) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             WChronometer(remainingMs, running = true, palette = palette, role = { onTertiaryContainer }, countDown = true, medium = true, longestMs = remainingMs + 999)
         } else {
-            WText("${ceil(remainingMs / 60_000.0).toInt()} 分钟", WType.time, palette.color { onTertiaryContainer }, weight = FontWeight.Medium)
+            WText("${ceil(remainingMs / 60_000.0).toInt()} min", WType.time, palette.color { onTertiaryContainer }, weight = FontWeight.Medium)
         }
     }
 }

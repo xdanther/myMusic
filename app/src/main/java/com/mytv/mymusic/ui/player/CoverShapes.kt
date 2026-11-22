@@ -7,13 +7,13 @@ import com.mytv.mymusic.data.CoverShapeChoice
 /** 设置里显示的名字。 */
 val CoverShapeChoice.label: String
     get() = when (this) {
-        CoverShapeChoice.Random -> "随机"
-        CoverShapeChoice.Cookie12 -> "十二瓣"
-        CoverShapeChoice.Cookie9 -> "九瓣"
-        CoverShapeChoice.Cookie7 -> "七瓣"
-        CoverShapeChoice.Sunny -> "太阳"
-        CoverShapeChoice.SoftBurst -> "星芒"
-        CoverShapeChoice.Clover8 -> "八叶"
+        CoverShapeChoice.Random -> "Shuffle"
+        CoverShapeChoice.Cookie12 -> "Twelve-sided"
+        CoverShapeChoice.Cookie9 -> "Nine-sided"
+        CoverShapeChoice.Cookie7 -> "Seven-sided"
+        CoverShapeChoice.Sunny -> "Sun"
+        CoverShapeChoice.SoftBurst -> "Starburst"
+        CoverShapeChoice.Clover8 -> "Eight-leaf"
     }
 
 /** 对应的 MaterialShapes 原形；“随机”没有固定形状，切歌时由播放层抽取（[com.mytv.mymusic.playback.NowPlayingShape]）。 */

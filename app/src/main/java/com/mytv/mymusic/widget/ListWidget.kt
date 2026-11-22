@@ -38,7 +38,7 @@ private const val MAX_ROWS = 50
 /** 歌单组件的一张单：标题、首数、歌曲。 */
 data class ListView(val source: WidgetListSource, val name: String, val songs: List<Song>, val count: Int)
 
-/** 我喜欢、最近播放或一张自建歌单；点哪首从哪首开始放，正在播放的那一行标成主色。 */
+/** 我喜欢、Recently played或一张自建歌单；点哪首从哪首开始放, now playing的那一行标成主色。 */
 class ListWidget : MusicWidget(WidgetKind.List) {
     @Composable
     override fun Content(appWidgetId: Int, palette: WidgetPalette, config: WidgetConfig) {
@@ -47,18 +47,18 @@ class ListWidget : MusicWidget(WidgetKind.List) {
         val view = when (val source = config.list) {
             WidgetListSource.Favorites -> {
                 val songs by data.favorites.collectAsState()
-                ListView(source, "我喜欢的歌曲", songs, songs.size)
+                ListView(source, "My favorite songs", songs, songs.size)
             }
             WidgetListSource.History -> {
                 val songs by data.history.collectAsState()
-                ListView(source, "最近播放", songs, songs.size)
+                ListView(source, "Recently played", songs, songs.size)
             }
             is WidgetListSource.Local -> {
                 val lists by data.localLists.collectAsState()
                 val flow = remember(source.id) { data.localListSongs(source.id) }
                 val songs by flow.collectAsState(emptyList())
                 val info = lists.find { it.id == source.id }
-                ListView(source, info?.name ?: "歌单", songs, info?.count ?: songs.size)
+                ListView(source, info?.name ?: "Playlists", songs, info?.count ?: songs.size)
             }
         }
         ListLayout(view, state.playback?.song?.key, palette, config.background, appWidgetId, interactive = true)
@@ -67,7 +67,7 @@ class ListWidget : MusicWidget(WidgetKind.List) {
     @Composable
     override fun Preview(palette: WidgetPalette) {
         val songs = WidgetSamples.list
-        ListLayout(ListView(WidgetListSource.Favorites, "我喜欢的歌曲", songs, 128), songs.first().key, palette, WidgetBackground.Solid, 0, interactive = false)
+        ListLayout(ListView(WidgetListSource.Favorites, "My favorite songs", songs, 128), songs.first().key, palette, WidgetBackground.Solid, 0, interactive = false)
     }
 }
 
@@ -90,29 +90,29 @@ fun ListLayout(view: ListView, currentKey: String?, palette: WidgetPalette, back
     Box(modifier = GlanceModifier.fillMaxSize().widgetBackground(palette, if (background == WidgetBackground.Clear) WidgetBackground.Glass else background)) {
         Column(modifier = GlanceModifier.fillMaxSize().padding(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 4.dp)) {
             Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = GlanceModifier.defaultWeight().onClick(openList).describe("${view.name}，${view.count} 首，打开歌单")) {
+                Column(modifier = GlanceModifier.defaultWeight().onClick(openList).describe("${view.name}, ${view.count} tracks, open playlist")) {
                     WText(view.name, if (wide) 16.sp else 14.sp, palette.color { onSurface }, weight = FontWeight.Bold)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         WIcon(if (view.source == WidgetListSource.Favorites) R.drawable.ic_w_fav else R.drawable.ic_w_note, 12.dp, palette.color { onSurfaceVariant })
                         Spacer(GlanceModifier.width(6.dp))
-                        WText("${view.count} 首", WType.meta, palette.color { onSurfaceVariant })
+                        WText("${view.count} tracks", WType.meta, palette.color { onSurfaceVariant })
                     }
                 }
                 if (view.songs.isNotEmpty()) {
                     if (wide) {
                         Spacer(GlanceModifier.width(6.dp))
-                        WIconButton(R.drawable.ic_w_shuffle, 40.dp, 20.dp, palette, play(null, shuffle = true), "随机播放")
+                        WIconButton(R.drawable.ic_w_shuffle, 40.dp, 20.dp, palette, play(null, shuffle = true), "Shuffle")
                     }
                     Spacer(GlanceModifier.width(6.dp))
-                    WPlayButton(false, if (wide) 40.dp else 36.dp, palette, play(null), description = "播放全部")
+                    WPlayButton(false, if (wide) 40.dp else 36.dp, palette, play(null), description = "Play all")
                 }
             }
             Spacer(GlanceModifier.height(6.dp))
             if (view.songs.isEmpty()) {
                 Column(modifier = GlanceModifier.fillMaxWidth().defaultWeight().onClick(openList), verticalAlignment = Alignment.CenterVertically) {
-                    WText("还没有歌曲", WType.rowTitle, palette.color { onSurface }, weight = FontWeight.Medium)
+                    WText("No songs yet", WType.rowTitle, palette.color { onSurface }, weight = FontWeight.Medium)
                     WText(
-                        if (view.source == WidgetListSource.History) "放过的歌会出现在这里" else "在 App 里收藏几首，这里就会列出来",
+                        if (view.source == WidgetListSource.History) "Songs you played appear here" else "Save a few songs in the app and they appear here",
                         WType.rowArtist, palette.color { onSurfaceVariant }, maxLines = 2,
                     )
                 }
@@ -122,7 +122,7 @@ fun ListLayout(view: ListView, currentKey: String?, palette: WidgetPalette, back
                         val now = song.key == currentKey
                         Row(
                             modifier = GlanceModifier.fillMaxWidth().height(cs + 10.dp).onClick(play(song))
-                                .describe("${song.title}，${song.artist}${if (now) "，正在播放" else ""}，播放"),
+                                .describe("${song.title}，${song.artist}${if (now) ", now playing" else ""}, play"),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             WCover(song.cover, cs, WidgetShape.Rounded(if (wide) 10f else 8f), palette)

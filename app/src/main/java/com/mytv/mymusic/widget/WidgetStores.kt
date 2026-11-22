@@ -233,7 +233,7 @@ class ChartWidgetWorker(context: Context, params: WorkerParameters) : CoroutineW
 }
 
 /**
- * 听歌模式组件用的缓存：每个平台的模式列表（配置页和默认模式用）、每个模式最近放过的几张封面（空闲时的封面叠）、
+ * 听歌模式组件用的缓存：每个平台的模式列表（配置页和Default mode用）、每个模式最近放过的几张封面（空闲时的封面叠）、
  * 以及“这个模式点了说要登录”的记号。
  */
 object ModeStore {
@@ -269,7 +269,7 @@ object ModeStore {
             .bySourceOrder(app)
 
     /**
-     * 组件绑定的模式；没配过时用第一个已登录平台的第一个模式，都没登录就用第一个平台的。
+     * 组件绑定的模式；没配过时用The first mode of the first signed-in platform，都没登录就用第一个平台的。
      * 缓存里没有模式列表时返回 null，并在后台去取（取到后 [version] 加一）。
      */
     fun resolve(app: MyMusicApp, config: WidgetConfig, cookies: Map<String, String>, providers: List<ProviderInfo>): Pair<String, ListeningMode>? {
@@ -291,7 +291,7 @@ object ModeStore {
     /** 没登录时放不了的模式：私人漫游和平台标了要登录的；组件上点过一次、错误里说要登录的也算。 */
     fun needsLogin(mode: ListeningMode, cookie: String): Boolean {
         if (cookie.isNotBlank()) return false
-        return mode.group == "私人漫游" || mode.extra["need_login"] == "true" || mode.id in loginFailed
+        return mode.group == "Personal roam" || mode.extra["need_login"] == "true" || mode.id in loginFailed
     }
 
     fun markLoginRequired(modeId: String) {

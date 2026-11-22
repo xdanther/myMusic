@@ -68,7 +68,7 @@ class TransportCallback : ActionCallback {
         val command = parameters[WidgetActions.Command] ?: return
         val app = context.applicationContext as MyMusicApp
         val ok = onMain { app.musicViewModel.widgetTransport(command) }
-        if (!ok && command == "play") notifyFailure(app, "暂时放不了这首")
+        if (!ok && command == "play") notifyFailure(app, "Can't play this right now")
     }
 }
 
@@ -89,7 +89,7 @@ class PlayListCallback : ActionCallback {
         val start = parameters[WidgetActions.StartKey]?.takeIf { it.isNotBlank() }
         val shuffle = parameters[WidgetActions.Shuffle] == true
         val ok = onMain { app.musicViewModel.playListFromWidget(songs, start, shuffle) }
-        if (!ok) notifyFailure(app, "暂时放不了这首")
+        if (!ok) notifyFailure(app, "Can't play this right now")
     }
 
     private fun chartSongs(app: MyMusicApp, appWidgetId: Int): List<Song> {
@@ -123,8 +123,8 @@ class PlayModeCallback : ActionCallback {
         val ok = onMain { app.musicViewModel.playModeFromWidget(provider, mode) }
         if (ok) return
         val notice = onMain { app.musicViewModel.state.value.playbackNotice }
-        // 平台说要登录：组件换成“去登录”
-        if ("登录" in notice) ModeStore.markLoginRequired(mode.id) else notifyFailure(app, "「${mode.name}」暂时放不了")
+        // 平台说要登录：组件换成“Sign in”
+        if ("Sign in" in notice) ModeStore.markLoginRequired(mode.id) else notifyFailure(app, "'${mode.name}' can't play right now")
     }
 }
 

@@ -142,13 +142,13 @@ internal fun TvSyncSetupContent(
                 Column(Modifier.padding(20.dp)) {
                     ShapeIcon(Icons.Filled.CloudUpload)
                     Text(
-                        "手机填写，电视同步",
+                        "Fill it in on your phone, sync on the TV",
                         Modifier.padding(top = 14.dp),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.ExtraBold,
                     )
                     Text(
-                        "1. 手机与电视连接同一网络\n2. 扫码选择 GitHub Gist、Gitee 或 WebDAV\n3. 提交后按电视提示完成连接",
+                        "1. Connect the phone and TV to the same network\n2. Scan and choose GitHub Gist, Gitee or WebDAV\n3. Submit and follow the TV prompt to finish",
                         Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -159,12 +159,12 @@ internal fun TvSyncSetupContent(
                             .padding(top = 16.dp)
                             .then(if (!connected) Modifier.focusRequester(primaryFocus) else Modifier)
                             .tvFocusRing(RoundedCornerShape(24.dp)),
-                    ) { Text("改用遥控器输入") }
+                    ) { Text("Enter it with the remote instead") }
                 }
             }
             infoContent()
             LocalNetworkHint()
-            InfoNote("网页面板只在本次配置期间开放；离开此页或电视进入后台即关闭。")
+            InfoNote("The web panel is open only during this setup; leaving this page or backgrounding the TV closes it.")
         }
 
         Column(
@@ -186,12 +186,12 @@ internal fun TvSyncSetupContent(
                         TvSetupConnected(sync, primaryFocus, onDone)
                     } else {
                         Text(
-                            "扫码在手机上配置",
+                            "Scan to configure on your phone",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            "二维码 10 分钟内有效",
+                            "The QR code is valid for 10 minutes",
                             Modifier.padding(top = 4.dp, bottom = 18.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -200,7 +200,7 @@ internal fun TvSyncSetupContent(
                             TvSetupSession.Starting -> {
                                 LoadingIndicator(Modifier.size(56.dp))
                                 Text(
-                                    "正在开启局域网配置…",
+                                    "Starting local setup…",
                                     Modifier.padding(top = 20.dp),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -210,7 +210,7 @@ internal fun TvSyncSetupContent(
                                     QrCodeImage(
                                         text = current.url,
                                         modifier = Modifier.size(300.dp).padding(10.dp),
-                                        description = "扫描后在手机配置 Gist、Gitee 或 WebDAV 同步",
+                                        description = "Scan to configure Gist, Gitee or WebDAV sync on your phone",
                                     )
                                 }
                                 Text(
@@ -220,7 +220,7 @@ internal fun TvSyncSetupContent(
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 Text(
-                                    "用系统相机或扫码工具扫描",
+                                    "Scan with the system camera or a QR app",
                                     Modifier.padding(top = 2.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -231,28 +231,28 @@ internal fun TvSyncSetupContent(
                             }
                             TvSetupSession.Expired -> {
                                 Text(
-                                    "二维码已过期，旧页面不能再提交配置。",
+                                    "The QR code expired; that page can no longer submit settings.",
                                     color = MaterialTheme.colorScheme.error,
                                     textAlign = TextAlign.Center,
                                 )
                                 Button(
                                     onClick = { generation++ },
                                     modifier = Modifier.padding(top = 16.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-                                ) { Text("重新生成二维码") }
+                                ) { Text("Generate a new QR code") }
                             }
                         }
                         when {
                             sync.status == SyncStatus.Syncing -> {
                                 LinearWavyProgressIndicator(Modifier.fillMaxWidth().padding(top = 20.dp))
                                 Text(
-                                    sync.phase.ifBlank { "正在验证手机提交的配置…" },
+                                    sync.phase.ifBlank { "Verifying the settings from your phone…" },
                                     Modifier.padding(top = 8.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center,
                                 )
                             }
                             sync.initialMerge != null -> {
-                                InfoNote("本机和云端都有歌单，请在电视上选择首次合并方式。", "amber")
+                                InfoNote("This device and the cloud both have playlists; choose how to merge them on the TV.", "amber")
                             }
                             sync.error.isNotBlank() -> {
                                 Spacer(Modifier.height(16.dp))
@@ -260,7 +260,7 @@ internal fun TvSyncSetupContent(
                             }
                             session is TvSetupSession.Ready -> {
                                 Text(
-                                    "等待手机提交；已保存的令牌和密码不会显示在网页中",
+                                    "Waiting for the phone; saved tokens and passwords never appear on the page",
                                     Modifier.padding(top = 16.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -279,14 +279,14 @@ internal fun TvSyncSetupContent(
 private fun TvSetupConnected(sync: SyncUiState, focus: FocusRequester, onDone: () -> Unit) {
     ShapeIcon(Icons.Filled.CloudDone)
     Text(
-        "已连接 ${sync.providerLabel}",
+        "Connected to ${sync.providerLabel}",
         Modifier.padding(top = 16.dp),
         style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.ExtraBold,
         textAlign = TextAlign.Center,
     )
     Text(
-        "手机页面已收到结果。回到同步中心后可以立即同步或调整自动同步设置。",
+        "The phone page received the result. Back in Sync center you can sync now or adjust automatic sync.",
         Modifier.padding(top = 8.dp),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -299,7 +299,7 @@ private fun TvSetupConnected(sync: SyncUiState, focus: FocusRequester, onDone: (
             .padding(top = 22.dp)
             .focusRequester(focus)
             .tvFocusRing(RoundedCornerShape(28.dp)),
-    ) { Text("完成") }
+    ) { Text("Done") }
 }
 
 @Composable
@@ -349,7 +349,7 @@ private fun rememberTvSetupSession(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            value = TvSetupSession.Error(error.message ?: "无法开启局域网配置，请检查网络后重试")
+            value = TvSetupSession.Error(error.message ?: "Couldn't start local setup; check your network and try again")
         } finally {
             server?.stop()
         }
@@ -422,7 +422,7 @@ internal fun LocalNetworkHint(modifier: Modifier = Modifier) {
     ) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
-                "手机扫码后打不开页面？Android 17 需要允许「附近的设备」权限，手机才能访问本机局域网。",
+                "Page won't open after scanning? Android 17 needs the nearby devices permission for the phone to reach this local network.",
                 style = MaterialTheme.typography.bodyMedium,
             )
             TextButton(
@@ -431,7 +431,7 @@ internal fun LocalNetworkHint(modifier: Modifier = Modifier) {
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 ),
-            ) { Text("去设置") }
+            ) { Text("Open settings") }
         }
     }
 }

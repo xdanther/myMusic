@@ -76,11 +76,11 @@ object Rings52HzVisualizer : LyricVisualizer {
     override val hiddenSettings = 0
 
     override val settings: List<LyricSetting> = listOf(
-        LyricSetting.Number("reach", "年轮扩散", 0.4f, 2f, 0.1f, 1f, ::formatTimes, summary = "年轮往外走的速度；快慢都在屏幕边缘淡没"),
-        LyricSetting.Number("beatSensitivity", "拍点灵敏度", 0.4f, 2.5f, 0.1f, 1f, ::formatTimes, summary = "越大越容易算作拍点，年轮越密"),
-        LyricSetting.Number("sensitivity", "响度灵敏度", 0.2f, 3f, 0.1f, 1f, ::formatTimes, summary = "响度决定年轮的粗细和亮度"),
-        LyricSetting.Number("opacity", "年轮浓度", 0.1f, 1f, 0.05f, 0.8f, ::formatPercent),
-        LyricSetting.Number("fontScale", "字号", 0.6f, 1.6f, 0.05f, 1f, ::formatTimes),
+        LyricSetting.Number("reach", "Ring spread", 0.4f, 2f, 0.1f, 1f, ::formatTimes, summary = "How fast rings travel outward; either way they fade at the screen edge"),
+        LyricSetting.Number("beatSensitivity", "Beat sensitivity", 0.4f, 2.5f, 0.1f, 1f, ::formatTimes, summary = "Higher values detect more beats and make rings denser"),
+        LyricSetting.Number("sensitivity", "Loudness sensitivity", 0.2f, 3f, 0.1f, 1f, ::formatTimes, summary = "Loudness sets ring thickness and brightness"),
+        LyricSetting.Number("opacity", "Ring density", 0.1f, 1f, 0.05f, 0.8f, ::formatPercent),
+        LyricSetting.Number("fontScale", "Size", 0.6f, 1.6f, 0.05f, 1f, ::formatTimes),
     )
 
     @Composable

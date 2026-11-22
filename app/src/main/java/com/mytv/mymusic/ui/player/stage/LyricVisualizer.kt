@@ -91,7 +91,7 @@ interface LyricVisualizer {
      */
     val interactive: Boolean get() = false
 
-    /** 没有同步歌词（纯音乐、电台）时也画；false 时宿主显示和经典一样的“这首歌没有歌词”。 */
+    /** 没有同步歌词（纯音乐、电台）时也画；false 时宿主显示和经典一样的“This track has no lyrics”。 */
     val drawsWithoutLyrics: Boolean get() = false
 
     /**
@@ -121,7 +121,7 @@ val DefaultMinTextHeight: Dp = 160.dp
 
 /** 来源模组：名字、版本、作者、许可。[kind] 是面板里怎么称呼它（Rush 是独立的应用，不是 Folia 模组）。 */
 @Immutable
-data class ModOrigin(val mod: String, val version: String, val author: String, val license: String, val kind: String = "模组")
+data class ModOrigin(val mod: String, val version: String, val author: String, val license: String, val kind: String = "Module")
 
 /**
  * 设置项的显示条件：[key] 那一项的当前值在 [values] 里才显示（比如配色选“自定义”时才出两个色块）。
@@ -249,7 +249,7 @@ fun formatTimes(value: Float): String = "×" + trimNumber(value)
 
 fun formatPercent(value: Float): String = "${(value * 100).roundToInt()}%"
 
-fun formatSeconds(value: Float): String = trimNumber(value) + " 秒"
+fun formatSeconds(value: Float): String = trimNumber(value) + " s"
 
 fun formatInt(value: Float): String = value.roundToInt().toString()
 
@@ -262,27 +262,27 @@ private fun trimNumber(value: Float): String {
 @Immutable
 class SettingValues(private val schema: List<LyricSetting>, private val raw: Map<String, String>) {
     fun number(key: String): Float {
-        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Number ?: error("没有数字设置 $key")
+        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Number ?: error("No number setting named $key")
         return raw[key]?.toFloatOrNull()?.let(setting::clamp) ?: setting.default
     }
 
     fun toggle(key: String): Boolean {
-        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Toggle ?: error("没有开关设置 $key")
+        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Toggle ?: error("No switch setting named $key")
         return raw[key]?.toBooleanStrictOrNull() ?: setting.default
     }
 
     fun choice(key: String): String {
-        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Choice ?: error("没有选项设置 $key")
+        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Choice ?: error("No option setting named $key")
         return raw[key]?.takeIf { value -> setting.options.any { it.first == value } } ?: setting.default
     }
 
     fun slider(key: String): Float {
-        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Slider ?: error("没有滑块设置 $key")
+        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Slider ?: error("No slider setting named $key")
         return setting.parse(raw[key]) ?: setting.clamp(setting.default)
     }
 
     fun color(key: String): Color {
-        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Color ?: error("没有颜色设置 $key")
+        val setting = schema.firstOrNull { it.key == key } as? LyricSetting.Color ?: error("No color setting named $key")
         return setting.parse(raw[key]) ?: parseHexColor(setting.defaultHex) ?: Color.Black
     }
 

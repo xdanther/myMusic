@@ -76,7 +76,7 @@ fun PageScaffold(
     val navigation: @Composable () -> Unit = {
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
             }
         }
     }
@@ -145,7 +145,7 @@ private fun TvPageHeader(title: String, subtitle: String, onBack: (() -> Unit)?,
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
             }
         }
         Column(Modifier.weight(1f)) {

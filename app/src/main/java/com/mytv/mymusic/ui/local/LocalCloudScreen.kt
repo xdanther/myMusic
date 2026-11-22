@@ -169,7 +169,7 @@ internal fun cloudEntryName(entry: CloudEntry, localId: String?, index: LocalInd
             ?: index.refs[localId]?.fileName?.takeIf { it.isNotBlank() }
         if (original != null) return original.substringBeforeLast('.')
         val base = entry.fileName.substringBefore('.')
-        if (localId.endsWith(base, ignoreCase = true) && base.length >= 32) return "未命名 · ${base.take(8)}"
+        if (localId.endsWith(base, ignoreCase = true) && base.length >= 32) return "Untitled · ${base.take(8)}"
     }
     return entry.title.ifBlank { entry.fileName.substringBeforeLast('.') }
 }
@@ -211,7 +211,7 @@ internal fun cloudEntrySong(entry: CloudEntry, localId: String?, index: LocalInd
 
 /**
  * 云端视图（设计稿第 ③ 张）：网易云盘一张卡（容量条、多少首这台手机上没有文件），WebDAV 和 QQ 云盘各一行
- * （点开是各自的列表），下面列“网易云盘里，本机没有的”。没登录 / 没配置时引导去平台账号或连接 WebDAV。
+ * （点开是各自的列表），下面列“In the NetEase cloud drive, missing here”。没登录 / 没配置时引导去平台账号或Connect WebDAV。
  */
 internal fun LazyListScope.localCloudHeader(
     index: LocalIndex,
@@ -236,10 +236,10 @@ internal fun LazyListScope.localCloudHeader(
                 onClick = if (webDavReady) ({ onOpenList(CloudProvider.WebDav) }) else onConnectWebDav,
                 icon = Icons.Filled.Cloud,
                 summary = when {
-                    !webDavReady -> "还没有配置 · 点这里连接"
+                    !webDavReady -> "Not configured · tap to connect"
                     else -> listOfNotNull(
                         webDavLabel,
-                        "${webDavSlots.size} 首",
+                        "${webDavSlots.size} tracks",
                         webDavSlots.sumOf { it.fileSize }.takeIf { it > 0 }?.let(CloudMessages::formatSize),
                     ).joinToString(" · ")
                 },
@@ -251,9 +251,9 @@ internal fun LazyListScope.localCloudHeader(
                 count = 2,
                 onClick = if (qqReady) ({ onOpenList(CloudProvider.QqCloud) }) else onOpenAccounts,
                 leading = { ProviderIcon(id = "qq", name = CloudProvider.QqCloud.label, size = 40.dp) },
-                summary = if (qqReady) "只能读取，不能上传" else "还没登录 QQ 音乐 · 点这里去登录",
+                summary = if (qqReady) "Read only, no uploads" else "Not signed in to QQ Music · tap to sign in",
                 trailing = if (qqReady) {
-                    { Tag("只读", MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant) }
+                    { Tag("Read only", MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant) }
                 } else {
                     null
                 },
@@ -262,7 +262,7 @@ internal fun LazyListScope.localCloudHeader(
     }
 }
 
-/** “网易云盘里，本机没有的”：卡片下面的列表，分页读，最后一行“加载更多”。 */
+/** “In the NetEase cloud drive, missing here”：卡片下面的列表，分页读，最后一行“Load more”。 */
 internal fun LazyListScope.localCloudNeteaseList(
     index: LocalIndex,
     netease: CloudListState,
@@ -278,7 +278,7 @@ internal fun LazyListScope.localCloudNeteaseList(
         if (netease.loaded) {
             item(key = "cloud:none", contentType = "empty") {
                 Text(
-                    if (netease.entries.isEmpty()) "网易云盘里还没有歌。" else "网易云盘里的歌这台设备上都有文件。",
+                    if (netease.entries.isEmpty()) "No songs in the NetEase cloud drive yet." else "Every song in the NetEase cloud drive has a file on this device.",
                     Modifier.padding(start = 4.dp, top = 12.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -287,7 +287,7 @@ internal fun LazyListScope.localCloudNeteaseList(
         }
         return
     }
-    item(key = "cloud:absentHead", contentType = "header") { DayLabel("网易云盘里，本机没有的") }
+    item(key = "cloud:absentHead", contentType = "header") { DayLabel("In the NetEase cloud drive, missing here") }
     itemsIndexed(absent, key = { _, entry -> "cloud:n:${entry.id}" }, contentType = { _, _ -> "song" }) { position, entry ->
         val localId = links.localId(entry)
         CloudEntryRow(entry, localId, index, position, absent.size + if (netease.hasMore) 1 else 0, playing, onPlay, onDelete)
@@ -298,7 +298,7 @@ internal fun LazyListScope.localCloudNeteaseList(
                 onClick = onLoadMore,
                 enabled = !netease.loading,
                 modifier = Modifier.padding(top = 4.dp).tvFocusRing(RoundedCornerShape(20.dp)),
-            ) { Text(if (netease.loading) "正在加载…" else "加载更多") }
+            ) { Text(if (netease.loading) "Loading…" else "Load more") }
         }
     }
 }
@@ -314,7 +314,7 @@ private fun NeteaseCloudCard(index: LocalIndex, netease: CloudListState, nicknam
                 Column(Modifier.weight(1f)) {
                     Text(CloudProvider.NeteaseCloud.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
-                        if (ready) listOf("已登录", nickname).filter { it.isNotBlank() }.joinToString(" · ") else "还没登录网易云音乐",
+                        if (ready) listOf("Signed in", nickname).filter { it.isNotBlank() }.joinToString(" · ") else "Not signed in to NetEase Cloud Music",
                         style = MaterialTheme.typography.bodyMedium,
                         color = scheme.onSurfaceVariant,
                     )
@@ -322,13 +322,13 @@ private fun NeteaseCloudCard(index: LocalIndex, netease: CloudListState, nicknam
             }
             if (!ready) {
                 Text(
-                    "登录后，本地歌可以传到你自己的网易云盘，换设备也能播。",
+                    "After signing in, upload local songs to your own NetEase cloud drive and play them on any device.",
                     Modifier.padding(top = 10.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant,
                 )
                 Button(onClick = onOpenAccounts, modifier = Modifier.padding(top = 10.dp).tvFocusRing(RoundedCornerShape(24.dp))) {
-                    Text("去平台账号登录")
+                    Text("Sign in on the platform")
                 }
                 return@Column
             }
@@ -352,10 +352,10 @@ private fun NeteaseCloudCard(index: LocalIndex, netease: CloudListState, nicknam
             }
             val summary = when {
                 netease.error.isNotBlank() -> netease.error
-                total < 0 && netease.loading -> "正在读取…"
+                total < 0 && netease.loading -> "Reading…"
                 total < 0 -> ""
-                total == 0 -> "还没有歌"
-                else -> "$total 首，其中 ${(total - here).coerceAtLeast(0)} 首这台手机上没有文件"
+                total == 0 -> "No songs yet"
+                else -> "$total tracks, ${(total - here).coerceAtLeast(0)} of which have no file on this phone"
             }
             if (summary.isNotBlank()) {
                 Text(
@@ -385,8 +385,8 @@ private fun CloudEntryRow(
     val song = cloudEntrySong(entry, localId, index)
     val playable = entry.playable && song != null
     val reason = when {
-        !entry.playable -> entry.unplayableReason.ifBlank { "原文件暂不支持播放" }
-        song == null -> "没匹配上，暂时放不了"
+        !entry.playable -> entry.unplayableReason.ifBlank { "This file's format isn't playable yet" }
+        song == null -> "Not matched, can't play right now"
         else -> ""
     }
     // 对上了这台设备上的本地歌：歌手、封面也用本地歌的（WebDAV 条目本身没有这些）
@@ -413,7 +413,7 @@ private fun CloudEntryRow(
             dimmed = !playable,
             badges = {
                 PlatformBadge(
-                    if (provider == CloudProvider.QqCloud) "QQ 云盘" else provider.label,
+                    if (provider == CloudProvider.QqCloud) "QQ cloud drive" else provider.label,
                     if (playable) Availability.Playable else Availability.Unavailable,
                 )
             },
@@ -421,7 +421,7 @@ private fun CloudEntryRow(
         )
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, modifier = Modifier.align(Alignment.TopEnd)) {
             DropdownMenuItem(
-                text = { Text("从${if (provider == CloudProvider.WebDav) " WebDAV " else provider.label}删除", color = MaterialTheme.colorScheme.error) },
+                text = { Text("Delete from ${if (provider == CloudProvider.WebDav) " WebDAV " else provider.label}", color = MaterialTheme.colorScheme.error) },
                 leadingIcon = { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) },
                 onClick = {
                     menu = false
@@ -481,7 +481,7 @@ internal class CloudEntryActions(
         } catch (cancel: CancellationException) {
             throw cancel
         } catch (failure: Exception) {
-            error = failure.message?.takeIf { it.isNotBlank() } ?: "删除失败"
+            error = failure.message?.takeIf { it.isNotBlank() } ?: "Delete failed"
         }
     }
 }
@@ -502,13 +502,13 @@ internal fun CloudDeleteConfirm(entryActions: CloudEntryActions, index: LocalInd
     val provider = CloudProvider.of(entry.provider) ?: return
     val where = if (provider == CloudProvider.WebDav) " WebDAV " else provider.label
     ConfirmDialog(
-        title = "从${where}删除「${cloudEntryName(entry, localId, index)}」？",
+        title = "Delete '${cloudEntryName(entry, localId, index)}' from ${where}?",
         message = if (localId != null) {
-            "只删云端这一份。本机文件和歌单里的这首都不受影响；其他设备会改用本机文件或平台版本播放。"
+            "Deletes only this cloud copy. Local files and this track in playlists are unaffected; other devices will play the local file or a platform version."
         } else {
-            "删掉后${where}里就没有这个文件了。这台设备上的本地音乐不受影响。"
+            "This file will be gone from ${where}. Local music on this device is unaffected."
         },
-        confirmLabel = "删除",
+        confirmLabel = "Delete",
         danger = true,
         onConfirm = {
             scope.launch {
@@ -549,8 +549,8 @@ fun LocalCloudListScreen(
         subtitle = when {
             !configured -> ""
             provider == CloudProvider.WebDav -> webDav?.let(::webDavTargetLabel).orEmpty()
-            provider == CloudProvider.QqCloud -> "只能读取，不能上传" + if (list.total >= 0) " · ${list.total} 首" else ""
-            list.total >= 0 -> "${list.total} 首"
+            provider == CloudProvider.QqCloud -> "Read only, no uploads" + if (list.total >= 0) " · ${list.total} tracks" else ""
+            list.total >= 0 -> "${list.total} tracks"
             else -> ""
         },
         onBack = onBack,
@@ -559,13 +559,13 @@ fun LocalCloudListScreen(
             !configured -> CenteredEmpty(padding) {
                 EmptyState(
                     icon = Icons.Filled.CloudOff,
-                    title = if (provider == CloudProvider.WebDav) "还没有配置 WebDAV" else "还没登录",
+                    title = if (provider == CloudProvider.WebDav) "WebDAV isn't configured" else "Not signed in",
                     message = when (provider) {
-                        CloudProvider.WebDav -> "连接自己的 WebDAV 服务器后，本地歌可以传上去，换设备也能播。"
-                        CloudProvider.QqCloud -> "登录 QQ 音乐后可以看云盘里的歌。QQ 音乐云盘只能读取，不能上传。"
-                        CloudProvider.NeteaseCloud -> "登录网易云音乐后可以看云盘里的歌、把本地歌传上去。"
+                        CloudProvider.WebDav -> "Connect your own WebDAV server to upload local songs and play them on any device."
+                        CloudProvider.QqCloud -> "Sign in to QQ Music to browse its cloud drive. The QQ cloud drive is read only."
+                        CloudProvider.NeteaseCloud -> "Sign in to NetEase Cloud Music to browse the cloud drive and upload local songs."
                     },
-                    actionLabel = if (provider == CloudProvider.WebDav) "连接 WebDAV" else "去平台账号登录",
+                    actionLabel = if (provider == CloudProvider.WebDav) "Connect WebDAV" else "Sign in on the platform",
                     onAction = if (provider == CloudProvider.WebDav) onConnectWebDav else onOpenAccounts,
                 )
             }
@@ -575,8 +575,8 @@ fun LocalCloudListScreen(
             list.loaded && list.entries.isEmpty() -> CenteredEmpty(padding) {
                 EmptyState(
                     icon = Icons.Filled.Cloud,
-                    title = "${provider.label}里还没有歌",
-                    message = if (provider.canUpload) "在本地音乐里选歌上传，传完会出现在这里。" else "在 QQ 音乐里上传到云盘的歌会出现在这里。",
+                    title = "No songs in ${provider.label} yet",
+                    message = if (provider.canUpload) "Pick songs in local music to upload; they appear here afterwards." else "Songs uploaded to the QQ Music cloud drive appear here.",
                 )
             }
             else -> LazyColumn(
@@ -591,7 +591,7 @@ fun LocalCloudListScreen(
                             TextButton(
                                 onClick = { (context.applicationContext as? MyMusicApp)?.let { scope.launch { list.load(it, reset = !list.loaded) } } },
                                 modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                            ) { Text("重试") }
+                            ) { Text("Retry") }
                         }
                     }
                 }
@@ -614,7 +614,7 @@ fun LocalCloudListScreen(
                             onClick = { (context.applicationContext as? MyMusicApp)?.let { scope.launch { list.load(it, reset = false) } } },
                             enabled = !list.loading,
                             modifier = Modifier.padding(top = 4.dp).tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text(if (list.loading) "正在加载…" else "加载更多") }
+                        ) { Text(if (list.loading) "Loading…" else "Load more") }
                     }
                 }
             }
@@ -624,7 +624,7 @@ fun LocalCloudListScreen(
 }
 
 /** 本地音乐页里的“本机 / 云端”两个视图。 */
-internal enum class LocalView(val label: String) { Device("本机"), Cloud("云端") }
+internal enum class LocalView(val label: String) { Device("This device"), Cloud("Cloud") }
 
 /** 页顶的连接按钮组，两个视图共用。 */
 @Composable

@@ -152,7 +152,7 @@ fun widgetSizes(): List<DpSize> {
     return listOf(DpSize(minW.dp, maxH.dp), DpSize(maxW.dp, minH.dp))
 }
 
-/** 打开 App 首页（空状态的“打开 myMusic”）。 */
+/** 打开 App 首页（空状态的“Open myMusic”）。 */
 @Composable
 fun launchAppAction(): Action {
     val context = LocalContext.current

@@ -53,22 +53,22 @@ fun providerIcon(id: String): Int? = when (id) {
 /** 只有平台名时（歌的来源字段、没拿到 ProviderInfo 的调用点）按关键词认图标。 */
 @DrawableRes
 fun providerIconByName(name: String): Int? = when {
-    name.contains("网易") -> R.drawable.ic_provider_netease
+    name.contains("NetEase") -> R.drawable.ic_provider_netease
     name.contains("QQ", ignoreCase = true) -> R.drawable.ic_provider_qq
-    name.contains("酷狗") -> R.drawable.ic_provider_kugou
-    name.contains("酷我") -> R.drawable.ic_provider_kuwo
-    name.contains("咪咕") -> R.drawable.ic_provider_migu
+    name.contains("Kugou") -> R.drawable.ic_provider_kugou
+    name.contains("Kuwo") -> R.drawable.ic_provider_kuwo
+    name.contains("Migu") -> R.drawable.ic_provider_migu
     name.contains("Apple", ignoreCase = true) -> R.drawable.ic_provider_apple
-    name.contains("汽水") -> R.drawable.ic_provider_soda
+    name.contains("Soda") -> R.drawable.ic_provider_soda
     name.startsWith("Bili", ignoreCase = true) -> R.drawable.ic_provider_bilibili
     name.contains("JOOX", ignoreCase = true) -> R.drawable.ic_provider_joox
     name.contains("5sing", ignoreCase = true) -> R.drawable.ic_provider_fivesing
-    name.contains("千千") -> R.drawable.ic_provider_qianqian
+    name.contains("Qianqian") -> R.drawable.ic_provider_qianqian
     name.contains("Jamendo", ignoreCase = true) -> R.drawable.ic_provider_jamendo
     name.contains("Spotify", ignoreCase = true) -> R.drawable.ic_provider_spotify
     name.contains("YouTube", ignoreCase = true) -> R.drawable.ic_provider_youtubemusic
     name.contains("MHub", ignoreCase = true) || name.contains("op.wiki", ignoreCase = true) -> R.drawable.ic_provider_mhub
-    name.contains("云听") -> R.drawable.ic_provider_yunting
+    name.contains("Yunting") -> R.drawable.ic_provider_yunting
     else -> null
 }
 

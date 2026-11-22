@@ -15,9 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 // 2026-11-09 myMusic 改写：Rush 7.2.1 的歌词页（LyricsPage 里画歌词和背景的部分）做成 myMusic 的一种全屏歌词动画。
-// 设置照 LyricsPrefs 取跟全屏歌词有关的 7 项：背景（六种拆成“背景”和“律动样式”两行）、配色（自定义取色器换成“播放页”）、
-// 对齐、字号、景深模糊、逐字粗细；行高、字距保持 Rush 默认（32sp / 0）。页头、分享卡片、LRCLIB 纠错、播放键发光不搬。
-// 2026-11-18 myMusic 改动：景深模糊从开关改成强度滑块（关 · 弱 · 中 · 强，0–1.5 倍），旧的开关值读成 0 或 1。
+// 设置照 LyricsPrefs 取跟全屏歌词有关的 7 项：背景（六种拆成“背景”和“Rhythm style”两行）、配色（自定义取色器换成“播放页”）、
+// 对齐、字号、Depth blur、Per-character weight；行高、字距保持 Rush 默认（32sp / 0）。页头、分享卡片、LRCLIB 纠错、播放键发光不搬。
+// 2026-11-18 myMusic 改动：Depth blur从开关改成强度滑块（关 · 弱 · 中 · 强，0–1.5 倍），旧的开关值读成 0 或 1。
 // 2026-11-18 myMusic 改动：配色加回“自定义”，选了以后多出“背景”“文字”两个色块（取色面板见 ColorPickerSheet）；
 // 上面“自定义取色器换成播放页”那句不再成立，播放页配色保留。
 package com.mytv.mymusic.ui.player.stage.modes
@@ -48,7 +48,7 @@ import kotlin.math.roundToInt
 object RushVisualizer : LyricVisualizer {
     override val id = "rush"
     override val label = "Rush"
-    override val origin = ModOrigin("Rush", "7.2.1", "shub39", "GPL-3.0", kind = "应用")
+    override val origin = ModOrigin("Rush", "7.2.1", "shub39", "GPL-3.0", kind = "Apply")
     override val order = 1
 
     /** 行高、字距保持 Rush 默认。 */
@@ -57,7 +57,7 @@ object RushVisualizer : LyricVisualizer {
     override val hostSubtitles = false
     override val interactive = true
 
-    /** 景深模糊的默认值随设备（电视、低内存、Android 12 以下默认关），两份表各建一次，设置值的表身份不变。 */
+    /** Depth blur的默认值随设备（电视、低内存、Android 12 以下默认关），两份表各建一次，设置值的表身份不变。 */
     override val settings: List<LyricSetting>
         get() = if (StageDevice.liveBlur) SETTINGS_BLUR_ON else SETTINGS_BLUR_OFF
 
@@ -114,21 +114,21 @@ private fun RushLook.palette(ctx: LyricStageContext): RushPalette = rushPalette(
 private fun rushSettings(blurDefault: Boolean): List<LyricSetting> = listOf(
     LyricSetting.Choice(
         RUSH_KEY_BACKGROUND,
-        "背景",
-        listOf(RUSH_BG_SOLID to "纯色", RUSH_BG_COVER to "封面", RUSH_BG_HYPNOTIC to "流光", RUSH_BG_RHYTHM to "律动"),
+        "Background",
+        listOf(RUSH_BG_SOLID to "Solid", RUSH_BG_COVER to "Cover", RUSH_BG_HYPNOTIC to "Light trails", RUSH_BG_RHYTHM to "Rhythm"),
         RUSH_BG_SOLID,
     ),
     LyricSetting.Choice(
         RUSH_KEY_RHYTHM,
-        "律动样式",
-        listOf(RUSH_RHYTHM_WAVE to "波浪", RUSH_RHYTHM_GRADIENT to "渐变", RUSH_RHYTHM_CURVE to "条纹"),
+        "Rhythm style",
+        listOf(RUSH_RHYTHM_WAVE to "Waves", RUSH_RHYTHM_GRADIENT to "Gradient", RUSH_RHYTHM_CURVE to "Stripes"),
         RUSH_RHYTHM_WAVE,
-        summary = "背景选“律动”时生效",
+        summary = "Applies when the Rhythm background is selected",
     ),
     LyricSetting.Choice(
         RUSH_KEY_COLORS,
-        "配色",
-        listOf(RUSH_COLORS_VIBRANT to "鲜艳", RUSH_COLORS_MUTED to "柔和", RUSH_COLORS_PLAYER to "播放页", RUSH_COLORS_CUSTOM to "自定义"),
+        "Colors",
+        listOf(RUSH_COLORS_VIBRANT to "Vivid", RUSH_COLORS_MUTED to "Soft", RUSH_COLORS_PLAYER to "Player", RUSH_COLORS_CUSTOM to "Custom"),
         RUSH_COLORS_VIBRANT,
         // 随机搭配不抽“自定义”：抽到了也只是沿用上次的两个颜色
         shuffleExclude = setOf(RUSH_COLORS_CUSTOM),
@@ -136,54 +136,54 @@ private fun rushSettings(blurDefault: Boolean): List<LyricSetting> = listOf(
     // 切到“自定义”的那一下按封面的鲜艳色和它的文字色种初值，画面不跳
     LyricSetting.Color(
         RUSH_KEY_CUSTOM_BACKGROUND,
-        "背景",
+        "Background",
         RUSH_CUSTOM_BACKGROUND_HEX,
         seed = { it.coverVibrant },
         visibleWhen = SettingCondition(RUSH_KEY_COLORS, setOf(RUSH_COLORS_CUSTOM)),
     ),
     LyricSetting.Color(
         RUSH_KEY_CUSTOM_TEXT,
-        "文字",
+        "Text",
         RUSH_CUSTOM_TEXT_HEX,
         seed = { it.onCoverVibrant },
         visibleWhen = SettingCondition(RUSH_KEY_COLORS, setOf(RUSH_COLORS_CUSTOM)),
     ),
     LyricSetting.Choice(
         RUSH_KEY_ALIGN,
-        "对齐",
-        listOf(RUSH_ALIGN_START to "左", RUSH_ALIGN_CENTER to "中", RUSH_ALIGN_END to "右"),
+        "Alignment",
+        listOf(RUSH_ALIGN_START to "Left", RUSH_ALIGN_CENTER to "Medium", RUSH_ALIGN_END to "Right"),
         RUSH_ALIGN_START,
     ),
-    LyricSetting.Number(RUSH_KEY_SIZE, "字号", 0.8f, 1.4f, 0.1f, 1f),
+    LyricSetting.Number(RUSH_KEY_SIZE, "Size", 0.8f, 1.4f, 0.1f, 1f),
     // “中”就是原来开着时的强度；电视、低内存、Android 12 以下默认关
     LyricSetting.Slider(
         RUSH_KEY_BLUR,
-        "景深模糊",
+        "Depth blur",
         0f,
         RUSH_BLUR_DEPTH_MAX,
         default = if (blurDefault) 1f else 0f,
         ticks = listOf(0f, 0.5f, 1f, RUSH_BLUR_DEPTH_MAX),
-        tickLabels = listOf("关", "弱", "中", "强"),
+        tickLabels = listOf("Off", "Light", "Medium", "Strong"),
         format = ::rushBlurLabel,
         legacyToggle = 0f to 1f,
         minSdk = 31,
-        summary = "离当前句越远越模糊，拖动歌词时取消；Android 12 起",
+        summary = "Lines further from the current one blur more, suspended while dragging lyrics; Android 12 and later",
     ),
-    LyricSetting.Toggle(RUSH_KEY_EXPRESSIVE, "逐字粗细", false, summary = "唱得越长的字越粗；需要字体有字重轴"),
+    LyricSetting.Toggle(RUSH_KEY_EXPRESSIVE, "Per-character weight", false, summary = "Longer-sung characters get bolder; the font needs a weight axis"),
 )
 
 /**
  * 景深滑块的读数：“关”，或“中 · 每离一句多 3.0dp，最多 10dp”（[depth] 是强度倍数，见 [rushBlurDp]）。
  */
 internal fun rushBlurLabel(depth: Float): String {
-    if (depth <= RUSH_BLUR_OFF) return "关"
+    if (depth <= RUSH_BLUR_OFF) return "Off"
     val level = when {
-        depth < 0.75f -> "弱"
-        depth < 1.25f -> "中"
-        else -> "强"
+        depth < 0.75f -> "Light"
+        depth < 1.25f -> "Medium"
+        else -> "Strong"
     }
     val step = String.format(Locale.ROOT, "%.1f", RUSH_BLUR_STEP_DP * depth)
-    return "$level · 每离一句多 ${step}dp，最多 ${(RUSH_BLUR_MAX_DP * depth).roundToInt()}dp"
+    return "$level · ${step}dp more per line away, up to ${(RUSH_BLUR_MAX_DP * depth).roundToInt()}dp"
 }
 
 private val SETTINGS_BLUR_ON = rushSettings(blurDefault = true)

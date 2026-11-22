@@ -37,7 +37,7 @@ import com.mytv.mymusic.ui.library.rememberWebDavFormState
 import com.mytv.mymusic.ui.library.withGutter
 import kotlinx.coroutines.launch
 
-/** 只给上传用的 WebDAV 账号（设置 › 本地音乐 › WebDAV 服务器）。 */
+/** 只给上传用的 WebDAV 账号（设置 › 本地音乐 › WebDAV server）。 */
 const val LOCAL_WEBDAV_ROUTE = "localMusic/webdav"
 
 /**
@@ -65,8 +65,8 @@ fun LocalWebDavScreen(
     val saved = sync.webDav
     TvDefaultFocus(first, syncUsesWebDav)
     PageScaffold(
-        title = "WebDAV 服务器",
-        subtitle = saved?.let(::webDavTargetLabel) ?: "放上传的本地歌",
+        title = "WebDAV server",
+        subtitle = saved?.let(::webDavTargetLabel) ?: "For uploaded local songs",
         onBack = onBack,
     ) { padding ->
         LazyColumn(
@@ -77,24 +77,24 @@ fun LocalWebDavScreen(
             if (syncUsesWebDav) {
                 item(key = "shared", contentType = "note") {
                     Column {
-                        InfoNote("音乐库同步正在用这个 WebDAV 账号，上传的歌也放在同一个目录下。要改地址或密码，到音乐库同步里改。")
+                        InfoNote("Library sync uses this WebDAV account and uploaded songs share the same directory. Change the address or password in library sync.")
                         TextButton(
                             onClick = onOpenSyncWebDav,
                             modifier = Modifier.padding(top = 4.dp).tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text("去音乐库同步") }
+                        ) { Text("Open library sync") }
                     }
                 }
                 return@LazyColumn
             }
             item(key = "what", contentType = "note") {
                 InfoNote(
-                    "上传的歌放在这个目录下的 music/ 里，按文件指纹命名。WebDAV 密码用 Android Keystore 加密，只存在本机，" +
-                        "不进同步文件。以后在音乐库同步里选 WebDAV，会直接用这个账号。",
+                    "Uploaded songs go into music/ under this directory, named by file fingerprint. The WebDAV password is encrypted with the Android Keystore and stays on this device," +
+                        "never in the sync file. Choosing WebDAV in library sync later uses this same account.",
                 )
             }
             if (window.isTv) {
                 item(key = "tv", contentType = "note") {
-                    InfoNote("电视上输入密码不方便：也可以在音乐库同步里选 WebDAV，用手机扫码填好，是同一个账号。")
+                    InfoNote("Typing a password on TV is awkward: you can also choose WebDAV in library sync and fill it in by scanning with your phone; it's the same account.")
                 }
             }
             item(key = "form", contentType = "form") {
@@ -114,7 +114,7 @@ fun LocalWebDavScreen(
                                 if (message.isBlank()) {
                                     // 保存后有排在 WebDAV 上、因为没配置而停下的上传：接着传
                                     app.localUploads.resume(com.mytv.mymusic.data.cloud.CloudProvider.WebDav)
-                                    snackbar.showSnackbar("WebDAV 已保存，上传的歌会放在这里")
+                                    snackbar.showSnackbar("WebDAV saved; uploaded songs go here")
                                     onBack()
                                 } else {
                                     error = message
@@ -130,7 +130,7 @@ fun LocalWebDavScreen(
                         TextButton(
                             onClick = { confirmRemove = true },
                             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text("删除这个 WebDAV 账号", color = MaterialTheme.colorScheme.error) }
+                        ) { Text("Delete this WebDAV account", color = MaterialTheme.colorScheme.error) }
                     }
                 }
             }
@@ -138,14 +138,14 @@ fun LocalWebDavScreen(
     }
     if (confirmRemove) {
         ConfirmDialog(
-            title = "删除 WebDAV 账号？",
-            message = "只删这台设备上保存的地址和密码。已经传上去的歌还在服务器上，歌单里的这些歌在其它设备上照常能播。",
-            confirmLabel = "删除",
+            title = "Delete the WebDAV account?",
+            message = "Only the address and password on this device are deleted. Uploaded songs stay on the server and play normally on other devices.",
+            confirmLabel = "Delete",
             danger = true,
             onConfirm = {
                 scope.launch {
                     app.sync.removeWebDavStorage()
-                    snackbar.showSnackbar("已删除 WebDAV 账号")
+                    snackbar.showSnackbar("WebDAV account deleted")
                     onBack()
                 }
             },

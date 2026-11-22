@@ -40,17 +40,17 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
         viewModelScope.launch { LxSources.updateNotices.collect { mutableNotice.value = it.firstOrNull() } }
     }
 
-    fun importOnline(url: String, onSuccess: () -> Unit) = operate("import", "音源已添加", onSuccess) {
+    fun importOnline(url: String, onSuccess: () -> Unit) = operate("import", "Source added", onSuccess) {
         LxSources.importOnline(url)
     }
 
     fun importLocal(uri: Uri, replaceId: String? = null, onSuccess: () -> Unit) =
-        operate(if (replaceId == null) "import" else "update:$replaceId", if (replaceId == null) "音源已添加" else "音源已更新", onSuccess) {
+        operate(if (replaceId == null) "import" else "update:$replaceId", if (replaceId == null) "Source added" else "Source updated", onSuccess) {
             val script = readScript(uri)
             LxSources.importLocal(script, replaceId)
         }
 
-    fun update(record: LxSourceRecord) = operate("update:${record.id}", "音源已更新") {
+    fun update(record: LxSourceRecord) = operate("update:${record.id}", "Source updated") {
         LxSources.update(record)
     }
 
@@ -62,7 +62,7 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
         LxSources.move(record.id, delta)
     }
 
-    fun delete(record: LxSourceRecord) = operate("delete:${record.id}", "已删除 ${record.name}") {
+    fun delete(record: LxSourceRecord) = operate("delete:${record.id}", "Deleted ${record.name}") {
         LxSources.delete(record.id)
     }
 
@@ -76,9 +76,9 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
             val media = LxSources.probeStream(result.stream)
             val elapsed = (System.currentTimeMillis() - started) / 1000.0
             val platform = LxPlatform.labels[LxPlatform.sourceKey(song.source)].orEmpty()
-            val quality = result.quality.ifBlank { "默认音质" }
+            val quality = result.quality.ifBlank { "Default quality" }
             mutableOperations.update {
-                it.copy(tests = it.tests + (record.id to "媒体读取成功 · $platform · $quality · ${"%.1f".format(elapsed)} 秒\n${song.title}\n$media"))
+                it.copy(tests = it.tests + (record.id to "Media read successfully · $platform · $quality · ${"%.1f".format(elapsed)} s\n${song.title}\n$media"))
             }
         }
 
@@ -94,7 +94,7 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
             val provider = LxPlatform.providerId(source) ?: continue
             if (record.capabilities[source]?.actions?.contains("musicUrl") != true) continue
             try {
-                val song = app.repository.searchSongs(provider, cookies[provider].orEmpty(), "晴天")
+                val song = app.repository.searchSongs(provider, cookies[provider].orEmpty(), "Sunny Day")
                     .firstOrNull { !it.isInvalid && it.id.isNotBlank() }
                 if (song != null) return song
             } catch (error: CancellationException) {
@@ -104,8 +104,8 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
             }
         }
         throw IllegalStateException(
-            if (failures.isEmpty()) "没有找到测试歌曲，请先播放一首该音源支持平台的歌曲"
-            else "测试歌曲搜索失败，请先播放一首该音源支持平台的歌曲",
+            if (failures.isEmpty()) "No test song found; play a song from a platform this source supports first"
+            else "Test song search failed; play a song from a platform this source supports first",
         )
     }
 
@@ -118,11 +118,11 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
                 val count = input.read(buffer)
                 if (count < 0) break
                 total += count
-                if (total > MAX_SCRIPT_BYTES) throw IllegalArgumentException("脚本超过 2 MB，无法导入")
+                if (total > MAX_SCRIPT_BYTES) throw IllegalArgumentException("The script is over 2 MB and can't be imported")
                 output.write(buffer, 0, count)
             }
             output.toByteArray()
-        } ?: throw IllegalArgumentException("无法读取所选文件")
+        } ?: throw IllegalArgumentException("Couldn't read the selected file")
         decodeUtf8(bytes)
     }
 
@@ -139,7 +139,7 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
         }
         viewModelScope.launch {
             try {
-                withTimeoutOrNull(120_000) { block() } ?: throw IllegalStateException("操作超时，请稍后重试")
+                withTimeoutOrNull(120_000) { block() } ?: throw IllegalStateException("Action timed out; try again later")
                 if (key.startsWith("update:")) {
                     mutableOperations.update { it.copy(tests = it.tests - key.substringAfter(':')) }
                 }
@@ -148,7 +148,7 @@ internal class LxSourcesViewModel(application: Application) : AndroidViewModel(a
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                val message = error.message?.lineSequence()?.firstOrNull()?.take(500) ?: "操作失败"
+                val message = error.message?.lineSequence()?.firstOrNull()?.take(500) ?: "Action failed"
                 mutableOperations.update { it.copy(errors = it.errors + (key to message)) }
             } finally {
                 mutableOperations.update { it.copy(busy = it.busy - key) }

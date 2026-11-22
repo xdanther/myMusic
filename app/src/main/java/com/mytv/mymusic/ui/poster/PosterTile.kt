@@ -128,11 +128,11 @@ internal fun tileStyleFor(kind: WallKind): TileStyle = when (kind) {
 /** 序号小牌上的字：两位起，不够补零。 */
 internal fun wallBadgeText(index: Int): String = (index + 1).toString().padStart(2, '0')
 
-/** 读屏文案：“第 3 首，独上西楼，邓丽君，正在播放”。 */
+/** 读屏文案：“第 3 首，独上西楼，邓丽君, now playing”。 */
 internal fun tileDescription(index: Int, song: Song, current: Boolean): String = buildString {
-    append("第 ").append(index + 1).append(" 首，").append(song.title)
+    append("No. ").append(index + 1).append(" tracks,").append(song.title)
     if (song.artist.isNotBlank()) append("，").append(song.artist)
-    if (current) append("，正在播放")
+    if (current) append(", now playing")
 }
 
 /** 关灯时压 82% 黑：除了正在播放的那张大卡，其余都压，焦点格也一样（原型里关灯压过焦点）。 */
@@ -393,11 +393,11 @@ private fun SongTile(
         val description = tileDescription(index, song, current)
         Modifier.clearAndSetSemantics {
             contentDescription = description
-            onClick(label = "放大") {
+            onClick(label = "Zoom in") {
                 wall.growTile(anim.pos)
                 true
             }
-            onLongClick(label = "歌曲操作") {
+            onLongClick(label = "Track actions") {
                 wall.onLongPress(index, false)
                 true
             }

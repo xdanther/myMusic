@@ -85,32 +85,32 @@ internal enum class WebDavPreset(
     val passwordHint: String,
 ) {
     Jianguoyun(
-        "坚果云",
+        "Nutstore",
         "https://dav.jianguoyun.com/dav/",
-        "坚果云的地址固定是这个，不用改",
-        "应用密码",
-        "坚果云要用“安全选项 › 第三方应用管理”里生成的应用密码，不是登录密码。密码用 Android Keystore 加密，只存本机。",
+        "Nutstore's URL is fixed; no need to change it",
+        "App password",
+        "For Nutstore use an app password from Security options › Third-party app management, not your login password. Passwords are encrypted with the Android Keystore and kept on this device.",
     ),
     Nextcloud(
         "Nextcloud",
         "https://",
-        "形如 https://你的域名/remote.php/dav/files/用户名/",
-        "应用密码",
-        "开了两步验证时，要在 Nextcloud“设置 › 安全”里生成应用密码。密码用 Android Keystore 加密，只存本机。",
+        "Like https://your-domain/remote.php/dav/files/username/",
+        "App password",
+        "With two-factor auth enabled, generate an app password in Nextcloud Settings › Security. Passwords are encrypted with the Android Keystore and kept on this device.",
     ),
     Synology(
-        "群晖",
+        "Synology",
         "https://",
-        "形如 https://NAS 地址:5006/，需要先在套件中心装好 WebDAV Server",
-        "密码",
-        "群晖账号的密码。密码用 Android Keystore 加密，只存本机。",
+        "Like https://NAS-address:5006/; install WebDAV Server in Package Center first",
+        "Password",
+        "Your Synology account password. Passwords are encrypted with the Android Keystore and kept on this device.",
     ),
     Other(
-        "其它",
+        "Other",
         "",
-        "WebDAV 服务器的完整地址",
-        "密码",
-        "密码用 Android Keystore 加密，只存本机，不会写进同步文件。",
+        "Full WebDAV server URL",
+        "Password",
+        "Passwords are encrypted with the Android Keystore, kept on this device and never written to the sync file.",
     );
 
     companion object {
@@ -193,7 +193,7 @@ internal class WebDavSaveAction(val busy: Boolean, val error: String, val onSave
 
 /**
  * WebDAV 表单（设计稿 ⑫）：服务商标签、地址、用户名、密码、目录、自签名证书开关，
- * “测试连接”和“连接并同步”。测试结果写在按钮下方。[save] 不为空时主按钮是“保存”（只给上传用）。
+ * “Test connection”和“Connect and sync”。测试结果写在按钮下方。[save] 不为空时主按钮是“保存”（只给上传用）。
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -238,14 +238,14 @@ internal fun WebDavForm(
         onValueChange = { form.url = it.trim() },
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).focusRequester(firstFocus).tvFocusRing(RoundedCornerShape(4.dp)),
         singleLine = true,
-        label = { Text("服务器地址") },
+        label = { Text("Server address") },
         leadingIcon = { Icon(Icons.Filled.Link, null) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
         isError = form.url.isNotBlank() && form.url != form.preset.url && parsedUrl == null,
         supportingText = {
             when {
-                cleartext -> Text("这是 http 地址，密码会明文传输。能用 https 就用 https。", color = MaterialTheme.colorScheme.tertiary)
-                form.url.isNotBlank() && form.url != form.preset.url && parsedUrl == null -> Text("地址格式不对")
+                cleartext -> Text("This is an http address, so the password travels in plain text. Use https whenever possible.", color = MaterialTheme.colorScheme.tertiary)
+                form.url.isNotBlank() && form.url != form.preset.url && parsedUrl == null -> Text("Wrong URL format")
                 else -> Text(form.preset.urlHint)
             }
         },
@@ -255,7 +255,7 @@ internal fun WebDavForm(
         onValueChange = { form.username = it },
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp).tvFocusRing(RoundedCornerShape(4.dp)),
         singleLine = true,
-        label = { Text("用户名") },
+        label = { Text("Username") },
         leadingIcon = { Icon(Icons.Filled.Person, null) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
     )
@@ -265,13 +265,13 @@ internal fun WebDavForm(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).tvFocusRing(RoundedCornerShape(4.dp)),
         singleLine = true,
         label = { Text(form.preset.passwordLabel) },
-        placeholder = if (reusePassword) ({ Text("已保存，留空沿用") }) else null,
+        placeholder = if (reusePassword) ({ Text("Saved; leave empty to keep it") }) else null,
         leadingIcon = { Icon(Icons.Filled.Lock, null) },
         trailingIcon = {
             IconButton(onClick = { showPassword = !showPassword }) {
                 Icon(
                     if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                    if (showPassword) "隐藏密码" else "显示密码",
+                    if (showPassword) "Hide password" else "Show password",
                 )
             }
         },
@@ -279,7 +279,7 @@ internal fun WebDavForm(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
         // 占位文字要点进输入框才看得到，“留空沿用”写在下方提示里
         supportingText = {
-            Text(if (reusePassword) "已保存过密码，留空就沿用。${form.preset.passwordHint}" else form.preset.passwordHint)
+            Text(if (reusePassword) "A password is saved; leave empty to keep it. ${form.preset.passwordHint}" else form.preset.passwordHint)
         },
     )
     OutlinedTextField(
@@ -287,20 +287,20 @@ internal fun WebDavForm(
         onValueChange = { form.directory = it },
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp).tvFocusRing(RoundedCornerShape(4.dp)),
         singleLine = true,
-        label = { Text("目录") },
+        label = { Text("Directory") },
         placeholder = { Text(WebDavPaths.DEFAULT_DIRECTORY) },
         leadingIcon = { Icon(Icons.Filled.Folder, null) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        supportingText = { Text("同步文件和上传的歌都放在这个目录下，没有会自动建") },
+        supportingText = { Text("The sync file and uploaded songs live in this directory, created automatically if missing") },
     )
     Box(Modifier.padding(top = 8.dp)) {
         SwitchRow(
-            title = "信任自签名证书",
+            title = "Trust self-signed certificate",
             checked = form.trustSelfSigned,
             onCheckedChange = { form.trustSelfSigned = it },
             index = 0,
             count = 1,
-            summary = "只在自己架的服务器上打开",
+            summary = "Enable only for a server you run yourself",
         )
     }
     if (lanBlocked) {
@@ -324,7 +324,7 @@ internal fun WebDavForm(
                 LoadingIndicator(Modifier.size(20.dp))
                 Spacer(Modifier.width(6.dp))
             }
-            Text(if (check?.running == true) "正在测试…" else "测试连接", maxLines = 1)
+            Text(if (check?.running == true) "Testing…" else "Test connection", maxLines = 1)
         }
         // 测试读到的证书跟着连接一起交上去：用户看过哪张就钉哪张，连接时服务器换了一张会被拦下
         val certificateChanged = check?.certificateChanged == true
@@ -342,16 +342,16 @@ internal fun WebDavForm(
             if (syncing) {
                 LoadingIndicator(Modifier.size(22.dp), color = MaterialTheme.colorScheme.onPrimary)
                 Spacer(Modifier.width(8.dp))
-                Text(if (save != null) "正在保存…" else "正在连接…", maxLines = 1)
+                Text(if (save != null) "Saving…" else "Connecting…", maxLines = 1)
             } else {
                 Icon(Icons.Filled.Cloud, null, Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
                     when {
-                        save != null && certificateChanged -> "信任新证书并保存"
-                        save != null -> "保存"
-                        certificateChanged -> "信任新证书并连接"
-                        else -> "连接并同步"
+                        save != null && certificateChanged -> "Trust the new certificate and save"
+                        save != null -> "Save"
+                        certificateChanged -> "Trust the new certificate and connect"
+                        else -> "Connect and sync"
                     },
                     maxLines = 1,
                 )
@@ -372,7 +372,7 @@ internal fun WebDavForm(
     }
     if (sync.initialMerge != null) {
         Box(Modifier.padding(top = 12.dp)) {
-            InfoNote("WebDAV 目录里已有同步文件，本机也有歌单，请选择首次合并方式。", "amber")
+            InfoNote("The WebDAV directory already has a sync file and this device has playlists; choose how to merge them the first time.", "amber")
         }
     }
 }
@@ -441,14 +441,14 @@ private fun LocalNetworkBlockedNote() {
     ) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
-                "这是局域网里的服务器。Android 17 需要允许「附近的设备」权限，才能连上局域网地址。",
+                "This server is on your local network. Android 17 needs the nearby devices permission to reach local addresses.",
                 style = MaterialTheme.typography.bodyMedium,
             )
             TextButton(
                 onClick = { LocalNetworkAccess.openSettings(context) },
                 modifier = Modifier.padding(top = 4.dp).tvFocusRing(RoundedCornerShape(20.dp)),
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onErrorContainer),
-            ) { Text("去设置") }
+            ) { Text("Open settings") }
         }
     }
 }

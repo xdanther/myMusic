@@ -32,7 +32,7 @@ import com.mytv.mymusic.ui.player.withLyricFont
  */
 object AuroraVisualizer : LyricVisualizer {
     override val id = "aurora"
-    override val label = "虹光"
+    override val label = "Aurora"
     override val origin = ModOrigin("sample-aurora-visualizer", "1.0.1", "Folia", "AGPL-3.0")
     override val order = 10
 

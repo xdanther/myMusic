@@ -54,7 +54,7 @@ class NeteaseFingerprinter(context: Context) {
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
                     result.completeExceptionally(
-                        IllegalStateException(error.description?.toString() ?: "指纹页面加载失败")
+                        IllegalStateException(error.description?.toString() ?: "Couldn't load the fingerprint page")
                     )
                 }
             }
@@ -66,7 +66,7 @@ class NeteaseFingerprinter(context: Context) {
     private class Bridge(private val result: CompletableDeferred<String>) {
         @JavascriptInterface
         fun onResult(value: String) {
-            if (value.isBlank()) result.completeExceptionally(IllegalStateException("指纹为空"))
+            if (value.isBlank()) result.completeExceptionally(IllegalStateException("Empty fingerprint"))
             else result.complete(value)
         }
 

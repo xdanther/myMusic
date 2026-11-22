@@ -63,7 +63,7 @@ data class NowView(
     val meta: String
         get() {
             val p = playback ?: return ""
-            if (resume) return "继续播放 · 最近播放"
+            if (resume) return "Continue · recently played"
             return listOf(p.sourceName, p.quality).filter { it.isNotBlank() }.joinToString(" · ")
         }
 }
@@ -109,7 +109,7 @@ fun NowLayout(view: NowView, bp: NowBp, palette: WidgetPalette, background: Widg
 @Composable
 private fun NowEmpty(bp: NowBp, w: Dp, h: Dp, palette: WidgetPalette, interactive: Boolean) {
     val open = if (interactive) launchAppAction() else null
-    val title = "还没有播放记录"
+    val title = "No play history yet"
     when (bp) {
         NowBp.Card, NowBp.Stage -> Row(
             modifier = GlanceModifier.fillMaxSize().padding(16.dp),
@@ -120,19 +120,19 @@ private fun NowEmpty(bp: NowBp, w: Dp, h: Dp, palette: WidgetPalette, interactiv
             Column(modifier = GlanceModifier.defaultWeight()) {
                 WText(title, WType.title, palette.color { onSurface }, weight = FontWeight.Bold)
                 Spacer(GlanceModifier.height(3.dp))
-                WText("从榜单或搜索里挑一首，这里就会显示正在播放", WType.artist, palette.color { onSurfaceVariant }, maxLines = 2)
+                WText("Pick a song from charts or search and it shows here", WType.artist, palette.color { onSurfaceVariant }, maxLines = 2)
                 Spacer(GlanceModifier.height(10.dp))
-                WPill(R.drawable.ic_w_search, "打开 myMusic", palette, open)
+                WPill(R.drawable.ic_w_search, "Open myMusic", palette, open)
             }
         }
-        NowBp.Square, NowBp.Tower -> Column(modifier = GlanceModifier.fillMaxSize().padding(14.dp).onClick(open).describe("还没有播放记录，打开 myMusic")) {
+        NowBp.Square, NowBp.Tower -> Column(modifier = GlanceModifier.fillMaxSize().padding(14.dp).onClick(open).describe("No play history yet, open myMusic")) {
             WMarkTile(64.dp, palette)
             Spacer(GlanceModifier.defaultWeight())
             WText(title, WType.title, palette.color { onSurface }, weight = FontWeight.Bold)
-            WText("点这里挑一首歌", WType.artist, palette.color { onSurfaceVariant })
+            WText("Tap to pick a song", WType.artist, palette.color { onSurfaceVariant })
         }
         else -> Row(
-            modifier = GlanceModifier.fillMaxSize().padding(12.dp).onClick(open).describe("还没有播放记录，打开 myMusic"),
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp).onClick(open).describe("No play history yet, open myMusic"),
             verticalAlignment = Alignment.CenterVertically,
             horizontalAlignment = if (w > 120.dp) Alignment.Start else Alignment.CenterHorizontally,
         ) {
@@ -141,7 +141,7 @@ private fun NowEmpty(bp: NowBp, w: Dp, h: Dp, palette: WidgetPalette, interactiv
                 Spacer(GlanceModifier.width(12.dp))
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     WText(title, WType.title, palette.color { onSurface }, weight = FontWeight.Bold)
-                    WText("点这里挑一首歌", WType.artist, palette.color { onSurfaceVariant })
+                    WText("Tap to pick a song", WType.artist, palette.color { onSurfaceVariant })
                 }
             }
         }
@@ -156,10 +156,10 @@ private fun NowBody(view: NowView, bp: NowBp, w: Dp, h: Dp, palette: WidgetPalet
     val open = if (interactive) WidgetActions.open(context, WidgetTarget.Player) else null
     val actions = if (interactive) WidgetActions.transportActions(p.live, p.hasPrevious, p.hasNext) else TransportActions(null, null, null)
     val song = p.song
-    val coverDescription = "${song.title}，${song.artist}，打开播放页"
+    val coverDescription = "${song.title}, ${song.artist}, open player"
     when (bp) {
         NowBp.Mini -> Box(
-            modifier = GlanceModifier.fillMaxSize().onClick(actions.play).describe(if (view.playing) "暂停，正在播放 ${song.title}" else "播放 ${song.title}"),
+            modifier = GlanceModifier.fillMaxSize().onClick(actions.play).describe(if (view.playing) "Paused, playing ${song.title}" else "Play ${song.title}"),
             contentAlignment = Alignment.Center,
         ) {
             // 横屏桌面一格只有 50dp 高，跟着缩
@@ -181,7 +181,7 @@ private fun NowBody(view: NowView, bp: NowBp, w: Dp, h: Dp, palette: WidgetPalet
             WPlayButton(view.playing, button, palette, actions.play)
         }
         NowBp.Bar -> {
-            // 三格宽从 200dp 起：窄的时候只留播放键，宽到 300dp 再加上一首
+            // 三格宽从 200dp 起：窄的时候只留播放键，宽到 300dp 再加Previous
             val wide = w >= 300.dp
             val tight = w < 240.dp
             val controls = minOf(44.dp, h - 24.dp).coerceAtLeast(32.dp)
@@ -221,7 +221,7 @@ private fun NowBody(view: NowView, bp: NowBp, w: Dp, h: Dp, palette: WidgetPalet
             ) {
                 Column(modifier = GlanceModifier.fillMaxWidth().onClick(open)) {
                     WText(song.title, WType.title, palette.color { onSurface }, weight = FontWeight.Bold)
-                    WText(if (view.resume) "继续播放 · ${song.artist}" else song.artist, WType.artist, palette.color { onSurfaceVariant })
+                    WText(if (view.resume) "Continue · ${song.artist}" else song.artist, WType.artist, palette.color { onSurfaceVariant })
                 }
             }
         }
@@ -270,7 +270,7 @@ private fun NowBody(view: NowView, bp: NowBp, w: Dp, h: Dp, palette: WidgetPalet
                     }
                     Spacer(GlanceModifier.defaultWeight())
                     if (view.resume) {
-                        WText("上次听到 ${elapsedText(view.position)}", WType.artist, palette.color { onSurfaceVariant })
+                        WText("Heard ${elapsedText(view.position)} in", WType.artist, palette.color { onSurfaceVariant })
                         Spacer(GlanceModifier.height(if (compact) 6.dp else 8.dp))
                     } else {
                         WWave(rw, view.fraction, view.playing, palette)
@@ -300,7 +300,7 @@ private fun NowBody(view: NowView, bp: NowBp, w: Dp, h: Dp, palette: WidgetPalet
                     FavoriteButton(view, palette)
                 }
                 Column(
-                    modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(vertical = 8.dp).onClick(lyricsAction).describe("歌词，打开歌词视图"),
+                    modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(vertical = 8.dp).onClick(lyricsAction).describe("Lyrics, open the lyrics view"),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (lyrics != null) {
@@ -339,12 +339,12 @@ private fun TimerChip(view: NowView, palette: WidgetPalette) {
     if (view.sleep.endOfTrack) {
         Row(
             modifier = GlanceModifier.tinted(R.drawable.widget_r10, palette.color { tertiaryContainer }).padding(start = 5.dp, top = 2.dp, end = 7.dp, bottom = 2.dp)
-                .describe("定时关闭，这首放完停止"),
+                .describe("Sleep timer, stops after this song"),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             WIcon(R.drawable.ic_w_bedtime, 12.dp, palette.color { onTertiaryContainer })
             Spacer(GlanceModifier.width(3.dp))
-            WText("本首后", WType.time, palette.color { onTertiaryContainer }, weight = FontWeight.Medium)
+            WText("After this song", WType.time, palette.color { onTertiaryContainer }, weight = FontWeight.Medium)
         }
     } else {
         WTimerChip(view.sleep.remainingMs(), palette)
@@ -357,7 +357,7 @@ private fun FavoriteButton(view: NowView, palette: WidgetPalette, size: Dp = 40.
     WIconButton(
         if (view.favorite) R.drawable.ic_w_fav else R.drawable.ic_w_fav_outline,
         size = size, iconSize = 20.dp, palette = palette, action = action,
-        description = if (view.favorite) "取消收藏" else "收藏",
+        description = if (view.favorite) "Remove from favorites" else "Save",
         tonal = false,
         tint = if (view.favorite) palette.color { primary } else palette.color { onSurfaceVariant },
     )

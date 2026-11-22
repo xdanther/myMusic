@@ -116,7 +116,7 @@ internal fun SpectrumLayer(audio: StageAudio, clock: StageClock, insets: StageIn
 private class SpectrumReadout {
     var power = "— dB"
         private set
-    var peak = "峰值 — Hz"
+    var peak = "Peak — Hz"
         private set
     private var at = Long.MIN_VALUE
 
@@ -125,12 +125,12 @@ private class SpectrumReadout {
         at = ms
         if (!audio.live) {
             power = "— dB"
-            peak = "峰值 — Hz"
+            peak = "Peak — Hz"
             return
         }
         power = "${(-60 + 60 * audio.power.coerceIn(0f, 1f)).roundToInt()} dB"
         val hz = audio.peakHz
-        peak = "峰值 " + when {
+        peak = "Peak " + when {
             hz <= 0f -> "—"
             hz >= 1000f -> String.format(java.util.Locale.ROOT, "%.1fk", hz / 1000f)
             else -> hz.roundToInt().toString()

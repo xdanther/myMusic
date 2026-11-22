@@ -108,11 +108,11 @@ fun WavySeekBar(
                 .semantics {
                     if (live) {
                         // 直播没有进度可报，读屏只说明这是直播
-                        contentDescription = "直播"
-                        stateDescription = "正在直播"
+                        contentDescription = "Live"
+                        stateDescription = "Live now"
                     } else {
-                        contentDescription = "播放进度"
-                        stateDescription = "已播放 ${spokenTime(spokenPosition)}，共 ${spokenTime(duration)}"
+                        contentDescription = "Playback progress"
+                        stateDescription = "Played ${spokenTime(spokenPosition)} of ${spokenTime(duration)}"
                         progressBarRangeInfo = ProgressBarRangeInfo(spokenFraction, 0f..1f)
                         setProgress { target ->
                             if (duration > 0) seek((target.coerceIn(0f, 1f) * duration).toLong())
@@ -174,7 +174,7 @@ fun WavySeekBar(
         if (showTimes) {
             if (live) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("● 直播中", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text("● Live", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     Text("LIVE", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
@@ -189,7 +189,7 @@ fun WavySeekBar(
     }
 }
 
-/** 时间文字独立按秒重组；播放进度和拖动值都不在 WavySeekBar 的组合阶段读取。 */
+/** 时间文字独立按秒重组；Playback progress和拖动值都不在 WavySeekBar 的组合阶段读取。 */
 @Composable
 private fun ProgressTimes(
     position: State<Long>,
@@ -218,7 +218,7 @@ internal fun spokenPositionBucket(positionMs: Long): Long = positionMs / 10_000L
 /** “3 分 05 秒”这类读法；“03:05”会被读成时刻。 */
 private fun spokenTime(ms: Long): String {
     val seconds = (ms / 1000).coerceAtLeast(0)
-    return if (seconds >= 60) "${seconds / 60} 分 ${seconds % 60} 秒" else "$seconds 秒"
+    return if (seconds >= 60) "${seconds / 60} min ${seconds % 60} s" else "$seconds s"
 }
 
 /** 200ms–5s 的等待用形变 LoadingIndicator；更短不显示，更长换成骨架屏 + 文案。 */

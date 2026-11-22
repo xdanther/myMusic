@@ -140,7 +140,7 @@ internal fun LyricPickLayer(
                         if (result == ToggleResult.Full) {
                             scope.launch {
                                 snackbar.currentSnackbarData?.dismiss()
-                                snackbar.showSnackbar("最多选 $SHARE_MAX_LINES 句")
+                                snackbar.showSnackbar("Up to $SHARE_MAX_LINES lines")
                             }
                         }
                     }
@@ -165,9 +165,9 @@ private fun PickTopBar(count: Int, hintInBar: Boolean, topPadding: Dp, onClose: 
         Modifier.fillMaxWidth().padding(top = topPadding).height(64.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onClose) { Icon(Icons.Filled.Close, "退出选句", tint = MaterialTheme.colorScheme.onSurface) }
+        IconButton(onClick = onClose) { Icon(Icons.Filled.Close, "Exit line selection", tint = MaterialTheme.colorScheme.onSurface) }
         Text(
-            "已选 $count 句",
+            "$count lines selected",
             Modifier.padding(start = 4.dp),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
@@ -177,7 +177,7 @@ private fun PickTopBar(count: Int, hintInBar: Boolean, topPadding: Dp, onClose: 
         Button(onClick = onShare, enabled = count > 0, modifier = Modifier.padding(end = 8.dp)) {
             Icon(Icons.Filled.Share, null, Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("分享")
+            Text("Share")
         }
     }
 }
@@ -186,7 +186,7 @@ private fun PickTopBar(count: Int, hintInBar: Boolean, topPadding: Dp, onClose: 
 private fun PickHint(modifier: Modifier) {
     Surface(modifier, shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Text(
-            "点句子增减 · 最多 $SHARE_MAX_LINES 句",
+            "Tap lines to add or remove · up to $SHARE_MAX_LINES",
             Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -272,7 +272,7 @@ private fun PickRow(line: PickLine, selected: Boolean, singing: Boolean, onToggl
                         append("  ")
                         // 小标整体换行（稿子 inline-flex）：不换行空格 + 词连接符，不会只剩一个圆点挂在行尾
                         withStyle(SpanStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = scheme.primary)) {
-                            append("●\u00A0正\u2060在\u2060唱")
+                            append("●\u00A0Now\u00A0playing")
                         }
                     }
                 },

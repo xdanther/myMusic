@@ -60,24 +60,24 @@ import com.mytv.mymusic.ui.components.rememberDemoRowSwipe
 import com.mytv.mymusic.ui.components.swipeIcon
 import com.mytv.mymusic.ui.components.tvFocusRing
 
-/** 动作选择面板改的是哪一格：[index] 为 null 是「拉到头」，等于按钮数是「添加按钮」。 */
+/** 动作选择面板改的是哪一格：[index] 为 null 是「Pull to end」，等于按钮数是「Add button」。 */
 private data class SwipeSlot(val side: SwipeSide, val index: Int?)
 
-/** 这一侧在界面上叫什么：从左往右排时起始边的按钮是向右滑露出来的，从右往左排时反过来。 */
+/** 这一侧在界面上叫什么：从左往右排时起始边的按钮是Swipe right露出来的，从右往左排时反过来。 */
 internal fun swipeSideTitle(side: SwipeSide, rtl: Boolean): String =
-    if ((side == SwipeSide.Start) != rtl) "向右滑" else "向左滑"
+    if ((side == SwipeSide.Start) != rtl) "Swipe right" else "Swipe left"
 
-/** 设置首页「滑动操作」一行的摘要：只写起始那一侧（向右滑），关着写「已关闭」。 */
+/** 设置首页「滑动操作」一行的摘要：只写起始那一侧（Swipe right），关着写「已关闭」。 */
 internal fun swipeSummary(prefs: SwipePrefs, rtl: Boolean = false): String {
-    if (!prefs.enabled) return "已关闭"
-    val title = swipeSideTitle(SwipeSide.Start, rtl).removePrefix("向")
-    val buttons = prefs.start.joinToString("、") { it.label }.ifBlank { "无按钮" }
-    val full = prefs.startFull.takeIf { it != SwipeAction.None }?.let { " · 拉到头 ${it.label}" }.orEmpty()
+    if (!prefs.enabled) return "Off"
+    val title = swipeSideTitle(SwipeSide.Start, rtl).removePrefix("Toward")
+    val buttons = prefs.start.joinToString("、") { it.label }.ifBlank { "No buttons" }
+    val full = prefs.startFull.takeIf { it != SwipeAction.None }?.let { " · Pull to end: ${it.label}" }.orEmpty()
     return "$title $buttons$full"
 }
 
 /**
- * 设置 › 滑动操作：顶部能拖的示例行，下面是两侧各两个按钮（上下箭头换顺序）和「拉到头」。
+ * 设置 › 滑动操作：顶部能拖的示例行，下面是两侧各两个按钮（上下箭头换顺序）和「Pull to end」。
  * 点任意一格从列表里换动作；即改即存。电视上不列出这一项，深链接进来只给一句说明。
  */
 @Composable
@@ -86,7 +86,7 @@ internal fun SwipeSettingsScreen(prefs: SwipePrefs, actions: MusicActions, onBac
     if (window.isTv) {
         SettingsPage(SettingsSection.Swipe, embedded, onBack) {
             item(key = "tv", contentType = "note") {
-                SettingsNote("电视上没有滑动操作：在歌曲上长按确认键或按菜单键打开歌曲操作。")
+                SettingsNote("No swipe actions on TV: long-press OK or press Menu on a song to open its actions.")
             }
         }
         return
@@ -96,12 +96,12 @@ internal fun SwipeSettingsScreen(prefs: SwipePrefs, actions: MusicActions, onBac
     val screenReader = LocalSongSwipeEnv.current?.screenReader?.value == true
     var picking by remember { mutableStateOf<SwipeSlot?>(null) }
     val enabled = prefs.enabled
-    SettingsPage(SettingsSection.Swipe, embedded, onBack, subtitle = "在歌曲列表上左右滑；电视上没有") {
+    SettingsPage(SettingsSection.Swipe, embedded, onBack, subtitle = "Swipe left or right on song lists; not on TV") {
         item(key = "demo", contentType = "demo") {
             Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
                 SongRow(
                     title = "Porch Light",
-                    subtitle = "示例乐队",
+                    subtitle = "Sample band",
                     cover = "",
                     index = 0,
                     count = 1,
@@ -114,21 +114,21 @@ internal fun SwipeSettingsScreen(prefs: SwipePrefs, actions: MusicActions, onBac
                 )
                 SettingsNote(
                     when {
-                        !enabled -> "滑动操作已关闭，列表上横滑没有反应。"
-                        screenReader -> "读屏开着时用「操作」菜单代替滑动，示例行不能拖。"
-                        else -> "↔ 拖一下这一行试试，下面改了它跟着变。"
+                        !enabled -> "Swipe actions are off, so horizontal swipes on lists do nothing."
+                        screenReader -> "With a screen reader on, use the Actions menu instead of swiping; the sample row can't be dragged."
+                        else -> "↔ Drag this row to try it; it updates as you change the settings below."
                     },
                 )
             }
         }
         item(key = "switch", contentType = "switch") {
             SwitchRow(
-                title = "启用滑动操作",
+                title = "Enable swipe actions",
                 checked = enabled,
                 onCheckedChange = { on -> actions.setSwipePrefs { it.copy(enabled = on) } },
                 index = 0,
                 count = 1,
-                summary = "多选、编辑歌单、读屏开着时自动停用",
+                summary = "Automatically disabled during multi-select, playlist editing and with a screen reader on",
                 icon = Icons.Filled.Swipe,
             )
         }
@@ -146,8 +146,8 @@ internal fun SwipeSettingsScreen(prefs: SwipePrefs, actions: MusicActions, onBac
         }
         item(key = "note", contentType = "note") {
             SettingsNote(
-                "「删除」在最近播放里是删记录，在歌单里是移出歌单，在收藏里是取消收藏，在下载里是删文件（会先确认），" +
-                    "在播放队列里是移出队列；榜单、搜索、专辑、歌手页没有可删的，不显示这个按钮。",
+                "'Delete' removes the record in Recently played, removes from the playlist in playlists, unsaves in favorites, and deletes the file in downloads (after confirming);" +
+                    "In the queue it removes from the queue; charts, search, albums and artist pages have nothing to delete and hide this button.",
             )
         }
         item(key = "reset", contentType = "reset") {
@@ -155,11 +155,11 @@ internal fun SwipeSettingsScreen(prefs: SwipePrefs, actions: MusicActions, onBac
                 onClick = {
                     val before = prefs
                     actions.setSwipePrefs { SwipePrefs(enabled = it.enabled) }
-                    notifier?.show("已恢复默认的滑动操作") { actions.setSwipePrefs { before } }
+                    notifier?.show("Swipe actions restored to defaults") { actions.setSwipePrefs { before } }
                 },
                 enabled = prefs != SwipePrefs(enabled = prefs.enabled),
                 modifier = Modifier.padding(top = 4.dp).tvFocusRing(CircleShape),
-            ) { Text("恢复默认") }
+            ) { Text("Restore defaults") }
         }
     }
     picking?.let { slot ->
@@ -183,7 +183,7 @@ private fun SwipeSideGroup(
     Column(Modifier.alpha(if (enabled) 1f else 0.38f)) {
         SectionLabel(swipeSideTitle(side, rtl)) {
             if (buttons.isEmpty() && full == SwipeAction.None) {
-                Text("这一侧不能滑", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("This side can't swipe", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         SegmentedGroup {
@@ -193,35 +193,35 @@ private fun SwipeSideGroup(
                     index = index,
                     count = count,
                     onClick = if (enabled) ({ onPick(SwipeSlot(side, index)) }) else null,
-                    summary = "露出的第 ${index + 1} 个",
+                    summary = "Button ${index + 1} revealed",
                     leading = { SlotNumber(index + 1) },
                     trailing = {
                         IconButton(onClick = { onMove(index, -1) }, enabled = enabled && index > 0, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Filled.KeyboardArrowUp, "上移「${action.label}」")
+                            Icon(Icons.Filled.KeyboardArrowUp, "Move '${action.label}' up")
                         }
                         IconButton(onClick = { onMove(index, 1) }, enabled = enabled && index < buttons.lastIndex, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Filled.KeyboardArrowDown, "下移「${action.label}」")
+                            Icon(Icons.Filled.KeyboardArrowDown, "Move '${action.label}' down")
                         }
                     },
                 )
             }
             if (canAdd) {
                 ListRow(
-                    title = "添加按钮",
+                    title = "Add button",
                     index = buttons.size,
                     count = count,
                     onClick = if (enabled) ({ onPick(SwipeSlot(side, buttons.size)) }) else null,
                     icon = Icons.Filled.Add,
-                    summary = if (buttons.isEmpty()) "这一侧还没有按钮" else "最多两个",
+                    summary = if (buttons.isEmpty()) "No buttons on this side yet" else "At most two",
                 )
             }
             ListRow(
-                title = "拉到头",
+                title = "Pull to end",
                 index = count - 1,
                 count = count,
                 onClick = if (enabled) ({ onPick(SwipeSlot(side, null)) }) else null,
                 value = full.label,
-                summary = if (side == SwipeSide.Start) "拉过行宽 60% 松手，最多 240dp" else "默认不做事，可以换成任一动作",
+                summary = if (side == SwipeSide.Start) "Release after 60% of the row width, up to 240dp" else "Does nothing by default; can be any action",
             )
         }
     }
@@ -244,7 +244,7 @@ private fun SlotNumber(number: Int) {
 
 /**
  * 换一格的动作。按钮位只列能当按钮的动作，同一侧另一个按钮已经用了的照样能选——选了两个对调；
- * 「添加按钮」时同侧已有的不能再加。拉到头多一个「不做事」。选完立即写入，面板关上。
+ * 「Add button」时同侧已有的不能再加。Pull to end多一个「不做事」。选完立即写入，面板关上。
  */
 @Composable
 private fun SwipeActionPicker(slot: SwipeSlot, prefs: SwipePrefs, rtl: Boolean, actions: MusicActions, onDismiss: () -> Unit) {
@@ -252,16 +252,16 @@ private fun SwipeActionPicker(slot: SwipeSlot, prefs: SwipePrefs, rtl: Boolean, 
     val sideTitle = swipeSideTitle(slot.side, rtl)
     val adding = slot.index != null && slot.index >= buttons.size
     val title = when {
-        slot.index == null -> "$sideTitle · 拉到头"
-        adding -> "$sideTitle · 添加按钮"
-        else -> "$sideTitle · 第 ${slot.index + 1} 个按钮"
+        slot.index == null -> "$sideTitle · pull to end"
+        adding -> "$sideTitle · add button"
+        else -> "$sideTitle · button ${slot.index + 1}"
     }
     val current = when (slot.index) {
         null -> prefs.full(slot.side)
         else -> buttons.getOrNull(slot.index)
     }
     val choices = if (slot.index == null) SwipeAction.entries else SwipeAction.entries.filter { it.button }
-    AdaptiveSheet(onDismiss = onDismiss, title = title, subtitle = "选好立即生效") {
+    AdaptiveSheet(onDismiss = onDismiss, title = title, subtitle = "Applies immediately") {
         val close = LocalSheetClose.current
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
@@ -272,8 +272,8 @@ private fun SwipeActionPicker(slot: SwipeSlot, prefs: SwipePrefs, rtl: Boolean, 
                 val other = buttons.indexOf(action)
                 val summary = when {
                     slot.index == null || action == current || other < 0 -> ""
-                    adding -> "已经是第 ${other + 1} 个"
-                    else -> "和第 ${other + 1} 个对调"
+                    adding -> "Already button ${other + 1}"
+                    else -> "Swap with button ${other + 1}"
                 }
                 ListRow(
                     title = action.label,
@@ -297,7 +297,7 @@ private fun SwipeActionPicker(slot: SwipeSlot, prefs: SwipePrefs, rtl: Boolean, 
             }
             if (slot.index != null && !adding) {
                 ListRow(
-                    title = "移除这个按钮",
+                    title = "Remove this button",
                     index = rows - 1,
                     count = rows,
                     onClick = {

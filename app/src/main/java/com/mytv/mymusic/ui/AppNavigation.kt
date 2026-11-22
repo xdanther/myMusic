@@ -221,7 +221,7 @@ fun MyMusicApp(model: MusicViewModel) {
         SwipeNotifier { message, undo ->
             swipeScope.launch {
                 snackbar.currentSnackbarData?.dismiss()
-                val result = snackbar.showSnackbar(message, actionLabel = if (undo != null) "撤销" else null, duration = SnackbarDuration.Short)
+                val result = snackbar.showSnackbar(message, actionLabel = if (undo != null) "Undo" else null, duration = SnackbarDuration.Short)
                 if (result == SnackbarResult.ActionPerformed) undo?.invoke()
             }
         }
@@ -321,7 +321,7 @@ fun MyMusicApp(model: MusicViewModel) {
                 is UiEvent.UploadPrompt -> launch {
                     val result = snackbar.showSnackbar(
                         message = event.text,
-                        actionLabel = "上传",
+                        actionLabel = "Upload",
                         withDismissAction = true,
                         duration = SnackbarDuration.Long,
                     )
@@ -344,7 +344,7 @@ fun MyMusicApp(model: MusicViewModel) {
         if (state.deepLink.isNotBlank()) {
             val result = snackbar.showSnackbar(
                 message = message,
-                actionLabel = "在平台打开",
+                actionLabel = "Open on the platform",
                 withDismissAction = true,
                 // 电视播放页锁住了焦点，遥控器够不到这条提示，不能让它一直挡在控制条上
                 duration = if (window.isTv && state.playerOpen) SnackbarDuration.Long else SnackbarDuration.Indefinite,
@@ -517,7 +517,7 @@ fun MyMusicApp(model: MusicViewModel) {
                 }
                 }
             }
-            // 放在播放页之上：播放页打开时的错误、“在平台打开”等提示也要看得见；同时让开底部播放条
+            // 放在播放页之上：播放页打开时的错误、“Open on the platform”等提示也要看得见；同时让开底部播放条
             SnackbarHost(
                 snackbar,
                 Modifier.align(Alignment.BottomCenter).padding(
@@ -602,7 +602,7 @@ fun TvExitBackHandler() {
                 lastBackAt = now
                 scope.launch {
                     snackbar.currentSnackbarData?.dismiss()
-                    snackbar.showSnackbar("再按一次返回键退出应用")
+                    snackbar.showSnackbar("Press back again to exit")
                 }
             }
         } catch (_: CancellationException) {

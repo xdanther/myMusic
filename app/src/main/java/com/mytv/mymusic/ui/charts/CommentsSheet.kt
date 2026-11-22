@@ -52,7 +52,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** 歌曲评论只读面板：热门 + 最新；不请求发布、点赞或删除能力。 */
+/** Comments只读面板：热门 + 最新；不请求发布、点赞或删除能力。 */
 @Composable
 internal fun CommentsSheet(song: Song, actions: MusicActions, onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
@@ -80,7 +80,7 @@ internal fun CommentsSheet(song: Song, actions: MusicActions, onDismiss: () -> U
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (failure: Exception) {
-                error = failure.message ?: "评论读取失败"
+                error = failure.message ?: "Couldn't load comments"
             } finally {
                 loading = false
             }
@@ -90,8 +90,8 @@ internal fun CommentsSheet(song: Song, actions: MusicActions, onDismiss: () -> U
 
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "歌曲评论",
-        subtitle = song.title + if (total > 0) " · 共 ${formatPlayCount(total)} 条" else "",
+        title = "Comments",
+        subtitle = song.title + if (total > 0) " · ${formatPlayCount(total)} comments" else "",
     ) {
         LazyColumn(
             Modifier.fillMaxWidth().heightIn(min = 160.dp, max = 560.dp),
@@ -99,9 +99,9 @@ internal fun CommentsSheet(song: Song, actions: MusicActions, onDismiss: () -> U
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (hot.isNotEmpty()) {
-                item(key = "hotHead", contentType = "header") { CommentHeader("热门评论") }
+                item(key = "hotHead", contentType = "header") { CommentHeader("Top comments") }
                 items(hot, key = { "hot:${it.id}" }, contentType = { "comment" }) { CommentRow(it) }
-                item(key = "latestHead", contentType = "header") { CommentHeader("最新评论") }
+                item(key = "latestHead", contentType = "header") { CommentHeader("Newest") }
             }
             items(comments, key = { "latest:${it.id}" }, contentType = { "comment" }) { CommentRow(it) }
             if (error.isNotBlank()) {
@@ -119,7 +119,7 @@ internal fun CommentsSheet(song: Song, actions: MusicActions, onDismiss: () -> U
             if (!loading && error.isBlank() && hot.isEmpty() && comments.isEmpty()) {
                 item(key = "empty", contentType = "empty") {
                     Text(
-                        "这首歌暂时没有评论",
+                        "No comments on this track yet",
                         Modifier.fillMaxWidth().padding(32.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -130,7 +130,7 @@ internal fun CommentsSheet(song: Song, actions: MusicActions, onDismiss: () -> U
                     TextButton(
                         onClick = { load(page + 1) },
                         modifier = Modifier.fillMaxWidth().tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text("加载更多") }
+                    ) { Text("Load more") }
                 }
             }
         }
@@ -166,7 +166,7 @@ private fun CommentRow(comment: SongComment) {
             } else {
                 AsyncImage(
                     model = comment.avatar,
-                    contentDescription = "${comment.userName}的头像",
+                    contentDescription = "${comment.userName}'s avatar",
                     modifier = Modifier.fillMaxWidth().size(40.dp),
                     contentScale = ContentScale.Crop,
                 )
@@ -182,13 +182,13 @@ private fun CommentRow(comment: SongComment) {
             Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Outlined.ThumbUp,
-                    contentDescription = if (comment.liked) "已赞" else "点赞数",
+                    contentDescription = if (comment.liked) "Liked" else "Likes",
                     modifier = Modifier.size(16.dp),
                     tint = if (comment.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.size(4.dp))
                 Text(
-                    if (comment.likedCount > 0) formatPlayCount(comment.likedCount) else "赞",
+                    if (comment.likedCount > 0) formatPlayCount(comment.likedCount) else "Like",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

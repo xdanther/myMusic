@@ -349,7 +349,7 @@ internal object LocalUploadNetwork {
 }
 
 /**
- * 本地音乐页里“正在上传 · 2 / 5”那一段（设计稿第 ② 张）：正在传的那首带进度和取消；下一首写
+ * 本地音乐页里“正在上传 · 2 / 5”那一段（设计稿第 ② 张）：正在传的那首带进度和取消；Next写
  * “等待上传 · 还有 N 首”；失败的每首一行带重试；整个队列停下时写原因和“继续”，风控的说明会先等一会儿。
  */
 internal fun LazyListScope.localUploadSection(
@@ -403,7 +403,7 @@ internal fun LazyListScope.localUploadSection(
     val active = state.active
     val waiting = state.waiting
     val failed = state.failed
-    // 一段分段列表：正在传的、下一首（带“还有 N 首”）、失败的
+    // 一段分段列表：正在传的、Next（带“还有 N 首”）、失败的
     val rows = buildList<Pair<String, LocalUploadEntry>> {
         active.forEach { add("active" to it) }
         waiting.firstOrNull()?.let { add("next" to it) }

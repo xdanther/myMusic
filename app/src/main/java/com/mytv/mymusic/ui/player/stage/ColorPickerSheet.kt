@@ -80,16 +80,16 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
- * 取色面板（设置表里的颜色项点开它）。从上到下：预览条（底色上写一句示例歌词）→ 从封面取 → 最近用过 →
- * 色相 / 彩度 / 明度三条滑块（HCT）→ 十六进制（电视上没有）→ 文字对比度（不到 4.5:1 时给“自动配文字色”）→ 取消、完成。
+ * 取色面板（设置表里的颜色项点开它）。从上到下：预览条（底色上写一句示例歌词）→ From the cover → Recently used →
+ * 色相 / 彩度 / 明度三条滑块（HCT）→ 十六进制（电视上没有）→ 文字对比度（不到 4.5:1 时给“Pick text color automatically”）→ 取消、完成。
  *
  * 改动实时写进动画面板的草稿（[onChange]），舞台或大预览跟着变；下滑、返回、点外面都按“完成”算，
  * 要撤销可以用动画面板的“放弃”。“取消”把颜色改回打开时的 [initial]。
  *
  * @param background 这一对颜色里的底色、[text] 是字色（预览和对比度用）；[editingText] 为 true 时改的是字色。
- * @param pairs 这个颜色是一对（底色、字色）里的一个：显示对比度和“自动配文字色”。
- * @param onAutoText 改底色时点“自动配文字色”：把字色换成它。
- * @param onDone 完成时的颜色（记进“最近用过”）。
+ * @param pairs 这个颜色是一对（底色、字色）里的一个：显示对比度和“Pick text color automatically”。
+ * @param onAutoText 改底色时点“Pick text color automatically”：把字色换成它。
+ * @param onDone 完成时的颜色（记进“Recently used”）。
  * @param stageBeside 舞台在面板旁边：遮罩调淡，配色看得准。
  * @param chromeHint 改底色时底色偏亮要不要提示播放页顶上的浅色歌名、按钮会看不清（歌词分享卡片用不着）。
  */
@@ -146,7 +146,7 @@ internal fun ColorPickerSheet(
         val scheme = MaterialTheme.colorScheme
         val bg = if (editingText) background else current
         val fg = if (editingText) current else text
-        // “自动配文字色”点完按钮就没了，电视上焦点交给“完成”，不让它掉回最上面的色块
+        // “Pick text color automatically”点完按钮就没了，电视上焦点交给“完成”，不让它掉回最上面的色块
         val doneFocus = remember { FocusRequester() }
         Column(
             Modifier
@@ -166,32 +166,32 @@ internal fun ColorPickerSheet(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text("for a signal in the rain", color = fg, fontSize = 20.sp, lineHeight = 23.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
-                Text("等雨里传来一个信号", color = fg.copy(alpha = 0.75f), fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                Text("Waiting for a signal in the rain", color = fg.copy(alpha = 0.75f), fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
             }
 
-            PickerLabel("从封面取")
+            PickerLabel("From the cover")
             SwatchRow(coverSwatches, current) { pick(it) }
             if (recent.isNotEmpty()) {
-                PickerLabel("最近用过")
+                PickerLabel("Recently used")
                 SwatchRow(recent, current) { pick(it) }
             }
 
-            PickerLabel("调整", if (tv) "左右键每次 ±2，按住加速；上下键换一条" else "按 HCT 计算，明度相同的颜色看上去一样亮")
+            PickerLabel("Adjust", if (tv) "Left and right change by 2, holding speeds up; up and down switch rows" else "Computed in HCT, so colors with the same lightness look equally bright")
             val hueFocus = remember { FocusRequester() }
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 // 色相条按至少中等彩度画：彩度拉到 0 时也看得出每一段是什么颜色
                 val hueStops = remember(chroma, tone) { List(13) { Hct.from(it * 30.0, maxOf(chroma, 36.0), tone).toColor() } }
                 val chromaStops = remember(hue, tone) { List(7) { Hct.from(hue, it * 25.0, tone).toColor() } }
                 val toneStops = remember(hue, chroma) { List(11) { Hct.from(hue, chroma, it * 10.0).toColor() } }
-                HctTrack("色相", hue, 360.0, hueStops, Modifier.focusRequester(hueFocus)) {
+                HctTrack("Hue", hue, 360.0, hueStops, Modifier.focusRequester(hueFocus)) {
                     hue = it
                     applyHct()
                 }
-                HctTrack("彩度", chroma, MAX_CHROMA, chromaStops) {
+                HctTrack("Chroma", chroma, MAX_CHROMA, chromaStops) {
                     chroma = it
                     applyHct()
                 }
-                HctTrack("明度", tone, 100.0, toneStops) {
+                HctTrack("Lightness", tone, 100.0, toneStops) {
                     tone = it
                     applyHct()
                 }
@@ -199,7 +199,7 @@ internal fun ColorPickerSheet(
             TvDefaultFocus(hueFocus)
 
             if (!tv) {
-                PickerLabel("十六进制")
+                PickerLabel("Hex")
                 val valid = parseHexColor(hexField) != null
                 OutlinedTextField(
                     value = hexField,
@@ -210,7 +210,7 @@ internal fun ColorPickerSheet(
                     },
                     singleLine = true,
                     isError = !valid,
-                    supportingText = if (valid) null else ({ Text("写成 #RRGGBB，比如 #2C5F5A") }),
+                    supportingText = if (valid) null else ({ Text("Use #RRGGBB, for example #2C5F5A") }),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters, keyboardType = KeyboardType.Ascii),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                     modifier = Modifier.fillMaxWidth(),
@@ -227,7 +227,7 @@ internal fun ColorPickerSheet(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        "文字对比度 ${String.format(java.util.Locale.ROOT, "%.1f", ratio)}:1 · ${if (ok) "够清楚" else "不够清楚"}",
+                        "Text contrast ${String.format(java.util.Locale.ROOT, "%.1f", ratio)}:1 · ${if (ok) "Clear enough" else "Not clear enough"}",
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(
@@ -256,13 +256,13 @@ internal fun ColorPickerSheet(
                                 runCatching { doneFocus.requestFocus() }
                             },
                             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text("自动配文字色") }
+                        ) { Text("Pick text color automatically") }
                     }
                 }
                 // 播放页顶上的歌名、按钮一直是浅色的，底色太亮会把它们吃掉（歌词本身有上面的对比度管）
                 if (chromeHint && !editingText && contrastRatio(bg, PLAYER_CHROME) < MIN_CHROME_CONTRAST) {
                     Text(
-                        "底色偏亮：歌词页顶上的歌名和按钮是浅色的，可能看不清",
+                        "The background is bright: the title and buttons at the top of the lyric page are light and may be hard to read",
                         Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant,
@@ -281,8 +281,8 @@ internal fun ColorPickerSheet(
                         close()
                     },
                     modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                ) { Text("取消") }
-                Button(onClick = close, modifier = Modifier.focusRequester(doneFocus).tvFocusRing(RoundedCornerShape(20.dp))) { Text("完成") }
+                ) { Text("Cancel") }
+                Button(onClick = close, modifier = Modifier.focusRequester(doneFocus).tvFocusRing(RoundedCornerShape(20.dp))) { Text("Done") }
             }
         }
     }
@@ -317,7 +317,7 @@ private fun SwatchRow(colors: List<Color>, current: Color, onPick: (Color) -> Un
                     .background(color)
                     .border(1.dp, readableOn(color).copy(alpha = 0.2f), CircleShape)
                     .semantics { selected = on }
-                    .clickable(role = Role.RadioButton, onClickLabel = "用这个颜色") { onPick(color) }
+                    .clickable(role = Role.RadioButton, onClickLabel = "Use this color") { onPick(color) }
                     .semantics { contentDescription = color.toHex() },
             )
         }
@@ -431,7 +431,7 @@ internal fun autoTextColor(background: Color): Color {
 }
 
 /**
- * “从封面取”的 6 个色：舞台的封面量化色只有 4 个，前后加上鲜艳底色和柔和底色，按颜色去重；
+ * “From the cover”的 6 个色：舞台的封面量化色只有 4 个，前后加上鲜艳底色和柔和底色，按颜色去重；
  * 不够 6 个再用两种底色上的文字色补。
  */
 internal fun coverSwatches(colors: StageColors): List<Color> {
@@ -441,13 +441,13 @@ internal fun coverSwatches(colors: StageColors): List<Color> {
     return out.values.toList()
 }
 
-/** 记一个“最近用过”的颜色：放到最前面，去掉重复的，最多留 [RECENT_COLORS_LIMIT] 个。 */
+/** 记一个“Recently used”的颜色：放到最前面，去掉重复的，最多留 [RECENT_COLORS_LIMIT] 个。 */
 internal fun pushRecentColor(recent: List<String>, color: Color): List<String> {
     val hex = color.toHex()
     return (listOf(hex) + recent.filter { !it.equals(hex, ignoreCase = true) }).take(RECENT_COLORS_LIMIT)
 }
 
-/** 文字对比度够清楚的线（WCAG AA）。 */
+/** 文字对比度Clear enough的线（WCAG AA）。 */
 internal const val MIN_TEXT_CONTRAST = 4.5f
 
 /** 播放页（一直是深色主题）顶上歌名、按钮的浅色，和它比对比度不到 [MIN_CHROME_CONTRAST] 就提示底色偏亮。 */

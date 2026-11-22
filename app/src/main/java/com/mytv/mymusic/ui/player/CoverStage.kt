@@ -103,7 +103,7 @@ import kotlin.math.sqrt
  *
  * @param trackKey 歌曲 key：随机形状按它记忆，封面图按 [cover] 地址交叉淡入。
  * @param pulse 律动信号；光晕随低频慢包络变亮，封面、光晕和光环跟拍。没有背景律动时传 null。
- * @param onSkip 横滑切歌（-1 上一首，1 下一首）；null 时不响应横滑。
+ * @param onSkip 横滑切歌（-1 Previous，1 Next）；null 时不响应横滑。
  * @param onDoubleTap 双击（收藏）；null 时不响应双击。
  * @param sharedElement 是否参与迷你播放器 ↔ 播放页的共享封面转场（只有手机播放页需要）。
  */
@@ -204,19 +204,19 @@ fun CoverStage(
                         }
                 },
             )
-            // 收起成小圆时由调用方给出“回到封面”之类的描述；展开时读歌名，滑动和双击给出等价的自定义操作
+            // 收起成小圆时由调用方给出“Back to cover”之类的描述；展开时读歌名，滑动和双击给出等价的自定义操作
             .then(
                 if (collapsed) {
                     Modifier
                 } else {
                     Modifier.semantics {
-                        contentDescription = "$title 的封面"
+                        contentDescription = "Cover of $title"
                         customActions = buildList {
                             if (onSkip != null) {
-                                add(CustomAccessibilityAction("下一首") { currentSkip?.invoke(1); true })
-                                add(CustomAccessibilityAction("上一首") { currentSkip?.invoke(-1); true })
+                                add(CustomAccessibilityAction("Next") { currentSkip?.invoke(1); true })
+                                add(CustomAccessibilityAction("Previous") { currentSkip?.invoke(-1); true })
                             }
-                            if (onDoubleTap != null) add(CustomAccessibilityAction("收藏") { currentDoubleTap?.invoke(); true })
+                            if (onDoubleTap != null) add(CustomAccessibilityAction("Save") { currentDoubleTap?.invoke(); true })
                         }
                     }
                 },
@@ -362,7 +362,7 @@ private fun CoverTransitionOverlay(
                     .padding(bottom = 10.dp),
             ) {
                 Text(
-                    text = transition.method + " · " + "%.1f".format(transition.durationMs / 1000f) + " 秒",
+                    text = transition.method + " · " + "%.1f".format(transition.durationMs / 1000f) + " s",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -653,7 +653,7 @@ private fun CoverHalo(
 
 /**
  * 封面形状的形变状态：当前 Morph、进度和外轮廓角度。三者都只在绘制阶段读。
- * 目标是当前 Morph 的起点或终点时沿原路退回 / 前进；中途换成第三个形状（连按下一首）时先把这一段走完，
+ * 目标是当前 Morph 的起点或终点时沿原路退回 / 前进；中途换成第三个形状（连按Next）时先把这一段走完，
  * 再从终点形变到新形状：Morph 只能在两个多边形之间插值，中途的轮廓没有公开 API 能截成新的多边形，
  * 直接换起点会跳一下。
  */

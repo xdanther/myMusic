@@ -97,8 +97,8 @@ fun PlayPauseButton(
             .tvFocusRing(CircleShape)
             .semantics {
                 role = Role.Button
-                contentDescription = if (playing) "暂停" else "播放"
-                stateDescription = if (playing) "正在播放" else "已暂停"
+                contentDescription = if (playing) "Pause" else "Play"
+                stateDescription = if (playing) "Now playing" else "Paused"
             },
         shape = CircleShape,
         color = Color.Transparent,
@@ -271,7 +271,7 @@ internal fun toggleGroupMinWidth(
 internal val TOGGLE_ICON_WIDTH = 18.dp + 6.dp
 
 /**
- * 歌单 / 榜单的主操作：Split button。左侧“播放全部”，右侧展开随机播放、加入队列、存到本地歌单。
+ * 歌单 / 榜单的主操作：Split button。左侧“Play all”，右侧展开Shuffle、Add to queue、Save to a local playlist。
  */
 @Composable
 fun PlayAllSplitButton(
@@ -280,8 +280,8 @@ fun PlayAllSplitButton(
     onShuffle: (() -> Unit)? = null,
     onQueue: (() -> Unit)? = null,
     onSave: (() -> Unit)? = null,
-    label: String = "播放全部",
-    saveLabel: String = "存到本地歌单",
+    label: String = "Play all",
+    saveLabel: String = "Save to a local playlist",
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val hasMenu = onShuffle != null || onQueue != null || onSave != null
@@ -302,10 +302,10 @@ fun PlayAllSplitButton(
                         onCheckedChange = { expanded = it },
                         modifier = Modifier
                             .tvFocusRing()
-                            // 这是展开菜单的开关，读“已展开 / 已收起”比“已选中”更贴切
+                            // 这是展开菜单的开关，读“Expanded / Collapsed”比“已选中”更贴切
                             .semantics {
-                                contentDescription = "更多播放方式"
-                                stateDescription = if (expanded) "已展开" else "已收起"
+                                contentDescription = "More play options"
+                                stateDescription = if (expanded) "Expanded" else "Collapsed"
                             },
                     ) {
                         Icon(Icons.Filled.KeyboardArrowDown, null, Modifier.size(SplitButtonDefaults.TrailingIconSize))
@@ -317,14 +317,14 @@ fun PlayAllSplitButton(
                     ) {
                         onShuffle?.let {
                             DropdownMenuItem(
-                                text = { Text("随机播放") },
+                                text = { Text("Shuffle") },
                                 leadingIcon = { Icon(Icons.Filled.Shuffle, null) },
                                 onClick = { expanded = false; it() },
                             )
                         }
                         onQueue?.let {
                             DropdownMenuItem(
-                                text = { Text("加入队列") },
+                                text = { Text("Add to queue") },
                                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.QueueMusic, null) },
                                 onClick = { expanded = false; it() },
                             )

@@ -173,7 +173,7 @@ internal data class RandomPick(val id: String, val remembered: Boolean)
 
 /**
  * 随机换法挑模式（固定过的歌由调用方先处理）：记忆里有这首、而且认得出，就用记住的，即使它已经不在池里；
- * 记住的已经认不出（删掉的模式）就当没记过。否则从 [pool] 里抽一个，不和上一首 [previous] 重复；池是空的按默认池抽。
+ * 记住的已经认不出（删掉的模式）就当没记过。否则从 [pool] 里抽一个，不和Previous [previous] 重复；池是空的按默认池抽。
  */
 internal fun chooseRandomMode(
     remembered: String?,

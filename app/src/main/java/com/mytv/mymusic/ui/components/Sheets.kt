@@ -268,7 +268,7 @@ private fun SheetHeader(title: String, subtitle: String, subtitleProvider: (() -
             }
         }
         if (onClose != null) {
-            IconButton(onClick = onClose, modifier = Modifier.tvFocusRing(CircleShape)) { Icon(Icons.Filled.Close, "关闭") }
+            IconButton(onClick = onClose, modifier = Modifier.tvFocusRing(CircleShape)) { Icon(Icons.Filled.Close, "Close") }
         }
     }
 }

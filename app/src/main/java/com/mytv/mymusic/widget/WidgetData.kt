@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
-/** 正在播放组件要的一切：当前歌曲和进度、形状、收藏、定时关闭。 */
+/** 正在播放组件要的一切：当前歌曲和进度、形状、收藏、Sleep timer。 */
 data class NowState(
     val playback: PlaybackSnapshot?,
     val shape: CoverShapeChoice,
@@ -40,7 +40,7 @@ data class LocalListInfo(val id: String, val name: String, val count: Int)
 
 /**
  * 桌面小组件的数据源，整个进程一份。播放状态来自 [WidgetHub]（ViewModel 发布）或磁盘上的队列；
- * 设置、收藏、最近播放、自建歌单直接读 DataStore 和 Room，组件不必等 ViewModel 建出来。
+ * 设置、收藏、Recently played、自建歌单直接读 DataStore 和 Room，组件不必等 ViewModel 建出来。
  */
 class WidgetData private constructor(private val app: MyMusicApp) {
     private val scope = app.appScope

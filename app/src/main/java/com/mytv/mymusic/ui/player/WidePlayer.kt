@@ -104,7 +104,7 @@ import kotlin.math.roundToInt
 /**
  * 平板横屏播放页（非电视、宽 ≥ 600dp 且横屏）：左栏播放，右栏整栏歌词。
  * 左栏自上而下是形状封面、标题与收藏、音源胶囊、波浪进度、连接按钮组、浮动工具栏；左上角收起，右上角更多。
- * 工具栏里的「歌词」进入专注歌词：左栏收成竖向浮动工具栏（小圆封面、上一首、播放、下一首、歌词、队列），
+ * 工具栏里的「歌词」进入专注歌词：左栏收成竖向浮动工具栏（小圆封面、Previous、播放、Next、歌词、队列），
  * 歌词放大到 48sp，进度条横跨底部。过渡沿慢速空间弹簧；减少动画时位置直接切换，只留淡入淡出。
  *
  * 尺寸按设计稿 1280×800 摆放，其他窗口见 [wideStackSlots]：先压间距、再缩封面；
@@ -188,7 +188,7 @@ internal fun WidePlayer(
                 {
                     if (showDefault) {
                         WideGuard(idle, lyricsMode, Modifier.graphicsLayer { alpha = defaultChrome() }) {
-                            IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "收起播放页", tint = MaterialTheme.colorScheme.onSurface) }
+                            IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "Close the player", tint = MaterialTheme.colorScheme.onSurface) }
                         }
                     }
                 },
@@ -278,11 +278,11 @@ internal fun WidePlayer(
                         transitionAnimation = transitionAnimation,
                         onSkip = onSkip,
                         onDoubleTap = onFavoriteBurst,
-                        // 专注歌词里工具栏顶上的小圆就是“回到封面”按钮；图层缩放后点按范围也跟着缩到小圆
+                        // 专注歌词里工具栏顶上的小圆就是“Back to cover”按钮；图层缩放后点按范围也跟着缩到小圆
                         modifier = if (lyricsMode) {
                             Modifier
                                 .clickable(interactionSource = null, indication = null, role = Role.Button) { onLyricsMode(false) }
-                                .semantics { contentDescription = "回到封面" }
+                                .semantics { contentDescription = "Back to cover" }
                         } else {
                             Modifier
                         },
@@ -426,7 +426,7 @@ private fun FocusHeader(
 
 /**
  * 专注歌词左侧的竖向浮动工具栏：顶上空出 64dp 给小圆封面（封面节点由舞台飞到这里，整页只有一个封面），
- * 下面是上一首、72dp 播放键、下一首，分隔线后是选中的「歌词」（点了退出专注）和队列。空闲时整条淡出。
+ * 下面是Previous、72dp 播放键、Next，分隔线后是选中的「歌词」（点了退出专注）和队列。空闲时整条淡出。
  */
 @Composable
 private fun FocusDock(
@@ -456,9 +456,9 @@ private fun FocusDock(
                 verticalArrangement = Arrangement.spacedBy(DockSpacing),
             ) {
                 Spacer(Modifier.size(DockCoverSize))
-                DockSkipButton(Icons.Filled.SkipPrevious, "上一首") { actions.transport("previous") }
+                DockSkipButton(Icons.Filled.SkipPrevious, "Previous") { actions.transport("previous") }
                 DockPlayButton(playing) { actions.transport("play") }
-                DockSkipButton(Icons.Filled.SkipNext, "下一首") { actions.transport("next") }
+                DockSkipButton(Icons.Filled.SkipNext, "Next") { actions.transport("next") }
                 Box(Modifier.size(40.dp, 1.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)))
                 ToolbarLyricsButton(on = true, onToggle = onLyricsMode)
                 ToolbarAnimationButton(onOpenSheet)
@@ -507,8 +507,8 @@ private fun DockPlayButton(playing: Boolean, onClick: () -> Unit) {
             .tvFocusRing(cookie)
             .semantics {
                 role = Role.Button
-                contentDescription = if (playing) "暂停" else "播放"
-                stateDescription = if (playing) "正在播放" else "已暂停"
+                contentDescription = if (playing) "Pause" else "Play"
+                stateDescription = if (playing) "Now playing" else "Paused"
             },
         shape = RectangleShape,
         color = MaterialTheme.colorScheme.primary,
@@ -757,7 +757,7 @@ internal class WideStackSlots(val cover: Int, val tops: IntArray, val scale: Flo
 internal fun wideStackSlots(height: Int, dp: Float, blocks: IntArray, coverMax: Int, full: Boolean): WideStackSlots {
     val ideal = (if (full) FullIdealGaps else ShortIdealGaps).toPx(dp)
     val min = (if (full) FullMinGaps else ShortMinGaps).toPx(dp)
-    require(ideal.size == blocks.size + 2) { "间距要比块多两个（顶和底）" }
+    require(ideal.size == blocks.size + 2) { "Spacing must exceed blocks by two (top and bottom)" }
     val fixed = blocks.sum()
     val room = height - fixed
     val idealSum = ideal.sum()

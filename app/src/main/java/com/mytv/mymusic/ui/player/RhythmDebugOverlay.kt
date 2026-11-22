@@ -67,10 +67,10 @@ internal fun RhythmDebugOverlay(pulse: BackdropPulse, offsetMs: Int, modifier: M
 
 private fun rhythmDebugText(analyzer: RhythmAnalyzer, offsetMs: Int, nowNanos: Long): String {
     val audible = analyzer.clock.audibleUs(nowNanos)
-    if (audible == PlaybackClock.UNSET) return "还没出声"
+    if (audible == PlaybackClock.UNSET) return "No sound yet"
     val t = (audible - offsetMs * 1_000L) / 1e6
     val grid = analyzer.beats.gridAt(t)
     val lead = analyzer.timeline.leadUs(audible) / 1_000
     val bpm = if (grid.periodS > 0.0) String.format(Locale.ROOT, "%.1f BPM", grid.bpm) else "-- BPM"
-    return String.format(Locale.ROOT, "%s  置信 %.2f  领先 %d ms  校准 %d ms  %.2f s", bpm, grid.confidence, lead, offsetMs, t)
+    return String.format(Locale.ROOT, "%s  confidence %.2f  lead %d ms  calibration %d ms  %.2f s", bpm, grid.confidence, lead, offsetMs, t)
 }

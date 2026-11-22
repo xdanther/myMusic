@@ -110,7 +110,7 @@ fun WindowLayoutInfo.toFold(): Fold? {
 }
 
 /** 全局 Snackbar：页面里的撤销提示都走这一个，避免叠在一起，位置也会让开底部浮层。 */
-val LocalAppSnackbar = staticCompositionLocalOf<SnackbarHostState> { error("LocalAppSnackbar 未提供") }
+val LocalAppSnackbar = staticCompositionLocalOf<SnackbarHostState> { error("LocalAppSnackbar is not provided") }
 
 /** 浮在内容上的迷你播放器和导航栏占用的高度，列表把它加到 contentPadding 底部。 */
 val LocalOverlayPadding = compositionLocalOf { PaddingValues(0.dp) }

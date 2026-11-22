@@ -108,12 +108,12 @@ import kotlinx.coroutines.delay
  * 空闲 4 秒进入环境模式：控制条和胶囊淡出，封面放大一点，歌词向下扩展、当前行放大，底部只留一条细进度，
  * 右上角显示时钟（[ambientClock]，设置里可关）。
  *
- * 控制条分两行：上行按钮组 + 定时 / 收藏 / 加到歌单 / 队列 / 海报墙 / 音源，下行整宽的波浪进度。进度条要吃掉左右键快退快进，
+ * 控制条分两行：上行按钮组 + 定时 / 收藏 / Add to playlist / 队列 / Poster wall / 音源，下行整宽的波浪进度。进度条要吃掉左右键快退快进，
  * 按设计稿把它夹在按钮组和四个按钮中间的话，焦点一到进度条就再也走不到右边的按钮；分两行后用上下键换行。
  * 控制条亮着时方向键照旧在按钮间走；淡出进入环境模式（全屏歌词页）后方向键直接控制播放：上下切歌、左右快退快进
  * （`wakeOnInput` 里接管，提示见 [TvSeekHint]），按确认键才调出控制条。
  *
- * 重组边界：环境模式只在进出时重组一次；过渡进度只在测量、摆放和图层里读，播放进度只在小组件和绘制阶段读。
+ * 重组边界：环境模式只在进出时重组一次；过渡进度只在测量、摆放和图层里读，Playback progress只在小组件和绘制阶段读。
  * 过渡中歌词栏逐帧变高、字号逐帧变大，只重新测量歌词列表，不重组（见 [LyricsList]）。
  * 环境模式里每帧在动的只有背景、封面旋转和当前行的逐字填色，三者共用 30 帧节拍（[TvFrameGate]）。
  */
@@ -154,7 +154,7 @@ internal fun TvPlayer(
     val idleFocus = remember { FocusRequester() }
     val dockRow = remember { FocusRequester() }
     val addFocus = remember { FocusRequester() }
-    // 「加到歌单」面板关了（返回键或点遮罩）：焦点回到控制条上的这个按钮，接着能再按一次
+    // 「Add to playlist」面板关了（返回键或点遮罩）：焦点回到控制条上的这个按钮，接着能再按一次
     val sheetWasOpen = remember { booleanArrayOf(false) }
     LaunchedEffect(playlistSheetOpen) {
         if (playlistSheetOpen) {
@@ -166,7 +166,7 @@ internal fun TvPlayer(
             runCatching { addFocus.requestFocus() }
         }
     }
-    // 歌词动画面板开着时播放页在环境模式里；面板关了退出环境模式，焦点回到控制条上的 ✦，接着能再按一次
+    // Lyric animation面板开着时播放页在环境模式里；面板关了退出环境模式，焦点回到控制条上的 ✦，接着能再按一次
     val sparkFocus = remember { FocusRequester() }
     val animationWasOpen = remember { booleanArrayOf(false) }
     if (animationSheetOpen) animationWasOpen[0] = true
@@ -191,7 +191,7 @@ internal fun TvPlayer(
     val progress = animateFloatAsState(if (ambient) 1f else 0f, if (reduceMotion) snap() else motion.slowSpatialSpec(), label = "tvStage")
     val fade = animateFloatAsState(if (ambient) 1f else 0f, motion.defaultEffectsSpec(), label = "tvFade")
     val chromeAlpha = remember(fade) { { 1f - fade.value } }
-    // 选了经典以外的歌词动画：环境模式整屏给舞台，封面、歌名和歌词栏跟控制条一起淡出，完全进入后歌词栏不再组合
+    // 选了经典以外的Lyric animation：环境模式整屏给舞台，封面、歌名和歌词栏跟控制条一起淡出，完全进入后歌词栏不再组合
     val custom = stage.custom
     val pageAlpha = remember(fade, custom) { if (custom) ({ 1f - fade.value }) else ({ 1f }) }
     val stageShown by remember(fade) { derivedStateOf { fade.value > 0.001f } }
@@ -241,7 +241,7 @@ internal fun TvPlayer(
                         actions::seek,
                         modifier = Modifier
                             .graphicsLayer { alpha = pageAlpha() }
-                            // 歌词行能聚焦（确认键从这一句播放），上下键在行间走，往下要走完整首才回到控制条；
+                            // 歌词行能聚焦（确认键Play from this line），上下键在行间走，往下要走完整首才回到控制条；
                             // 左边没有别的焦点位，按左键直接回控制条上刚才那个按钮
                             .onPreviewKeyEvent { event ->
                                 if (event.type != KeyEventType.KeyDown || event.key != Key.DirectionLeft) return@onPreviewKeyEvent false
@@ -283,7 +283,7 @@ internal fun TvPlayer(
                 { TvThinProgress(position, duration, fade, song.isLive) },
                 { if (ambientClock) TvClock(fade) },
                 {
-                    // 环境模式的歌词动画舞台：整屏，文字排在时钟下面、细进度上面（安全区由摆放策略写）。
+                    // 环境模式的Lyric animation舞台：整屏，文字排在时钟下面、细进度上面（安全区由摆放策略写）。
                     // 完全进入后歌词栏不再组合，舞台退回经典（纯文本歌词、没有歌词）时要自己画列表，
                     // 字号用经典模式环境模式的那一档，和选“经典”时一样
                     if (custom && stageShown) {
@@ -449,32 +449,32 @@ private fun TvDock(
             )
             Spacer(Modifier.weight(1f))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DockAction(Icons.Filled.Bedtime, if (sleep.active) "定时 ${sleepLabel(sleep)}" else "定时关闭", onOpenTimer, sleep.active)
+                DockAction(Icons.Filled.Bedtime, if (sleep.active) "Timer ${sleepLabel(sleep)}" else "Sleep timer", onOpenTimer, sleep.active)
                 DockAction(
                     if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    "收藏",
+                    "Save",
                     { actions.favorite(song) },
                     favorite,
-                    state = if (favorite) "已收藏" else "未收藏",
+                    state = if (favorite) "Saved" else "Not saved",
                 )
-                // 确认键打开右侧的加到歌单面板，返回键关掉后焦点回到这里
+                // 确认键打开右侧的Add to playlist面板，返回键关掉后焦点回到这里
                 DockAction(
                     if (addedToPlaylist) Icons.AutoMirrored.Filled.PlaylistAddCheck else Icons.AutoMirrored.Filled.PlaylistAdd,
-                    "加到歌单",
+                    "Add to playlist",
                     onAddToPlaylist,
                     addedToPlaylist,
-                    state = if (addedToPlaylist) "已在歌单里" else "不在歌单里",
+                    state = if (addedToPlaylist) "In a playlist" else "Not in a playlist",
                     modifier = Modifier.focusRequester(addFocus),
                 )
-                DockAction(Icons.AutoMirrored.Filled.QueueMusic, "播放队列", onOpenQueue)
-                DockAction(Icons.Filled.GridView, "海报墙", actions::openPosterWall)
-                DockAction(Icons.Filled.SwapHoriz, "换音源", onOpenSource)
-                // 收起播放页，打开第一位歌手的歌手页（专辑在歌手页里点得到）
+                DockAction(Icons.AutoMirrored.Filled.QueueMusic, "Queue", onOpenQueue)
+                DockAction(Icons.Filled.GridView, "Poster wall", actions::openPosterWall)
+                DockAction(Icons.Filled.SwapHoriz, "Change source", onOpenSource)
+                // Close the player，打开第一位歌手的歌手页（专辑在歌手页里点得到）
                 val artist = if (song.isLive) "" else splitArtistNames(song.artist).firstOrNull().orEmpty()
                 if (artist.isNotBlank()) {
-                    DockAction(Icons.Filled.Person, "歌手：$artist", { actions.openArtistByName(artist, song) })
+                    DockAction(Icons.Filled.Person, "Artist: $artist", { actions.openArtistByName(artist, song) })
                 }
-                DockAction(Icons.Filled.AutoAwesome, "歌词动画", onOpenSheet, modifier = Modifier.focusRequester(sparkFocus))
+                DockAction(Icons.Filled.AutoAwesome, "Lyric animation", onOpenSheet, modifier = Modifier.focusRequester(sparkFocus))
             }
         }
         // 时间放在进度条两侧而不是下方：两行的控制条已经比设计稿高，再多一行会压到封面下的音源胶囊
@@ -508,7 +508,7 @@ private fun ElapsedTime(position: State<Long>) {
     Text(formatTime(seconds * 1_000L), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** 控制条上的圆形按钮：48dp，未开是 12% onSurface 底，开着（定时中、已收藏、已在歌单里）是 primaryContainer。 */
+/** 控制条上的圆形按钮：48dp，未开是 12% onSurface 底，开着（定时中、Saved、In a playlist）是 primaryContainer。 */
 @Composable
 private fun DockAction(
     icon: ImageVector,
@@ -619,7 +619,7 @@ private fun TvSeekHint(hint: SeekHint, position: State<Long>, duration: Long, li
                 Modifier.size(26.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
-            Text("$step 秒", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("$step s", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             // 时长未知（在线流没有 Content-Length）时报不出总长度，只报当前位置
             Text(
                 if (duration > 0) "$elapsed / ${formatTime(duration)}" else elapsed,
@@ -676,7 +676,7 @@ private class TvStagePolicy(
         val thin = measurables[SlotThin].firstOrNull()
             ?.measure(Constraints.fixed((width - side * 2).coerceAtLeast(0), (TvDp.ThinHeight * unit).roundToInt()))
         val clockText = measurables[SlotClock].firstOrNull()?.measure(Constraints())
-        // 歌词动画舞台整屏：左右按封面左边距留边，顶上让开时钟，底下让开细进度
+        // Lyric animation舞台整屏：左右按封面左边距留边，顶上让开时钟，底下让开细进度
         val stagePlaceable = measurables[SlotStage].firstOrNull()?.let {
             val edge = TvDp.CoverStart * unit
             val top = (if (clock) TvDp.StageTopClock else TvDp.StageTop) * unit
@@ -792,7 +792,7 @@ internal object TvDp {
     const val ClockEnd = 56f
     const val ClockTop = 40f
 
-    /** 环境模式歌词动画的安全区：顶边（开着时钟时让到时钟下面）、底边。 */
+    /** 环境模式Lyric animation的安全区：顶边（开着时钟时让到时钟下面）、底边。 */
     const val StageTop = 48f
     const val StageTopClock = 104f
     const val StageBottom = 56f

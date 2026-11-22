@@ -166,11 +166,11 @@ private const val BIG_PREVIEW_TEXT_SP = 22f
 private const val MIN_PREVIEW_TEXT_SP = 9f
 /** 手机面板的卡片约 176dp 宽，配 13sp。 */
 private const val CARD_DP_PER_TEXT_SP = 13.5f
-private const val SAMPLE_PREVIOUS = "晚风把街灯一盏盏点亮"
+private const val SAMPLE_PREVIOUS = "The evening breeze lights the street lamps one by one"
 
 private val SAMPLE_LINES = listOf(
-    StageLine(0, 10_000L, 14_000L, "风吹过的地方都有光", emptyList(), "Where the wind goes, there is light", ""),
-    StageLine(1, 14_500L, 18_500L, "我们沿着河走回家", emptyList(), "We walk home along the river", ""),
+    StageLine(0, 10_000L, 14_000L, "Everywhere the wind passes has light", emptyList(), "Where the wind goes, there is light", ""),
+    StageLine(1, 14_500L, 18_500L, "We walk home along the river", emptyList(), "We walk home along the river", ""),
 )
 
 /** [SAMPLE_LINES] 前面加上 [SAMPLE_PREVIOUS]，序号顺延。 */
@@ -178,4 +178,4 @@ private val SAMPLE_LIST_LINES = listOf(
     StageLine(0, 5_500L, 9_500L, SAMPLE_PREVIOUS, emptyList(), "Street lamps light up one by one", ""),
 ) + SAMPLE_LINES.map { StageLine(it.index + 1, it.startMs, it.endMs, it.text, it.words, it.translation, it.romanization) }
 
-private val SAMPLE_SONG = Song(id = "preview", name = "示例")
+private val SAMPLE_SONG = Song(id = "preview", name = "Sample")

@@ -1019,7 +1019,7 @@ private fun TvChartsSkeleton() {
 
 // ---------------- 发现页共用的小部件（歌单页、详情页也用） ----------------
 
-/** 长按或“更多”打开的歌曲操作，带上当前列表作为换源时的队列。 */
+/** 长按或“更多”打开的Track actions，带上当前列表作为换源时的队列。 */
 internal class SongAction(val song: Song, val queue: List<Song>)
 
 @Composable
@@ -1029,7 +1029,7 @@ internal fun SongActionsSheet(
     playlists: List<LocalPlaylistSummary>,
     actions: MusicActions,
     onDismiss: () -> Unit,
-    /** 电视海报墙里长按 / 菜单键打开时，接在歌曲操作下面的整页操作。 */
+    /** 电视海报墙里长按 / 菜单键打开时，接在Track actions下面的整页操作。 */
     wallPage: com.mytv.mymusic.ui.WallPageActions? = null,
     /** 歌手页里打开时传这位歌手：面板里不再给“查看歌手：他自己”。 */
     currentArtist: String = "",

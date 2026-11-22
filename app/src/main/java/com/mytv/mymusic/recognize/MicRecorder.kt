@@ -30,9 +30,9 @@ object MicRecorder {
         val bufferSize = maxOf(minBuffer, sampleRate / 10 * 2)
         val recorder = createRecorder(sampleRate, channel, encoding, bufferSize)
         try {
-            check(recorder.state == AudioRecord.STATE_INITIALIZED) { "麦克风初始化失败" }
+            check(recorder.state == AudioRecord.STATE_INITIALIZED) { "Couldn't start the microphone" }
             recorder.startRecording()
-            check(recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) { "麦克风被占用" }
+            check(recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) { "Microphone is in use" }
             val total = sampleRate * seconds
             val samples = ShortArray(total)
             val buffer = ShortArray(maxOf(minBuffer / 2, 1024))

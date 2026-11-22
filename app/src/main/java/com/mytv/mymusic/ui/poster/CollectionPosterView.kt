@@ -119,7 +119,7 @@ internal class CollectionPosterOps(
 )
 
 /**
- * 工具栏“随机”后面那一格：在线歌单是“收藏”（存成本地歌单，[on] 时主色实心），自建歌单是“编辑”（先切回列表）。
+ * 工具栏“随机”后面那一格：在线歌单是“收藏”（存成本地歌单，[on] 时主色实心），Local playlists是“编辑”（先切回列表）。
  * 电视上它是整页操作里的一行，[on] 时 [stateDescription] 写在第二行。
  */
 @Immutable
@@ -132,7 +132,7 @@ internal class PosterExtraAction(
 )
 
 /**
- * 歌单 / 专辑 / 榜单 / 歌手 / 自建歌单详情的海报视图，和列表视图按 collection_view 切换。
+ * 歌单 / 专辑 / 榜单 / 歌手 / Local playlists详情的海报视图，和列表视图按 collection_view 切换。
  *
  * - 墙铺满整页，曲目就是这张歌单，序号是曲目序号；正在放的歌的 key 在这张歌单里就把它放大、跟着切歌走，
  *   不在（这张歌单没在放）就不放大任何格，镜头对准第一块；
@@ -145,11 +145,11 @@ internal class PosterExtraAction(
  * - 加载中墙上是同样版式的骨架格（占位格走微光），失败 / 空的时候 [message] 盖在墙中间；
  * - 折叠屏书本 / 双竖：大卡、提示和底部工具栏在右页，胶囊收在左页；桌面 / 双横：大卡和提示在上半屏，工具栏留在下半屏。
  *
- * 多选和自建歌单的编辑只在列表视图里；长按格子、大卡的“更多”弹单曲操作（[CollectionPosterOps.songActions]）。
+ * 多选和Local playlists的编辑只在列表视图里；长按格子、大卡的“更多”弹单曲操作（[CollectionPosterOps.songActions]）。
  * [resetKey] 换了一张歌单（首数一样也算）时变，整面墙重排、重新入场；[holdAwake] 是页面自己开着的面板（单曲操作等），
  * 开着时浮层不淡出、墙不起漂。
  * 设置面板开着与否由调用方持有（[settingsOpen] / [onSettingsOpenChange]）：电视上它从单曲面板里的整页操作打开。
- * 墙上没有歌（读取失败、空歌单）时电视没有格子可长按，[message] 里要给“切回列表视图”。
+ * 墙上没有歌（读取失败、空歌单）时电视没有格子可长按，[message] 里要给“Back to list view”。
  */
 @Composable
 internal fun CollectionPosterView(
@@ -184,7 +184,7 @@ internal fun CollectionPosterView(
     val subtitle = posterSubtitle(kindLabel, sourceLabel, songs.size, loading, currentIndex)
     // 播放页或队列海报墙盖在上面时：墙停帧循环、不跟拍，大卡按“没落定”处理（歌词不组合、进度条波浪和花瓣停下）
     val shown = !state.playerOpen && !state.posterOpen
-    // 切歌后新歌词取回来之前 state.lyrics 还是上一首的
+    // 切歌后新歌词取回来之前 state.lyrics 还是Previous的
     val lyricsReady = state.lyricsKey == currentKey
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val overlay = LocalOverlayPadding.current.calculateBottomPadding()
@@ -388,8 +388,8 @@ internal fun CollectionPosterView(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         TitlePill(title, subtitle, onBack = null, modifier = Modifier.weight(1f, fill = false))
-                        // 墙上没有歌时没有格子可长按，提示不出（提示卡里有“切回列表视图”）
-                        if (hasSongs) TvWallHint(withMenu = true, then = "播放全部、随机、切回列表…")
+                        // 墙上没有歌时没有格子可长按，提示不出（提示卡里有“Back to list view”）
+                        if (hasSongs) TvWallHint(withMenu = true, then = "Play all, shuffle, back to list…")
                     }
                     // 时钟本来就是给空闲时看的，不跟着淡出
                     if (state.tvAmbientClock) {
@@ -499,25 +499,25 @@ internal fun posterChromeFor(kind: DeviceKind): PosterChrome = when (kind) {
 
 /** 胶囊副标题里的类型名。 */
 internal fun collectionKindLabel(kind: CollectionKind): String = when (kind) {
-    CollectionKind.Chart -> "榜单"
-    CollectionKind.Playlist -> "歌单"
-    CollectionKind.Album -> "专辑"
-    CollectionKind.Artist -> "歌手"
+    CollectionKind.Chart -> "Charts"
+    CollectionKind.Playlist -> "Playlists"
+    CollectionKind.Album -> "Album"
+    CollectionKind.Artist -> "Artist"
 }
 
-internal const val LOCAL_PLAYLIST_LABEL = "自建歌单"
+internal const val LOCAL_PLAYLIST_LABEL = "Local playlists"
 
 /**
  * 顶部胶囊的副标题：“歌单 · 网易云音乐 · 30 首”；正在放的歌在这张歌单里时再接“正在播放第 3 首”。
- * 还没读到歌时写“正在读取…”；空的段跳过。
+ * 还没读到歌时写“Reading…”；空的段跳过。
  */
 internal fun posterSubtitle(kind: String, source: String, count: Int, loading: Boolean, playingIndex: Int): String {
     val parts = mutableListOf(kind, source)
     when {
-        count > 0 -> parts += "$count 首"
-        loading -> parts += "正在读取…"
+        count > 0 -> parts += "$count tracks"
+        loading -> parts += "Reading…"
     }
-    if (playingIndex in 0 until count) parts += "正在播放第 ${playingIndex + 1} 首"
+    if (playingIndex in 0 until count) parts += "Playing track ${playingIndex + 1}"
     return parts.filter { it.isNotBlank() }.joinToString(" · ")
 }
 
@@ -568,7 +568,7 @@ private fun CollectionPosterTheme(
 
 private const val COLOR_TRANSITION_MS = 450
 
-/** 顶部胶囊：返回钮（电视没有）+ 标题和副标题 + 榜单的换源设置，surfaceContainerHigh 86%。 */
+/** 顶部胶囊：返回钮（电视没有）+ 标题和副标题 + 榜单的Source settings，surfaceContainerHigh 86%。 */
 @Composable
 private fun TitlePill(
     title: String,
@@ -589,7 +589,7 @@ private fun TitlePill(
         ) {
             if (onBack != null) {
                 IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                 }
                 Spacer(Modifier.width(4.dp))
             }
@@ -600,7 +600,7 @@ private fun TitlePill(
                     .semantics(mergeDescendants = true) { heading() },
             ) {
                 Text(
-                    title.ifBlank { "详情" },
+                    title.ifBlank { "Details" },
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1,
@@ -618,9 +618,9 @@ private fun TitlePill(
             }
             if (onSourceSettings != null) {
                 Spacer(Modifier.width(8.dp))
-                // 底部工具栏的调节钮是“海报墙设置”，这里用换源的图标区分
+                // 底部工具栏的调节钮是“Poster wall settings”，这里用换源的图标区分
                 IconButton(onClick = onSourceSettings, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Filled.SwapHoriz, "换源设置")
+                    Icon(Icons.Filled.SwapHoriz, "Source settings")
                 }
             }
         }
@@ -629,7 +629,7 @@ private fun TitlePill(
 
 /**
  * 电视海报视图的整页操作，就是手机工具栏上那几项，一项不少；用不上的不出：没有歌不给随机，
- * 这张歌单没在放不给“回到正在播放”，只有榜单有换源设置。小标题是“类型 · 标题”。
+ * 这张歌单没在放不给“Back to now playing”，只有榜单有Source settings。小标题是“类型 · 标题”。
  */
 internal fun collectionWallMenu(
     kindLabel: String,
@@ -645,15 +645,15 @@ internal fun collectionWallMenu(
     onList: () -> Unit,
     onSettings: () -> Unit,
 ): WallMenu = WallMenu(
-    title = listOf(kindLabel, title.ifBlank { "详情" }).filter { it.isNotBlank() }.joinToString(" · "),
+    title = listOf(kindLabel, title.ifBlank { "Details" }).filter { it.isNotBlank() }.joinToString(" · "),
     items = listOfNotNull(
         WallMenuItem(Icons.Filled.PlayArrow, playLabel, onPlayAll),
-        if (hasSongs) WallMenuItem(Icons.Filled.Shuffle, "随机播放", onShuffle) else null,
+        if (hasSongs) WallMenuItem(Icons.Filled.Shuffle, "Shuffle", onShuffle) else null,
         extra?.let { WallMenuItem(it.icon, it.description, it.onClick, summary = if (it.on) it.stateDescription.orEmpty() else "") },
-        if (playingHere) WallMenuItem(Icons.Filled.MyLocation, "回到正在播放", onLocate) else null,
-        sourceSettings?.let { WallMenuItem(Icons.Filled.SwapHoriz, "换源设置", it) },
-        WallMenuItem(Icons.AutoMirrored.Filled.ViewList, "切回列表视图", onList),
-        WallMenuItem(Icons.Filled.Tune, "海报墙设置", onSettings),
+        if (playingHere) WallMenuItem(Icons.Filled.MyLocation, "Back to now playing", onLocate) else null,
+        sourceSettings?.let { WallMenuItem(Icons.Filled.SwapHoriz, "Source settings", it) },
+        WallMenuItem(Icons.AutoMirrored.Filled.ViewList, "Back to list view", onList),
+        WallMenuItem(Icons.Filled.Tune, "Poster wall settings", onSettings),
     ),
 )
 
@@ -664,7 +664,7 @@ internal fun collectionWallMenu(
  */
 @Composable
 internal fun TvWallHint(withMenu: Boolean, then: String, modifier: Modifier = Modifier) {
-    val spoken = if (withMenu) "长按 OK 或菜单：$then" else "长按 OK：$then"
+    val spoken = if (withMenu) "Long-press OK or Menu: $then" else "Long-press OK: $then"
     Row(
         modifier
             .height(36.dp)
@@ -675,11 +675,11 @@ internal fun TvWallHint(withMenu: Boolean, then: String, modifier: Modifier = Mo
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        HintText("长按")
+        HintText("Long-press")
         KeyCap("OK")
         if (withMenu) {
-            HintText("或")
-            KeyCap("菜单")
+            HintText("or")
+            KeyCap("Menu")
         }
         HintText("：$then")
     }
@@ -708,7 +708,7 @@ private fun KeyCap(label: String) {
 
 /**
  * M3E 浮动工具栏（只在手机、平板上）：48dp 高的“播放全部”主按钮（primary），右边随机 / 收藏或编辑 / 定位 / 列表 / 设置。
- * “定位”在这张歌单没在放时置灰，正在放的那首没放大时高亮（primaryContainer 底）。榜单的换源设置在胶囊右端。
+ * “定位”在这张歌单没在放时置灰，正在放的那首没放大时高亮（primaryContainer 底）。榜单的Source settings在胶囊右端。
  */
 @Composable
 private fun PosterToolbar(
@@ -752,13 +752,13 @@ private fun PosterToolbar(
             Text(playLabel, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(if (chrome.itemWidth < 48f) 2.dp else 6.dp))
-        ToolButton(Icons.Filled.Shuffle, "随机播放", onShuffle, width, height, enabled = canShuffle)
+        ToolButton(Icons.Filled.Shuffle, "Shuffle", onShuffle, width, height, enabled = canShuffle)
         if (extra != null) {
             ToolButton(extra.icon, extra.description, extra.onClick, width, height, on = extra.on, state = extra.stateDescription)
         }
-        ToolButton(Icons.Filled.MyLocation, "定位正在播放", onLocate, width, height, enabled = canLocate, selected = locateHot)
-        ToolButton(Icons.AutoMirrored.Filled.ViewList, "切回列表视图", onList, width, height)
-        ToolButton(Icons.Filled.Tune, "海报墙设置", onSettings, width, height)
+        ToolButton(Icons.Filled.MyLocation, "Jump to now playing", onLocate, width, height, enabled = canLocate, selected = locateHot)
+        ToolButton(Icons.AutoMirrored.Filled.ViewList, "Back to list view", onList, width, height)
+        ToolButton(Icons.Filled.Tune, "Poster wall settings", onSettings, width, height)
     }
 }
 

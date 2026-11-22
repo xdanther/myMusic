@@ -242,7 +242,7 @@ fun CollectionScreen(
     // 专辑页的黑胶：正在放这张专辑里的歌时慢慢转
     val albumSpinning = collection.kind == CollectionKind.Album && state.playing &&
         playingKey != null && songs.any { it.key == playingKey }
-    // 切到Poster view前退出多选：多选只在列表视图里
+    // 切到Poster view前Exit multi-select：多选只在列表视图里
     val showPoster: () -> Unit = remember(actions, selection) {
         {
             selection.exit()

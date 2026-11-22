@@ -59,9 +59,9 @@ internal class LyricPickProbe {
 
 internal val LocalLyricPickProbe = staticCompositionLocalOf<LyricPickProbe?> { null }
 
-/** 读屏的自定义操作「选这一句分享」：[line] 为 null 时用当前句。TalkBack 的双击长按本来也会走长按手势。 */
+/** 读屏的自定义操作「Select this line to share」：[line] 为 null 时用当前句。TalkBack 的双击长按本来也会走长按手势。 */
 internal fun pickShareAction(probe: LyricPickProbe, line: Int?): CustomAccessibilityAction =
-    CustomAccessibilityAction("选这一句分享") {
+    CustomAccessibilityAction("Select this line to share") {
         probe.request(line)
         true
     }

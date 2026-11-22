@@ -126,7 +126,7 @@ fun TabletNavRail(selected: String, onSelect: (String) -> Unit, onSettings: () -
 /** 底部播放条高度（不含系统导航栏），Snackbar 要让开这么多。 */
 val BottomPlayerBarHeight = 88.dp
 
-/** 播放条按折痕分两段时每段至少这么宽：左段要放封面、歌名和上一首 / 播放 / 下一首。 */
+/** 播放条按折痕分两段时每段至少这么宽：左段要放封面、歌名和Previous / 播放 / Next。 */
 internal val BottomPlayerBarSplitMin = 260.dp
 
 /**
@@ -176,7 +176,7 @@ fun BottomPlayerBar(
             Row(
                 modifier
                     .clip(RoundedCornerShape(16.dp))
-                    // 整块（封面 + 歌名）按设置去播放页或海报墙；右边的“打开播放页”按钮总是打开播放页
+                    // 整块（封面 + 歌名）按设置去播放页或海报墙；右边的“Open player”按钮总是Open player
                     .clickable(onClickLabel = state.miniPlayerTarget.openLabel, onClick = actions::openNowPlaying)
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -200,9 +200,9 @@ fun BottomPlayerBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(if (compact) 0.dp else BottomPlayerBarGap),
             ) {
-                IconButton(onClick = { actions.transport("previous") }) { Icon(Icons.Filled.SkipPrevious, "上一首") }
+                IconButton(onClick = { actions.transport("previous") }) { Icon(Icons.Filled.SkipPrevious, "Previous") }
                 PlayPauseButton(state.playing, { actions.transport("play") }, size = if (compact) PlayButtonSize.Small else PlayButtonSize.Medium)
-                IconButton(onClick = { actions.transport("next") }) { Icon(Icons.Filled.SkipNext, "下一首") }
+                IconButton(onClick = { actions.transport("next") }) { Icon(Icons.Filled.SkipNext, "Next") }
             }
         }
         val seek: @Composable (Modifier) -> Unit = { modifier ->
@@ -220,8 +220,8 @@ fun BottomPlayerBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(if (compact) 0.dp else BottomPlayerBarGap),
             ) {
-                IconButton(onClick = onOpenQueue) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "播放队列") }
-                IconButton(onClick = actions::openPlayer) { Icon(Icons.Filled.OpenInFull, "打开播放页") }
+                IconButton(onClick = onOpenQueue) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "Queue") }
+                IconButton(onClick = actions::openPlayer) { Icon(Icons.Filled.OpenInFull, "Open player") }
             }
         }
         if (split == null) {
@@ -254,7 +254,7 @@ fun BottomPlayerBar(
                 }
             }
         } else {
-            // 书本、双竖：左页封面、歌名、上一首 / 播放 / 下一首，右页进度、队列、展开；折痕两侧留空，什么都不压
+            // 书本、双竖：左页封面、歌名、Previous / 播放 / Next，右页进度、队列、展开；折痕两侧留空，什么都不压
             val density = LocalDensity.current
             val start = with(density) { split.firstEnd.toDp() }
             val gap = with(density) { (split.secondStart - split.firstEnd).toDp() }
@@ -357,9 +357,9 @@ fun NowPlayingPane(
                     ) {
                         Icon(Icons.Filled.MusicNote, null, Modifier.size(44.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                     }
-                    Text("还没有在播放", Modifier.padding(top = 20.dp), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Nothing playing", Modifier.padding(top = 20.dp), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        "从榜单、歌单或搜索结果开始，播放器会一直留在这里。",
+                        "Start from charts, playlists or search and the player stays here.",
                         Modifier.padding(top = 6.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -391,14 +391,14 @@ fun NowPlayingPane(
                         onCheckedChange = { actions.favorite(song) },
                         modifier = Modifier.tvFocusRing(CircleShape),
                     ) {
-                        Icon(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, if (favorite) "取消收藏" else "收藏")
+                        Icon(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, if (favorite) "Remove from favorites" else "Save")
                     }
                 }
                 state.currentSource?.let { source ->
                     SourceChip(
                         providerName = source.providerName,
                         providerId = source.providerId,
-                        detail = source.qualityLabel.takeUnless { it == "音质未知" }.orEmpty(),
+                        detail = source.qualityLabel.takeUnless { it == "Unknown quality" }.orEmpty(),
                         mode = modeLabel(state.aggregation.playbackMode),
                         onClick = {
                             state.currentTrack?.let { track -> actions.openSource(track, state.canonicalQueue.ifEmpty { listOf(track) }) }
@@ -417,16 +417,16 @@ fun NowPlayingPane(
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     IconButton(onClick = onOpenTimer) {
-                        Icon(Icons.Filled.Bedtime, if (sleep.active) "定时关闭：${sleepLabel(sleep)}" else "定时关闭", tint = if (sleep.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Filled.Bedtime, if (sleep.active) "Sleep timer: ${sleepLabel(sleep)}" else "Sleep timer", tint = if (sleep.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    IconButton(onClick = onOpenQueue) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "播放队列", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    IconButton(onClick = actions::openPlayer) { Icon(Icons.Filled.OpenInFull, "全屏播放", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    IconButton(onClick = onOpenQueue) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "Queue", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    IconButton(onClick = actions::openPlayer) { Icon(Icons.Filled.OpenInFull, "Full screen", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
                 val index = state.queue.indexOfFirst { it.key == song.key }
                 val upcomingStart = index + 1
                 val upcomingEnd = (upcomingStart + 5).coerceAtMost(state.queue.size)
                 if (index >= 0 && upcomingStart < upcomingEnd) {
-                    Text("接下来播放", Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Up next", Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     for (queueIndex in upcomingStart until upcomingEnd) {
                         val next = state.queue[queueIndex]
                         Row(
@@ -493,7 +493,7 @@ private fun PaneCover(song: Song, playing: Boolean, shape: CoverShapeChoice, ope
 }
 
 fun modeLabel(mode: PlaybackMode): String = when (mode) {
-    PlaybackMode.Auto -> "自动"
-    PlaybackMode.Priority -> "优先"
-    PlaybackMode.Pinned -> "固定"
+    PlaybackMode.Auto -> "Auto"
+    PlaybackMode.Priority -> "Preferred"
+    PlaybackMode.Pinned -> "Pinned"
 }

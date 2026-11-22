@@ -121,15 +121,15 @@ internal fun clockText(hour: Int, minute: Int, use24Hour: Boolean): String {
 
 /** 读屏描述：12 小时制画面上省略了上午/下午，这里补上，避免读成有歧义的时间。 */
 internal fun clockDescription(hour: Int, minute: Int, use24Hour: Boolean): String {
-    val period = if (use24Hour) "" else if (hour < 12) "上午" else "下午"
-    return "当前时间 $period${clockText(hour, minute, use24Hour)}"
+    val period = if (use24Hour) "" else if (hour < 12) "AM" else "PM"
+    return "Current time $period${clockText(hour, minute, use24Hour)}"
 }
 
 /** 时钟下面那行日期：“10月31日 周五”。[month] 从 1 起，[dayOfWeek] 按 Calendar（周日 = 1）。 */
 internal fun clockDateText(month: Int, day: Int, dayOfWeek: Int): String =
-    "${month}月${day}日 ${WeekdayNames[(dayOfWeek - 1).mod(7)]}"
+    "${month}/${day} ${WeekdayNames[(dayOfWeek - 1).mod(7)]}"
 
-private val WeekdayNames = arrayOf("周日", "周一", "周二", "周三", "周四", "周五", "周六")
+private val WeekdayNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
 
 /** 距下一个整分钟的毫秒数，范围 1..60000；时区偏移都是整分钟，按 UTC 毫秒取整即可。 */
 internal fun millisUntilNextMinute(nowMillis: Long): Long = 60_000L - nowMillis.mod(60_000L)

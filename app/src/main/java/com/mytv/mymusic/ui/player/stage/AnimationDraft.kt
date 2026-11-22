@@ -74,32 +74,32 @@ private fun settingChanges(saved: LyricStagePrefs, draft: LyricStagePrefs, id: S
  */
 internal fun animationDiff(saved: LyricStagePrefs, draft: LyricStagePrefs): List<String> {
     val out = ArrayList<String>()
-    if (saved.auto != draft.auto) out += "换法：${saved.auto.label} → ${draft.auto.label}"
+    if (saved.auto != draft.auto) out += "Rotation: ${saved.auto.label} → ${draft.auto.label}"
     if (saved.visualizer != draft.visualizer) {
-        out += "所有歌都用：${saved.modeOf(saved.visualizer).label} → ${draft.modeOf(draft.visualizer).label}"
+        out += "Every track: ${saved.modeOf(saved.visualizer).label} → ${draft.modeOf(draft.visualizer).label}"
     }
     val poolBefore = saved.effectivePool().toSet()
     val poolAfter = poolAfterSave(saved, draft)
-    if (poolBefore != poolAfter) out += "随机池：${poolBefore.size} 个 → ${poolAfter.size} 个"
+    if (poolBefore != poolAfter) out += "Random pool: ${poolBefore.size} → ${poolAfter.size}"
     draft.tempoRules.forEachIndexed { index, rule ->
         val before = saved.tempoRules.getOrNull(index)?.mode
         if (before != rule.mode) {
-            out += "「${TEMPO_NAMES.getOrElse(index) { "第 ${index + 1} 档" }}」：" +
+            out += "「${TEMPO_NAMES.getOrElse(index) { "Tier ${index + 1}" }}」：" +
                 "${saved.modeOf(before.orEmpty()).label} → ${draft.modeOf(rule.mode).label}"
         }
     }
-    if (saved.spectrum != draft.spectrum) out += "频谱：${onOff(saved.spectrum)} → ${onOff(draft.spectrum)}"
+    if (saved.spectrum != draft.spectrum) out += "Spectrum: ${onOff(saved.spectrum)} → ${onOff(draft.spectrum)}"
     // 预设只比已经存下来的（刚新建、还没写回来的那一下不算改动）
     val ids = (saved.pluginSettings.keys + draft.pluginSettings.keys) + saved.presets.map { it.id }
     val ordered = draft.cards().map { it.id }.filter { it in ids } + ids.filter { id -> draft.cards().none { it.id == id } }
     for (id in ordered) {
         val n = settingChanges(saved, draft, id)
-        if (n > 0) out += "「${draft.modeOf(id).label}」的设置：改了 $n 项"
+        if (n > 0) out += "'${draft.modeOf(id).label}' settings: $n changed"
     }
     return out
 }
 
-private fun onOff(on: Boolean) = if (on) "开" else "关"
+private fun onOff(on: Boolean) = if (on) "On" else "Off"
 
 /**
  * 舞台露在面板旁边（平板、横屏、书本姿态、电视）时，草稿画成哪个模式：
@@ -169,4 +169,4 @@ internal fun rememberAnimationDraft(open: Boolean, saved: LyricStagePrefs): Anim
     if (!open) null else remember { AnimationDraftState(draftOf(saved)) }
 
 /** 按速度四档的名字。 */
-internal val TEMPO_NAMES = listOf("慢", "中", "快", "很快")
+internal val TEMPO_NAMES = listOf("Slow", "Medium", "Fast", "Very fast")

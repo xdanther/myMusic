@@ -245,9 +245,9 @@ private const val CoverSaturation = 1.15f
 /**
  * 海报墙的 6×6 大卡。同一个卡按内容分三种：
  * 1. 正在播放、有歌词：封面模糊后压 62% surface（不能模糊时只压暗）；顶上“正在播放 · 03”标签（带三根跳动的条）和歌名歌手，
- *    中间是 [PosterLyrics]，底下是花瓣播放键、波浪进度条和“打开播放页”，悬停、获得焦点或按空格时上一首 / 下一首从播放键旁展开；
+ *    中间是 [PosterLyrics]，底下是花瓣播放键、波浪进度条和“Open player”，悬停、获得焦点或按空格时Previous / Next从播放键旁展开；
  * 2. 正在播放、没有歌词（纯音乐、取不到、未同步）：封面不模糊、压暗减半，歌词区换成放大的歌名；
- * 3. 别的歌：封面清晰，左上角“第 07 首 · 来源”，底部大标题和“播放 / 下一首播放 / 更多”。
+ * 3. 别的歌：封面清晰，左上角“第 07 首 · 来源”，底部大标题和“播放 / Play next / 更多”。
  *
  * 墙负责外面的圆角裁切、描边和阴影，这里铺满给定的卡片框。内容按放大到位的卡片尺寸排一次版，放大途中整体缩放跟着卡走；
  * 放大的弹簧落定（[settled]）前只有封面和标题在动：歌词这时还不组合，标签的条、花瓣旋转和进度条的波浪也不动。
@@ -255,9 +255,9 @@ private const val CoverSaturation = 1.15f
  *
  * @param number 1 起的序号。
  * @param lyrics 当前歌曲的原始歌词；没有或不是当前歌时传空串。
- * @param lyricsLoading 切歌后这首的歌词还没取回来：先按“有歌词”排、歌词区留空，不显示上一首的歌词，也不闪“暂无歌词”。
+ * @param lyricsLoading 切歌后这首的歌词还没取回来：先按“有歌词”排、歌词区留空，不显示Previous的歌词，也不闪“No lyrics”。
  * @param lightsOut 墙开着关灯：别的歌的大卡自己把封面压到 82% 黑（墙的关灯层在大卡底下），文字和按钮照常亮。
- * @param focused 墙自己的焦点（电视方向键）停在这张卡上：和获得 Compose 焦点一样展开上一首 / 下一首。
+ * @param focused 墙自己的焦点（电视方向键）停在这张卡上：和获得 Compose 焦点一样展开Previous / Next。
  * @param primaryFocusRequester 挂在正在播放卡的播放键、别的歌卡的“播放”上，墙把焦点交进卡里时用。
  * @param coverModifier 加在封面层上，给 SharedCover 飞入飞出用。
  * @param coverFlying 封面这会儿在播放页上或正在飞（手机正在播放的大卡）：封面按播放页那样清晰不压，
@@ -319,7 +319,7 @@ internal fun GrownPoster(
         label = "posterOverlay",
     )
 
-    // 上一首 / 下一首展开的三个来源，各自是状态，只有控件行读
+    // Previous / Next展开的三个来源，各自是状态，只有控件行读
     val hover = remember { MutableInteractionSource() }
     val cardFocus = remember { mutableStateOf(false) }
     val keyReveal = remember { mutableStateOf(false) }
@@ -370,7 +370,7 @@ internal fun GrownPoster(
     }
 }
 
-/** 上一首 / 下一首什么时候展开：悬停、卡里有 Compose 焦点、按过空格，或者墙的焦点在这张卡上。 */
+/** Previous / Next什么时候展开：悬停、卡里有 Compose 焦点、按过空格，或者墙的焦点在这张卡上。 */
 @Immutable
 private class ControlsReveal(
     val hover: InteractionSource,
@@ -521,8 +521,8 @@ private fun NowCard(
     Column(Modifier.fillMaxSize().padding(style.padding), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             PosterChip(
-                text = "正在播放 · ${posterNumber(number)}",
-                spoken = "正在播放，第 $number 首",
+                text = "Now playing · ${posterNumber(number)}",
+                spoken = "Now playing, track $number",
                 container = scheme.primaryContainer,
                 content = scheme.onPrimaryContainer,
             ) { EqBars(animate = playing && settled, color = scheme.onPrimaryContainer) }
@@ -596,7 +596,7 @@ private fun NowCard(
     }
 }
 
-/** 没有歌词：歌词区换成放大的歌名，下面一行“歌手 · 暂无歌词”，贴着控件行。 */
+/** 没有歌词：歌词区换成放大的歌名，下面一行“歌手 · No lyrics”，贴着控件行。 */
 @Composable
 private fun PlainTitle(song: Song, style: GrownLook) {
     Column(
@@ -618,7 +618,7 @@ private fun PlainTitle(song: Song, style: GrownLook) {
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            listOf(song.artist, "暂无歌词").filter { it.isNotBlank() }.joinToString(" · "),
+            listOf(song.artist, "No lyrics").filter { it.isNotBlank() }.joinToString(" · "),
             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = (13f * 1.3f).sp, fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
@@ -628,8 +628,8 @@ private fun PlainTitle(song: Song, style: GrownLook) {
 }
 
 /**
- * 控件行：花瓣播放键（播放时慢转）、展开的上一首 / 下一首、波浪进度条和“打开播放页”。
- * 展开状态只在这里读；弹簧落定前花瓣不转、波浪拉平。读屏在播放键上另给“上一首 / 下一首”两个操作，收起时也能用。
+ * 控件行：花瓣播放键（播放时慢转）、展开的Previous / Next、波浪进度条和“Open player”。
+ * 展开状态只在这里读；弹簧落定前花瓣不转、波浪拉平。读屏在播放键上另给“Previous / Next”两个操作，收起时也能用。
  */
 @Composable
 private fun NowControls(
@@ -677,8 +677,8 @@ private fun NowControls(
                 .size(48.dp)
                 .semantics {
                     customActions = listOf(
-                        CustomAccessibilityAction("上一首") { onPrevious(); true },
-                        CustomAccessibilityAction("下一首") { onNext(); true },
+                        CustomAccessibilityAction("Previous") { onPrevious(); true },
+                        CustomAccessibilityAction("Next") { onNext(); true },
                     )
                 },
             focusRequester = focusRequester,
@@ -691,12 +691,12 @@ private fun NowControls(
         ) {
             // 间距放在展开的内容里，收起时不留一道空缝
             Row(Modifier.padding(start = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                CardIconButton(Icons.Filled.SkipPrevious, "上一首", onPrevious)
-                CardIconButton(Icons.Filled.SkipNext, "下一首", onNext)
+                CardIconButton(Icons.Filled.SkipPrevious, "Previous", onPrevious)
+                CardIconButton(Icons.Filled.SkipNext, "Next", onNext)
             }
         }
-        // 电视上进度条把左右键当快退快进，焦点从它那儿右移不出去：“打开播放页”挪到进度条前面
-        if (tv) CardIconButton(Icons.AutoMirrored.Filled.OpenInNew, "打开播放页", onOpenPlayer, Modifier.padding(start = 10.dp))
+        // 电视上进度条把左右键当快退快进，焦点从它那儿右移不出去：“Open player”挪到进度条前面
+        if (tv) CardIconButton(Icons.AutoMirrored.Filled.OpenInNew, "Open player", onOpenPlayer, Modifier.padding(start = 10.dp))
         WavySeekBar(
             position = position,
             duration = duration,
@@ -711,11 +711,11 @@ private fun NowControls(
             // 波浪不平移：M3 的波浪按屏幕刷新率自己跑，会让整面墙一直 60 帧重画；进度每 100ms 才动一下
             waveTravel = false,
         )
-        if (!tv) CardIconButton(Icons.AutoMirrored.Filled.OpenInNew, "打开播放页", onOpenPlayer)
+        if (!tv) CardIconButton(Icons.AutoMirrored.Filled.OpenInNew, "Open player", onOpenPlayer)
     }
 }
 
-/** 别的歌：左上角“第 07 首 · 来源”，底部大标题和歌手，最下面一排“播放 / 下一首播放 / 更多”。 */
+/** 别的歌：左上角“第 07 首 · 来源”，底部大标题和歌手，最下面一排“播放 / Play next / 更多”。 */
 @Composable
 private fun OtherCard(
     song: Song,
@@ -728,11 +728,11 @@ private fun OtherCard(
     onMore: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val label = listOf("第 ${posterNumber(number)} 首", sourceName).filter { it.isNotBlank() }.joinToString(" · ")
+    val label = listOf("Track ${posterNumber(number)}", sourceName).filter { it.isNotBlank() }.joinToString(" · ")
     Column(Modifier.fillMaxSize().padding(style.padding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         PosterChip(
             text = label,
-            spoken = if (sourceName.isBlank()) "第 $number 首" else "第 $number 首，来自$sourceName",
+            spoken = if (sourceName.isBlank()) "Track $number" else "Track $number, from $sourceName",
             container = scheme.surface.copy(alpha = 0.62f),
             content = scheme.onSurface,
         )
@@ -782,7 +782,7 @@ private fun OtherCard(
             ) {
                 Icon(Icons.Filled.PlayArrow, null, Modifier.size(20.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("播放", style = labelStyle, maxLines = 1)
+                Text("Play", style = labelStyle, maxLines = 1)
             }
             FilledTonalButton(
                 onClick = onPlayNext,
@@ -790,9 +790,9 @@ private fun OtherCard(
                 modifier = Modifier.height(44.dp).tvFocusRing(CircleShape),
                 contentPadding = PaddingValues(horizontal = 18.dp),
             ) {
-                Text("下一首播放", style = labelStyle, maxLines = 1)
+                Text("Play next", style = labelStyle, maxLines = 1)
             }
-            CardIconButton(Icons.Filled.MoreVert, "更多", onMore)
+            CardIconButton(Icons.Filled.MoreVert, "More", onMore)
         }
     }
 }

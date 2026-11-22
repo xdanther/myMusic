@@ -7,7 +7,7 @@ import com.mytv.mymusic.data.ListeningMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 
-/** 歌单组件放哪一张：我喜欢、最近播放或一张自建歌单。 */
+/** 歌单组件放哪一张：我喜欢、Recently played或一张自建歌单。 */
 sealed interface WidgetListSource {
     data object Favorites : WidgetListSource
     data object History : WidgetListSource
@@ -34,7 +34,7 @@ data class WidgetConfig(
     val background: WidgetBackground = WidgetBackground.Solid,
     /** 歌词组件：有翻译时显示在当前句下面。 */
     val translation: Boolean = true,
-    /** 听歌模式组件绑定的平台和模式；空着时用第一个已登录平台的第一个模式。 */
+    /** 听歌模式组件绑定的平台和模式；空着时用The first mode of the first signed-in platform。 */
     val modeProvider: String = "",
     val mode: ListeningMode? = null,
     /** 榜单组件：平台和榜单；空着时用榜单页当前的平台和第一张榜。 */

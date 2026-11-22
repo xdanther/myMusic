@@ -43,20 +43,20 @@ import kotlin.math.roundToInt
 /**
  * MiSide 掉落（Folia 模组 miside-drop 2.5.3，作者 baiyangmuzz，MIT）：灵感来自游戏 MiSide 的对话字幕。
  * 当前句在安全区中央逐字浮现（打字机，按逐字时间），白字带 7 层明度递减的灰阶挤出和一层深投影，读成实体厚度；
- * 整句唱完后整行交给粒子：每个字带随机的上抛、横向散开和三轴翻滚，按重力下落、在地面线（安全区 82% 处）回弹、停住，
- * 落地平躺但保留平面旋转，停留 [MisideConfig.settleHold] 秒后 1.5 秒淡出；地上最多留 keepRows 句，超出的整行回收
+ * 整句唱完后整行交给粒子：每个字带随机的上抛、横向散开和三轴翻滚，按Gravity下落、在地面线（安全区 82% 处）Bounce、停住，
+ * 落地平躺但保留平面旋转，停留 [MisideConfig.settleHold] 秒后 1.5 秒淡出；地上最多留 keepRows 句，Recycle lines that go past the edge
  * （原模组不会把旧行往上推，这里照做）。逐字模式下每个字唱到就单独掉（原模组“唱到就逐字崩落”）。
  * 换句时还在空中的字以至少 650px/s 急坠，免得上一句悬在半空和下一句同时挂着。
  *
  * 移植取舍：
- * - 数值照原模组的 px 写，按“正文基准字号 ÷ 56”折成屏幕像素：重力、速度、挤出偏移、投影都跟着正文字号走，
+ * - 数值照原模组的 px 写，按“正文基准字号 ÷ 56”折成屏幕像素：Gravity、速度、挤出偏移、投影都跟着正文字号走，
  *   字号设置只改字的大小（原模组也是字号变了挤出仍是 1–7px）。
  * - 翻转：原模组的父元素没有 perspective，rotateX/rotateY 是正交投影，等价于一个 2×2 线性变换（[misideTilt]），
  *   这里直接把它写进画布矩阵，挤出层跟着字一起翻；比 graphicsLayer 的相机透视更贴近原版，也不用每个字一个图层。
  * - 挤出：7 次偏移 drawText，灰阶照原版 168→64，再乘上正文颜色，让灰带一点主题色调；最深一层顺带画深投影（Paint 阴影，所有版本可用）。
  *   字形每句只量一次（整句排版取位置，每个字单独量一次字形，量过的字 TextMeasurer 会缓存）。
  * - 淡出的字用 saveLayer 整体降透明度，不然半透明的字面会透出底下的挤出层。
- * - 物理按宿主的帧间隔积分（暂停时为 0），落地停留也按播放时间算，暂停期间不会偷偷淡掉；
+ * - 物理按宿主的帧间隔积分（暂停时为 0），Floor linger也按播放时间算，暂停期间不会偷偷淡掉；
  *   原模组用墙钟。跳转（前后跳超过 1.5 秒）清空地面和粒子，从当前句重新开始；逐字模式跳进一句中间时，已唱过的字不再补掉。
  * - 原模组 14 项设置，面板放 7 项；掉落延迟 0、提前量 0、打字机间隔 0、落地淡出开、淡出 1.5 秒、翻转上限 16°、
  *   地面高度 82% 按原默认值写死。
@@ -64,7 +64,7 @@ import kotlin.math.roundToInt
  */
 object MisideDropVisualizer : LyricVisualizer {
     override val id = "miside"
-    override val label = "MiSide 掉落"
+    override val label = "MiSide drop"
     override val origin = ModOrigin("miside-drop", "2.5.3", "baiyangmuzz", "MIT")
     override val order = 30
     override val hostBackground = true
@@ -75,15 +75,15 @@ object MisideDropVisualizer : LyricVisualizer {
 
     override val settings: List<LyricSetting> = listOf(
         LyricSetting.Choice(
-            "dropModeV2", "掉落方式", listOf("sentence" to "整句", "word" to "逐字"), "sentence",
-            summary = "整句：逐字打出来，唱完整行坠落；逐字：唱到就单独掉",
+            "dropModeV2", "Drop mode", listOf("sentence" to "Whole line", "word" to "Per character"), "sentence",
+            summary = "Whole line: typed character by character and dropped when sung; Per character: each character drops as it is sung",
         ),
-        LyricSetting.Number("fontSizeV2", "字号", 24f, 120f, 4f, MISIDE_BASE_FONT, ::formatInt),
-        LyricSetting.Number("gravity", "重力", 100f, 6000f, 100f, 1400f, ::formatInt, summary = "越小落得越慢"),
-        LyricSetting.Number("elasticity", "回弹", 0f, 0.85f, 0.05f, 0.34f, ::formatMisideDecimal, summary = "触地反弹的力度"),
-        LyricSetting.Number("settleHold", "落地停留", 0f, 10f, 0.5f, 2.5f, ::formatSeconds, summary = "落地后多久开始淡出"),
-        LyricSetting.Number("keepRows", "地上保留几行", 0f, 8f, 1f, 2f, ::formatInt, summary = "超出的整行回收"),
-        LyricSetting.Toggle("glowBoost", "立体字发光", true, summary = "7 层灰阶挤出加深投影；关掉只剩柔和投影"),
+        LyricSetting.Number("fontSizeV2", "Size", 24f, 120f, 4f, MISIDE_BASE_FONT, ::formatInt),
+        LyricSetting.Number("gravity", "Gravity", 100f, 6000f, 100f, 1400f, ::formatInt, summary = "Smaller values fall more slowly"),
+        LyricSetting.Number("elasticity", "Bounce", 0f, 0.85f, 0.05f, 0.34f, ::formatMisideDecimal, summary = "Bounce strength on landing"),
+        LyricSetting.Number("settleHold", "Floor linger", 0f, 10f, 0.5f, 2.5f, ::formatSeconds, summary = "How long before fading after landing"),
+        LyricSetting.Number("keepRows", "Lines kept on the floor", 0f, 8f, 1f, 2f, ::formatInt, summary = "Recycle lines that go past the edge"),
+        LyricSetting.Toggle("glowBoost", "3D text glow", true, summary = "Seven gray extrusion layers plus a deep shadow; off leaves a soft shadow only"),
     )
 
     @Composable

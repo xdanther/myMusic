@@ -78,7 +78,7 @@ import kotlin.math.sin
  * 移植取舍：
  * - 分词用 java.text.BreakIterator：Android 上由 ICU 实现，和 Chromium 的 Intl.Segmenter 是同一套词典；原模组没有分词器时的正则退路用不上。
  * - 原模组的圈带 canvas shadowBlur 辉光，但阴影透明度是“描边透明度 × 1.3 倍描边透明度”，实际不到 1%，看不出来，这里不画。
- * - “亮度”在原模组里只乘到了中间那团游走的淡光上，设置说明却是“波纹与光晕的整体强度”，这里照说明乘到全部波光上。
+ * - “Brightness”在原模组里只乘到了中间那团游走的淡光上，设置说明却是“波纹与光晕的整体强度”，这里照说明乘到全部波光上。
  * - 中间那团淡光用第二主色（封面第二色 / 主题 accentAlt），其余照原模组只用一个主色。
  *   封面主色取宿主量化好的 [com.mytv.mymusic.ui.player.stage.StageColors.cover] 第一色，再照原模组 dominantColor 的方式夹饱和度、明度。
  * - 原模组暂停时波纹照样流动；这里跟宿主的动画时钟走，暂停时停住，和其他模式一致，也省电。
@@ -90,7 +90,7 @@ import kotlin.math.sin
  */
 object WaveLightVisualizer : LyricVisualizer {
     override val id = "wave"
-    override val label = "动感波光"
+    override val label = "Wave light"
     override val origin = ModOrigin("wave-light", "1.5.1", "pomepii", "MIT")
     override val order = 40
     override val hostBackground = false
@@ -99,11 +99,11 @@ object WaveLightVisualizer : LyricVisualizer {
     override val drawsWithoutLyrics = false
 
     override val settings: List<LyricSetting> = listOf(
-        LyricSetting.Choice("waveSource", "波光颜色", listOf("cover" to "封面", "theme" to "主题"), "cover"),
-        LyricSetting.Number("brightness", "亮度", 0.3f, 2f, 0.1f, 1f),
-        LyricSetting.Number("speed", "速度", 0.2f, 3f, 0.1f, 1f),
-        LyricSetting.Toggle("keyword", "背后的大字水印", true, summary = "取这句里分量最重的词"),
-        LyricSetting.Number("textScale", "字号", 0.6f, 1.8f, 0.05f, 1f),
+        LyricSetting.Choice("waveSource", "Wave color", listOf("cover" to "Cover", "theme" to "Theme"), "cover"),
+        LyricSetting.Number("brightness", "Brightness", 0.3f, 2f, 0.1f, 1f),
+        LyricSetting.Number("speed", "Speed", 0.2f, 3f, 0.1f, 1f),
+        LyricSetting.Toggle("keyword", "Large watermark behind the lyrics", true, summary = "Uses the heaviest word in the line"),
+        LyricSetting.Number("textScale", "Size", 0.6f, 1.8f, 0.05f, 1f),
     )
 
     @Composable
@@ -481,7 +481,7 @@ private fun rememberWavePalette(ctx: LyricStageContext): WavePalette {
 // 声波
 // ---------------------------------------------------------------------------------------------
 
-/** 两组声波贴着左右屏边，圆心在屏边上（或略往里），一半圈在屏幕外。[t] 是乘过速度的秒数。 */
+/** 两组声波贴着左右屏边，圆心在屏边上（或略往里），一半圈在屏幕外。[t] 是乘过Speed的秒数。 */
 private fun DrawScope.drawWaves(t: Float, palette: WavePalette, brightness: Float) {
     val w = size.width
     val h = size.height

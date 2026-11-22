@@ -115,13 +115,13 @@ data class TransportGroupSize(
 }
 
 /**
- * 上一首 / 播放 / 下一首连成一块的按钮组：两端满圆、内侧 [TransportGroupSize.innerCorner]。
+ * Previous / 播放 / Next连成一块的按钮组：两端满圆、内侧 [TransportGroupSize.innerCorner]。
  * 中间播放键是 M3E 花瓣形（Cookie12），各尺寸里播放段宽=高，花瓣才不会被拉扁。
  * 按下哪段哪段变宽，相邻段让位（快速空间弹簧）；播放中两段间距拉开（默认空间弹簧）。
  * 宽度和间距只在布局阶段读，形状只在图层里读：按下和播放状态的过渡不触发组合。
  *
  * 不用 material3 的 ButtonGroup：alpha25 的版本按条目 DSL 布局并在放不下时把按钮收进溢出菜单，
- * 不支持固定段宽、动画间距和中段单独变形，窄屏上还可能把上一首 / 下一首藏进菜单。
+ * 不支持固定段宽、动画间距和中段单独变形，窄屏上还可能把Previous / Next藏进菜单。
  *
  * @param playFocusRequester 电视上让播放段拿初始焦点。
  */
@@ -164,7 +164,7 @@ fun TransportButtonGroup(
                 container = secondary,
                 content = onSecondary,
                 interaction = leadSource,
-                modifier = Modifier.semantics { contentDescription = "上一首" },
+                modifier = Modifier.semantics { contentDescription = "Previous" },
             ) { Icon(Icons.Filled.SkipPrevious, null, Modifier.size(size.iconSize)) }
             CookiePlayButton(
                 playing = playing,
@@ -180,7 +180,7 @@ fun TransportButtonGroup(
                 container = secondary,
                 content = onSecondary,
                 interaction = trailSource,
-                modifier = Modifier.semantics { contentDescription = "下一首" },
+                modifier = Modifier.semantics { contentDescription = "Next" },
             ) { Icon(Icons.Filled.SkipNext, null, Modifier.size(size.iconSize)) }
         },
         modifier = modifier,
@@ -205,7 +205,7 @@ fun TransportButtonGroup(
         layout(total, height) {
             var x = 0
             placeables.forEachIndexed { i, it ->
-                // 播放段的电视焦点环画在裁切外、还放大 1.06 倍，会伸进两侧的间距里；摆在上层，不被后摆的“下一首”盖住
+                // 播放段的电视焦点环画在裁切外、还放大 1.06 倍，会伸进两侧的间距里；摆在上层，不被后摆的“Next”盖住
                 it.place(x, 0, zIndex = if (i == 1) 1f else 0f)
                 x += it.width + g
             }
@@ -243,8 +243,8 @@ internal fun CookiePlayButton(
             .then(if (rotation != null) Modifier.graphicsLayer { rotationZ = rotation() } else Modifier)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .semantics {
-                contentDescription = if (playing) "暂停" else "播放"
-                stateDescription = if (playing) "正在播放" else "已暂停"
+                contentDescription = if (playing) "Pause" else "Play"
+                stateDescription = if (playing) "Now playing" else "Paused"
             },
     ) {
         Crossfade(
@@ -436,20 +436,20 @@ fun ToolbarIconButton(
 
 /**
  * “歌词”项：开着歌词页（手机歌词页、平板专注歌词）时是 16dp 圆角的选中底，点了退出。
- * 读屏文案沿用“全屏歌词 / 退出全屏歌词”。
+ * 读屏文案沿用“Full-screen lyrics / Exit full-screen lyrics”。
  */
 @Composable
 fun ToolbarLyricsButton(on: Boolean, onToggle: (Boolean) -> Unit, modifier: Modifier = Modifier) =
-    ToolbarIconButton(Icons.Filled.Lyrics, if (on) "退出全屏歌词" else "全屏歌词", { onToggle(!on) }, modifier, selected = on)
+    ToolbarIconButton(Icons.Filled.Lyrics, if (on) "Exit full-screen lyrics" else "Full-screen lyrics", { onToggle(!on) }, modifier, selected = on)
 
 /**
- * “定时”项：定时开着时展开成剩余时间（primary 色、等宽数字）或“本首结束”。
+ * “定时”项：定时开着时展开成剩余时间（primary 色、等宽数字）或“End of this song”。
  * 剩余时间每秒变化，只在这个小组件里读；读屏文案沿用原来的定时 chip。
  */
 @Composable
 fun ToolbarSleepButton(sleep: SleepTimerState, onOpenTimer: () -> Unit, modifier: Modifier = Modifier) {
     if (!sleep.active) {
-        ToolbarIconButton(Icons.Filled.Bedtime, "定时关闭", onOpenTimer, modifier)
+        ToolbarIconButton(Icons.Filled.Bedtime, "Sleep timer", onOpenTimer, modifier)
         return
     }
     val remaining = rememberSleepRemaining(sleep)
@@ -458,7 +458,7 @@ fun ToolbarSleepButton(sleep: SleepTimerState, onOpenTimer: () -> Unit, modifier
 
 @Composable
 private fun SleepRemaining(sleep: SleepTimerState, remaining: State<Long>, onOpenTimer: () -> Unit, modifier: Modifier) {
-    val text = if (sleep.endOfTrack) "本首结束" else formatClock(remaining.value)
+    val text = if (sleep.endOfTrack) "End of this song" else formatClock(remaining.value)
     Surface(
         onClick = onOpenTimer,
         modifier = modifier
@@ -467,7 +467,7 @@ private fun SleepRemaining(sleep: SleepTimerState, remaining: State<Long>, onOpe
             .animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec())
             .tvFocusRing(CircleShape)
             .semantics {
-                contentDescription = if (sleep.endOfTrack) "定时关闭：本首结束后停止" else "定时关闭：还剩 $text"
+                contentDescription = if (sleep.endOfTrack) "Sleep timer: stops after this song" else "Sleep timer: $text left"
                 role = Role.Button
             },
         shape = CircleShape,
@@ -489,9 +489,9 @@ private fun SleepRemaining(sleep: SleepTimerState, remaining: State<Long>, onOpe
 /** 队列项。 */
 @Composable
 fun ToolbarQueueButton(onOpenQueue: () -> Unit, modifier: Modifier = Modifier) =
-    ToolbarIconButton(Icons.AutoMirrored.Filled.QueueMusic, "播放队列", onOpenQueue, modifier)
+    ToolbarIconButton(Icons.AutoMirrored.Filled.QueueMusic, "Queue", onOpenQueue, modifier)
 
-/** 换音源项。 */
+/** Change source项。 */
 @Composable
 fun ToolbarSourceButton(onOpenSource: () -> Unit, modifier: Modifier = Modifier) =
-    ToolbarIconButton(Icons.Filled.SwapHoriz, "换音源", onOpenSource, modifier)
+    ToolbarIconButton(Icons.Filled.SwapHoriz, "Change source", onOpenSource, modifier)

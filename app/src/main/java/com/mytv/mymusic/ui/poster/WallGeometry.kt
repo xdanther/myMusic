@@ -490,7 +490,7 @@ internal class WallScene(
      * 得分相差不到 0.5 时选横向偏移小的，再平就保留先找到的。没有候选返回 null（焦点不动）。
      */
     fun focusNeighbour(focus: SlotPos, dx: Int, dy: Int): SlotPos? {
-        require((dx == 0) != (dy == 0)) { "方向只能是上下左右之一" }
+        require((dx == 0) != (dy == 0)) { "Direction must be up, down, left or right" }
         val cur = rectAt(focus)
         var best: SlotPos? = null
         var bs = Float.POSITIVE_INFINITY

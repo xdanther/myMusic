@@ -474,7 +474,7 @@ fun SearchScreen(
         )
     }
     if (ctx.pickerOpen) {
-        // 多选加入歌单：每条聚合曲目取当前最优音源的那首存进本地歌单
+        // 多选Add to playlist：每条聚合曲目取当前最优音源的那首存进本地歌单
         val pickedSongs = ctx.groups.value
             .filter { it.id in ctx.selection.selected }
             .mapNotNull { preferredSong(it, state.cookies) }
@@ -1312,7 +1312,7 @@ private fun SearchSongRow(
     )
 }
 
-/** “更多”：平板是锚定在按钮旁的菜单，手机和电视打开歌曲操作面板。 */
+/** “更多”：平板是锚定在按钮旁的菜单，手机和电视打开Track actions面板。 */
 @Composable
 private fun MoreActionButton(
     ctx: SearchCtx,
@@ -2550,7 +2550,7 @@ internal fun SearchResultsTestHost(
 
 /* ======================== 工具 ======================== */
 
-/** 电视遥控器菜单键打开歌曲操作。 */
+/** 电视遥控器菜单键打开Track actions。 */
 private fun Modifier.onMenuKey(action: () -> Unit): Modifier = onPreviewKeyEvent { event ->
     if (event.key == Key.Menu && event.type == KeyEventType.KeyUp) {
         action()

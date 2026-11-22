@@ -241,11 +241,11 @@ internal fun PhonePlayer(
                     onSkip = onSkip,
                     onDoubleTap = onFavoriteBurst,
                     sharedElement = true,
-                    // 歌词页左上角的小圆就是“回到封面”按钮；图层缩放后点按范围也跟着缩到小圆
+                    // 歌词页左上角的小圆就是“Back to cover”按钮；图层缩放后点按范围也跟着缩到小圆
                     modifier = if (lyricsMode) {
                         Modifier
                             .clickable(interactionSource = null, indication = null, role = Role.Button) { onLyricsMode(false) }
-                            .semantics { contentDescription = "回到封面" }
+                            .semantics { contentDescription = "Back to cover" }
                     } else {
                         Modifier
                     },
@@ -284,7 +284,7 @@ private fun PhoneTopBar(
             Modifier.fillMaxWidth().height(TopBarHeight).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "收起播放页", tint = MaterialTheme.colorScheme.onSurface) }
+            IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "Close the player", tint = MaterialTheme.colorScheme.onSurface) }
             // 顶部始终是音源；定时只在工具栏里显示剩余时间
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 SourcePill(song, sourceProvider, sourceDetail, playbackMode, onOpenSource)
@@ -316,7 +316,7 @@ private fun PhoneShortTopBar(
             Modifier.fillMaxWidth().height(TopBarHeight).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "收起播放页", tint = MaterialTheme.colorScheme.onSurface) }
+            IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "Close the player", tint = MaterialTheme.colorScheme.onSurface) }
             Spacer(Modifier.weight(1f))
             ToolbarLyricsButton(on = false, onToggle = onLyricsMode)
             ToolbarQueueButton(onOpenQueue)
@@ -422,7 +422,7 @@ private fun PhoneLyricsPreview(
     ) {
         // 空闲时预览淡出、换成三行歌词：这里的逐字填色停住，不再空跑帧循环。只有这个小块随空闲状态重组
         val awake = short || !idle.idle
-        Box(Modifier.fillMaxSize().clickable(onClickLabel = "打开全屏歌词", onClick = onOpen)) {
+        Box(Modifier.fillMaxSize().clickable(onClickLabel = "Open full-screen lyrics", onClick = onOpen)) {
             val index = active.value
             val line = lyrics.lines.getOrNull(index) ?: return@Box
             if (short) {

@@ -50,7 +50,7 @@ internal fun shareImageIntent(context: Context, file: File, text: String): Inten
         clipData = ClipData.newRawUri(null, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    return Intent.createChooser(send, "分享歌词")
+    return Intent.createChooser(send, "Share lyrics")
 }
 
 /**

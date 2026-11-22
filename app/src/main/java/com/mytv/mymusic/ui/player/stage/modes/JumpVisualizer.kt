@@ -53,9 +53,9 @@ import android.graphics.Paint as NativePaint
  * 源码 https://cnb.cool/ai-zoomer/fork-from/folia 提交 f77181ca），用 Compose Canvas 原生重写，不用 WebView。
  *
  * 效果（数值、时序、配色照原版）：
- * - 一句歌词切成几块（中文按“每块字数”合字，拉丁按词，标点黏在前一块），每块是一根等轴测方柱，字贴在柱子的顶面 / 正面 / 侧面
+ * - 一句歌词切成几块（中文按“Characters per block”合字，拉丁按词，标点黏在前一块），每块是一根等轴测方柱，Text on柱子的顶面 / 正面 / 侧面
  *   或悬在上方；柱子沿路一行一行折成 Z 字（偶数行往右上、奇数行往左上），柱长跟着字宽走。
- * - 小人（带高光的胶囊棋子）在每块第一个字开唱的那一刻落到那根柱子上：起跳是落地往回推一个滞空，抛物线高度 = 跳跃高度；
+ * - 小人（带高光的胶囊棋子）在每块第一个字开唱的那一刻落到那根柱子上：起跳是落地往回推一个滞空，抛物线高度 = Jump height；
  *   起跳蹲、落地压、空中拉长；柱子被踩下去，离开时弹簧似的弹回来；落地踩出一圈椭圆波纹和六粒尘土，停够 0.36 秒的起跳也有一圈小的。
  * - 一行唱完跳到下一行首块上等开口；两行之间空得久就在行末立一根歇脚的圆柱，他唱完跳上去歇着。第一行开口前原地一跳登场。
  * - 镜头跟着时间表的站点走、跨行时沿“末块 → 拐角 → 下一行首块”的折线拐过去，并往路前进的那一侧多看一格；后面的行从地里逐块升起。
@@ -68,20 +68,20 @@ import android.graphics.Paint as NativePaint
  * - 译文的逐字 matrix3d 换成每行一个仿射矩阵（压扁 + 侧倾 + 按行收缩），丢掉的真透视在一个字高里只差百分之二三；
  *   原版“行末立了歇脚柱的句子，译文要等这句唱完才亮”看上去是笔误，这里统一在这一句开口时淡入。
  * - 原版取 Folia 主题的 secondaryColor 当柱面色，播放页没有这个色，用 surface 与 text 的中间色再掺一点主题色代替。
- * - 原版的格子地板（26 像素）在又宽又矮的舞台（桌面姿态）上会把小人推出画面，这里按预算上下比例摆，并保证头顶装得下人和跳跃高度；
+ * - 原版的格子地板（26 像素）在又宽又矮的舞台（桌面姿态）上会把小人推出画面，这里按预算上下比例摆，并保证头顶装得下人和Jump height；
  *   整条路按安全区取景，安全区外清掉、边上渐隐（离屏层 + DstIn）。
  * - 减少动态效果（也是面板缩略图）：只摆当前句，柱子全部立好，小人站在唱到的那一块（没有逐字时间就站第一块），
  *   按整行外接框取景（不太损失字号时给译文让出上沿那一条）；没有跳、波纹、轨迹。
  * - 柱子上的字和译文用 android.graphics.Paint 画（贴面要整块仿射变换），字体是系统无衬线（API 28+ 取 600 / 500 字重，低版本粗体 / 常规）；
  *   分词用 java.text.BreakIterator（安卓上是 ICU，等价于原版宿主的 Intl.Segmenter）。
  * - 译文字号原版只看柱顶的字，在手机和缩略图上会大到一屏两三个字，这里再按正文字号的 1.3 倍、安全区高的 12% 封顶。
- * - 原模组 25 项设置，面板放 6 项（字贴在、俯角、每块字数、滞空、跳跃高度、译文开关），其余按原默认值写死：
+ * - 原模组 25 项设置，面板放 6 项（Text on、俯角、Characters per block、滞空、Jump height、译文开关），其余按原默认值写死：
  *   镜头距离 1、柱距 1.2、柱高 1.9、歇脚柱 1.75 秒、柱子弹性 1、小人尺寸 1.2、轨迹 0.5、柱面 / 背光面 / 棱线 0.8、上下两行 0.9、
  *   译文字号 1.05、最多 3 行、顶部对齐、偏移 0、不透明度 0.8、逐字透视、光晕 0.28；译文内容跟宿主“歌词下面那一行”的设置走。
  */
 object JumpVisualizer : LyricVisualizer {
     override val id = "jump"
-    override val label = "跳一跳"
+    override val label = "Jump"
     override val origin = ModOrigin("visualizer-jump", "1.2.0", "tumuyan", "AGPL-3.0")
     override val order = 80
     override val hostBackground = true
@@ -98,15 +98,15 @@ object JumpVisualizer : LyricVisualizer {
     override val settings: List<LyricSetting> = listOf(
         LyricSetting.Choice(
             "textFace",
-            "字贴在",
-            listOf("top" to "顶面", "front" to "正面", "side" to "侧面", "above" to "上方"),
+            "Text on",
+            listOf("top" to "Top", "front" to "Front", "side" to "Side", "above" to "Above"),
             "top",
         ),
-        LyricSetting.Number("pitch", "俯角", 18f, 60f, 2f, 34f, ::jumpFormatDegrees),
-        LyricSetting.Number("chunkChars", "每块字数", 1f, 4f, 1f, 2f, ::formatInt, summary = "只对中文有用"),
-        LyricSetting.Number("flySeconds", "滞空时间", 0.1f, 1.2f, 0.05f, 0.45f, ::formatSeconds),
-        LyricSetting.Number("arc", "跳跃高度", 0f, 2.4f, 0.1f, 1.2f),
-        LyricSetting.Toggle("translationMode", "显示译文", true),
+        LyricSetting.Number("pitch", "Overhead", 18f, 60f, 2f, 34f, ::jumpFormatDegrees),
+        LyricSetting.Number("chunkChars", "Characters per block", 1f, 4f, 1f, 2f, ::formatInt, summary = "Only affects Chinese"),
+        LyricSetting.Number("flySeconds", "Air time", 0.1f, 1.2f, 0.05f, 0.45f, ::formatSeconds),
+        LyricSetting.Number("arc", "Jump height", 0f, 2.4f, 0.1f, 1.2f),
+        LyricSetting.Toggle("translationMode", "Show translations", true),
     )
 
     @Composable

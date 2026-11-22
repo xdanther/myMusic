@@ -7,7 +7,7 @@ import com.mytv.mymusic.data.PlaylistCategory
  * 一直用的都是中文「全部」。翻译只能发生在显示的时候（`R.string.all_items`），
  * 否则旧数据、同步文件和平台分类都会对不上。
  */
-internal const val GROUP_ALL = "全部"
+internal const val GROUP_ALL = "All"
 
 /** 分类分组 chip：固定“全部”在首位，其余去空、去重并保持服务端顺序。 */
 internal fun categoryGroups(categories: List<PlaylistCategory>): List<String> =

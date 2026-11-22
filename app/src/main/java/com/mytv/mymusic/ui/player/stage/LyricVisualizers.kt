@@ -37,7 +37,7 @@ object LyricVisualizers {
  */
 object ClassicVisualizer : LyricVisualizer {
     override val id = "classic"
-    override val label = "经典"
+    override val label = "Classic"
     override val origin: ModOrigin? = null
     override val order = 0
 

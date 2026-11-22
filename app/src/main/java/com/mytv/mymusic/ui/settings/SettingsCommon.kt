@@ -212,7 +212,7 @@ internal fun rememberOpenUri(): (String) -> Unit {
     return remember(handler, snackbar, scope) {
         { uri ->
             runCatching { handler.openUri(uri) }.onFailure {
-                scope.launch { snackbar.showSnackbar("这台设备没有可以打开链接的应用") }
+                scope.launch { snackbar.showSnackbar("No app on this device can open links") }
             }
         }
     }
@@ -267,7 +267,7 @@ internal fun SodamCredit(modifier: Modifier = Modifier, logoSize: Dp = 44.dp, no
         Column(Modifier.weight(1f)) {
             Text("Powered by SodaM", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Text(
-                note ?: "汽水会员整曲的签名服务与协议来自 SodaM（AGPL-3.0）",
+                note ?: "Signing for Soda member full tracks comes from SodaM (AGPL-3.0)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

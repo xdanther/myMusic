@@ -165,7 +165,7 @@ private class ArtistOps(
 
 /**
  * 歌手页。手机：整张歌手照片铺满头部、向下渐隐到页面底色，名字压在照片底部；下面是数字、播放按钮和
- * 吸顶的“热门歌曲 / 专辑 / 简介”切换。平板（≥840dp）和电视：左栏圆形头像、名字和操作不随列表滚动，右栏是三个分页。
+ * 吸顶的“Popular songs / 专辑 / 简介”切换。平板（≥840dp）和电视：左栏圆形头像、名字和操作不随列表滚动，右栏是三个分页。
  * 头部配色取头像的主色（和详情页一样），资料、歌曲、专辑各自加载，谁先回来先画谁。
  */
 @Composable
@@ -260,7 +260,7 @@ private fun PhoneArtist(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回", tint = iconColor) }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = iconColor) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
             )
@@ -287,11 +287,11 @@ private fun PhoneArtist(
                                     onShuffle = ops.shuffle,
                                     onQueue = ops.queue,
                                     onSave = ops.save,
-                                    label = "播放热门",
-                                    saveLabel = "存为本地歌单",
+                                    label = "Play popular",
+                                    saveLabel = "Save as a local playlist",
                                 )
                                 FilledTonalIconButton(onClick = ops.shuffle, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                    Icon(Icons.Filled.Shuffle, "随机播放")
+                                    Icon(Icons.Filled.Shuffle, "Shuffle")
                                 }
                             }
                         }
@@ -455,7 +455,7 @@ private fun TwoPaneArtist(
                 ) {
                     if (!tv) {
                         IconButton(onClick = onBack, modifier = Modifier.padding(bottom = 8.dp)) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     }
                     ArtistPortrait(artist, tint, if (tv) 200.dp else 232.dp)
@@ -470,20 +470,20 @@ private fun TwoPaneArtist(
                         itemVerticalAlignment = Alignment.CenterVertically,
                     ) {
                         if (tv) {
-                            // 电视不用下拉菜单：播放 + 随机 + 加入队列平铺，焦点默认在“播放热门”
+                            // 电视不用下拉菜单：播放 + 随机 + 加入队列平铺，焦点默认在“Play popular”
                             Button(
                                 onClick = ops.play,
                                 modifier = Modifier.focusRequester(playFocus).heightIn(min = 48.dp).tvFocusRing(CircleShape),
                             ) {
                                 Icon(Icons.Filled.PlayArrow, null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("播放热门", Modifier.semantics { contentDescription = "播放${artist.displayName}的热门歌曲" })
+                                Text("Play popular", Modifier.semantics { contentDescription = "Play ${artist.displayName}'s popular songs" })
                             }
                             FilledTonalIconButton(onClick = ops.shuffle, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                Icon(Icons.Filled.Shuffle, "随机播放")
+                                Icon(Icons.Filled.Shuffle, "Shuffle")
                             }
                             FilledTonalIconButton(onClick = ops.queue, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                Icon(Icons.AutoMirrored.Filled.QueueMusic, "加入播放队列")
+                                Icon(Icons.AutoMirrored.Filled.QueueMusic, "Add to queue")
                             }
                         } else {
                             PlayAllSplitButton(
@@ -491,11 +491,11 @@ private fun TwoPaneArtist(
                                 onShuffle = ops.shuffle,
                                 onQueue = ops.queue,
                                 onSave = ops.save,
-                                label = "播放热门",
-                                saveLabel = "存为本地歌单",
+                                label = "Play popular",
+                                saveLabel = "Save as a local playlist",
                             )
                             FilledTonalIconButton(onClick = ops.shuffle, modifier = Modifier.tvFocusRing(CircleShape)) {
-                                Icon(Icons.Filled.Shuffle, "随机播放")
+                                Icon(Icons.Filled.Shuffle, "Shuffle")
                             }
                         }
                     }
@@ -554,7 +554,7 @@ private fun ArtistNameBlock(artist: ArtistUiState, large: Boolean, modifier: Mod
                 ProviderIcon(id = artist.source, name = artist.sourceName, size = 18.dp, corner = 5.dp)
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "${artist.sourceName} · 歌手",
+                    "${artist.sourceName} · Artist",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -562,7 +562,7 @@ private fun ArtistNameBlock(artist: ArtistUiState, large: Boolean, modifier: Mod
             }
         }
         Text(
-            artist.displayName.ifBlank { "歌手" },
+            artist.displayName.ifBlank { "Artist" },
             Modifier.semantics { heading() },
             style = when {
                 tv -> MaterialTheme.typography.displaySmall
@@ -592,12 +592,12 @@ private fun ArtistNameBlock(artist: ArtistUiState, large: Boolean, modifier: Mod
 @Composable
 private fun ArtistStats(artist: ArtistUiState) {
     val stats = buildList {
-        if (artist.songCount > 0) add(compactCount(artist.songCount.toLong()) to "首歌曲")
-        if (artist.albumCount > 0) add(compactCount(artist.albumCount.toLong()) to if (artist.albumsDerived) "张专辑（已读到）" else "张专辑")
+        if (artist.songCount > 0) add(compactCount(artist.songCount.toLong()) to "songs")
+        if (artist.albumCount > 0) add(compactCount(artist.albumCount.toLong()) to if (artist.albumsDerived) "albums (loaded)" else "albums")
         val fans = artist.profile?.fans ?: 0L
-        if (fans > 0) add(compactCount(fans) to "位粉丝")
+        if (fans > 0) add(compactCount(fans) to " followers")
         val mvs = artist.profile?.mvCount ?: 0
-        if (mvs > 0 && size < 3) add(compactCount(mvs.toLong()) to "支 MV")
+        if (mvs > 0 && size < 3) add(compactCount(mvs.toLong()) to " music videos")
     }
     if (stats.isEmpty()) return
     Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
@@ -614,9 +614,9 @@ private fun ArtistTabs(artist: ArtistUiState, tab: ArtistTab, onTab: (ArtistTab)
         onSelect = onTab,
         label = {
             when (it) {
-                ArtistTab.Songs -> "热门歌曲"
-                ArtistTab.Albums -> if (artist.albumCount > 0) "专辑 ${artist.albumCount}" else "专辑"
-                ArtistTab.About -> "简介"
+                ArtistTab.Songs -> "Popular songs"
+                ArtistTab.Albums -> if (artist.albumCount > 0) "${artist.albumCount} albums" else "Albums"
+                ArtistTab.About -> "About"
             }
         },
         icon = {
@@ -638,7 +638,7 @@ private fun albumColumns(width: Dp): Int {
     return ((width + gap) / (min + gap)).toInt().coerceIn(2, 6)
 }
 
-/** 当前分页的内容：热门歌曲是分段列表，专辑是网格（到底自动加载下一页），简介是正文 + 基本资料。 */
+/** 当前分页的内容：Popular songs是分段列表，专辑是网格（到底自动加载下一页），简介是正文 + Basics。 */
 private fun LazyListScope.artistTabContent(
     artist: ArtistUiState,
     tab: ArtistTab,
@@ -653,7 +653,7 @@ private fun LazyListScope.artistTabContent(
     if (artist.resolving) {
         item(key = "resolving", contentType = "skeleton") {
             Column(Modifier.padding(horizontal = horizontal)) {
-                AppLoading(text = "正在${artist.sourceName.ifBlank { "平台" }}上找这位歌手…")
+                AppLoading(text = "Searching ${artist.sourceName.ifBlank { "Platform" }}…")
                 SkeletonRows(6)
             }
         }
@@ -662,7 +662,7 @@ private fun LazyListScope.artistTabContent(
     if (artist.resolveError.isNotBlank()) {
         item(key = "resolveError", contentType = "error") {
             DiscoverErrorState(
-                title = "没有找到这位歌手",
+                title = "Couldn't find this artist",
                 message = artist.resolveError,
                 onRetry = ops.retry,
             )
@@ -692,7 +692,7 @@ private fun LazyListScope.artistSongs(
         }
         songs.isEmpty() && artist.songsError.isNotBlank() -> item(key = "songsError", contentType = "error") {
             DiscoverErrorState(
-                title = "歌曲没有加载出来",
+                title = "Couldn't load the songs",
                 message = listOf(artist.sourceName, artist.songsError).filter { it.isNotBlank() }.joinToString("："),
                 onRetry = ops.retry,
             )
@@ -700,9 +700,9 @@ private fun LazyListScope.artistSongs(
         songs.isEmpty() -> item(key = "songsEmpty", contentType = "empty") {
             EmptyState(
                 icon = Icons.Filled.MusicNote,
-                title = "这位歌手还没有歌曲",
-                message = "稍后重试，或换一个平台搜索。",
-                actionLabel = "重试",
+                title = "This artist has no songs yet",
+                message = "Try again later, or search on another platform.",
+                actionLabel = "Retry",
                 onAction = ops.retry,
             )
         }
@@ -756,8 +756,8 @@ private fun LazyListScope.artistAlbums(
         albums.isEmpty() -> item(key = "albumsEmpty", contentType = "empty") {
             EmptyState(
                 icon = Icons.Filled.Album,
-                title = "没有找到专辑",
-                message = "这个平台没有给出这位歌手的专辑。",
+                title = "No albums found",
+                message = "This platform returned no albums for this artist.",
             )
         }
         else -> {
@@ -765,9 +765,9 @@ private fun LazyListScope.artistAlbums(
                 val total = artist.albumCount
                 Text(
                     when {
-                        artist.albumsDerived -> "从歌曲里整理出 ${albums.size} 张专辑"
-                        total > 0 -> "共 $total 张 · 按发行时间排序"
-                        else -> "按发行时间排序"
+                        artist.albumsDerived -> "Organized ${albums.size} albums from the songs"
+                        total > 0 -> "$total albums · sorted by release date"
+                        else -> "By release date"
                     },
                     Modifier.padding(horizontal = horizontal).padding(start = 4.dp, bottom = 12.dp),
                     style = MaterialTheme.typography.labelLarge,
@@ -809,8 +809,8 @@ private fun LazyListScope.artistAbout(artist: ArtistUiState, horizontal: Dp) {
             } else {
                 EmptyState(
                     icon = Icons.Filled.PersonSearch,
-                    title = "暂无简介",
-                    message = "${artist.sourceName.ifBlank { "这个平台" }}没有提供这位歌手的介绍。",
+                    title = "No biography yet",
+                    message = "${artist.sourceName.ifBlank { "this platform" }} has no biography for this artist.",
                 )
             }
         }
@@ -818,7 +818,7 @@ private fun LazyListScope.artistAbout(artist: ArtistUiState, horizontal: Dp) {
     }
     if (facts.isNotEmpty()) {
         item(key = "factsLabel", contentType = "label") {
-            AboutLabel("基本资料", Modifier.padding(horizontal = horizontal))
+            AboutLabel("Basics", Modifier.padding(horizontal = horizontal))
         }
         itemsIndexed(facts, key = { index, fact -> "fact:$index:${fact.first}" }, contentType = { _, _ -> "fact" }) { index, (label, value) ->
             FactRow(label, value, index, facts.size, Modifier.padding(horizontal = horizontal).padding(bottom = if (index < facts.lastIndex) SegmentGap else 0.dp))
@@ -826,7 +826,7 @@ private fun LazyListScope.artistAbout(artist: ArtistUiState, horizontal: Dp) {
     }
     if (paragraphs.isNotEmpty()) {
         item(key = "introLabel", contentType = "label") {
-            AboutLabel("歌手介绍", Modifier.padding(horizontal = horizontal).padding(top = if (facts.isNotEmpty()) 12.dp else 0.dp))
+            AboutLabel("About the artist", Modifier.padding(horizontal = horizontal).padding(top = if (facts.isNotEmpty()) 12.dp else 0.dp))
         }
         // 每段一项：长简介在电视上也能一段一段地用方向键往下翻
         itemsIndexed(paragraphs, key = { index, _ -> "para:$index" }, contentType = { _, _ -> "paragraph" }) { index, text ->
@@ -845,7 +845,7 @@ private fun AboutLabel(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** 基本资料一行：左边灰色的键，右边值；分段卡片，和设置页的列表同一种形状。 */
+/** Basics一行：左边灰色的键，右边值；分段卡片，和设置页的列表同一种形状。 */
 @Composable
 private fun FactRow(label: String, value: String, index: Int, count: Int, modifier: Modifier = Modifier) {
     val shape = segmentShape(index, count)

@@ -67,7 +67,7 @@ fun ChartLayout(
     val context = LocalContext.current
     val bp = pickBreakpoint(ChartBreakpoints, LocalSize.current).key
     val songs = snapshot?.songs.orEmpty()
-    val name = snapshot?.name?.ifBlank { null } ?: target?.name?.ifBlank { null } ?: "榜单"
+    val name = snapshot?.name?.ifBlank { null } ?: target?.name?.ifBlank { null } ?: "Charts"
     val openChart: Action? = when {
         !interactive -> null
         target == null -> WidgetActions.open(context, WidgetTarget.Charts)
@@ -81,7 +81,7 @@ fun ChartLayout(
             // 还没取到（刚添加、没网）：点一下重试
             val failed = snapshot != null && snapshot.offline
             Column(
-                modifier = GlanceModifier.fillMaxSize().padding(14.dp).onClick(refresh).describe(if (failed) "暂时连不上，点击重试" else "正在获取榜单"),
+                modifier = GlanceModifier.fillMaxSize().padding(14.dp).onClick(refresh).describe(if (failed) "Offline, tap to retry" else "Loading charts"),
             ) {
                 WText(name, 16.sp, palette.color { onSurface }, weight = FontWeight.Bold)
                 Spacer(GlanceModifier.defaultWeight())
@@ -90,21 +90,21 @@ fun ChartLayout(
                         WIcon(R.drawable.ic_w_cloud_off, 16.dp, palette.color { onSurfaceVariant })
                         Spacer(GlanceModifier.width(6.dp))
                     }
-                    WText(if (failed) "暂时连不上 · 点击重试" else "正在获取榜单…", WType.artist, palette.color { onSurfaceVariant })
+                    WText(if (failed) "Offline · tap to retry" else "Loading charts…", WType.artist, palette.color { onSurfaceVariant })
                 }
             }
             return@Box
         }
         when (bp) {
             ChartBp.Square -> Column(modifier = GlanceModifier.fillMaxSize().padding(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 10.dp)) {
-                Column(modifier = GlanceModifier.fillMaxWidth().onClick(openChart).describe("$name，打开榜单")) {
+                Column(modifier = GlanceModifier.fillMaxWidth().onClick(openChart).describe("$name, open chart")) {
                     WText(name, WType.title, palette.color { onSurface }, weight = FontWeight.Bold)
                     ChartSubtitle(snapshot, sourceName, palette)
                 }
                 Spacer(GlanceModifier.height(10.dp))
                 val first = songs.first()
                 Row(
-                    modifier = GlanceModifier.fillMaxWidth().onClick(playRow(first)).describe("第 1 名，${first.title}，${first.artist}，播放"),
+                    modifier = GlanceModifier.fillMaxWidth().onClick(playRow(first)).describe("#1, ${first.title}, ${first.artist}, play"),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     WCover(first.cover, 60.dp, WidgetShape.Arch, palette)
@@ -118,7 +118,7 @@ fun ChartLayout(
                 Spacer(GlanceModifier.height(8.dp))
                 songs.drop(1).take(2).forEachIndexed { i, song ->
                     Row(
-                        modifier = GlanceModifier.fillMaxWidth().height(22.dp).onClick(playRow(song)).describe("第 ${i + 2} 名，${song.title}，播放"),
+                        modifier = GlanceModifier.fillMaxWidth().height(22.dp).onClick(playRow(song)).describe("#${i + 2}, ${song.title}, play"),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         WText("${i + 2}", 13.sp, palette.color { primary }, GlanceModifier.width(16.dp), weight = FontWeight.Bold)
@@ -130,19 +130,19 @@ fun ChartLayout(
             }
             ChartBp.Card -> Column(modifier = GlanceModifier.fillMaxSize().padding(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 4.dp)) {
                 Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = GlanceModifier.defaultWeight().onClick(openChart).describe("$name，打开榜单")) {
+                    Column(modifier = GlanceModifier.defaultWeight().onClick(openChart).describe("$name, open chart")) {
                         WText(name, 16.sp, palette.color { onSurface }, weight = FontWeight.Bold)
                         ChartSubtitle(snapshot, sourceName, palette)
                     }
                     Spacer(GlanceModifier.width(8.dp))
-                    WPlayButton(false, 40.dp, palette, playRow(null), description = "播放整张$name")
+                    WPlayButton(false, 40.dp, palette, playRow(null), description = "Play all of $name")
                 }
                 Spacer(GlanceModifier.height(6.dp))
                 LazyColumn(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
                     itemsIndexed(songs, itemId = { i, _ -> i.toLong() }) { i, song ->
                         val n = i + 1
                         Row(
-                            modifier = GlanceModifier.fillMaxWidth().height(44.dp).onClick(playRow(song)).describe("第 $n 名，${song.title}，${song.artist}，播放"),
+                            modifier = GlanceModifier.fillMaxWidth().height(44.dp).onClick(playRow(song)).describe("#$n, ${song.title}, ${song.artist}, play"),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             WText(
@@ -172,7 +172,7 @@ private fun ChartSubtitle(snapshot: ChartSnapshot?, sourceName: String, palette:
         Row(verticalAlignment = Alignment.CenterVertically) {
             WIcon(R.drawable.ic_w_cloud_off, 13.dp, palette.color { onSurfaceVariant })
             Spacer(GlanceModifier.width(6.dp))
-            WText("离线 · ${updatedLabel(snapshot.updatedAt)}", WType.meta, palette.color { onSurfaceVariant })
+            WText("Offline · ${updatedLabel(snapshot.updatedAt)}", WType.meta, palette.color { onSurfaceVariant })
         }
     } else {
         val updated = snapshot?.updatedAt?.takeIf { it > 0 }?.let(::updatedLabel).orEmpty()
@@ -180,38 +180,38 @@ private fun ChartSubtitle(snapshot: ChartSnapshot?, sourceName: String, palette:
     }
 }
 
-/** “今天更新”“3 小时前更新”“昨天更新”“5 天前更新”。 */
+/** “今天更新”“3 小时前更新”“Updated yesterday”“5 天前更新”。 */
 fun updatedLabel(at: Long, now: Long = System.currentTimeMillis()): String {
-    if (at <= 0) return "还没更新"
+    if (at <= 0) return "Not updated yet"
     val hours = (now - at) / 3_600_000
     val today = Calendar.getInstance().apply { timeInMillis = now }
     val then = Calendar.getInstance().apply { timeInMillis = at }
     val sameDay = today.get(Calendar.YEAR) == then.get(Calendar.YEAR) && today.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
     return when {
-        hours < 1 && sameDay -> "刚刚更新"
-        sameDay -> "$hours 小时前更新"
-        hours < 48 -> "昨天更新"
-        else -> "${hours / 24} 天前更新"
+        hours < 1 && sameDay -> "Updated just now"
+        sameDay -> "Updated $hours h ago"
+        hours < 48 -> "Updated yesterday"
+        else -> "Updated ${hours / 24} d ago"
     }
 }
 
-/** 排名变化：升（主色箭头）、降、持平（—）、新上榜（tertiaryContainer 的“新”标）。没有数据就不显示。 */
+/** 排名变化：升（主色箭头）、降、持平（—）、New entry（tertiaryContainer 的“新”标）。没有数据就不显示。 */
 @Composable
 private fun DeltaBadge(delta: RankDelta?, palette: WidgetPalette) {
     when (delta) {
         null -> Unit
         RankDelta.New -> Box(
             modifier = GlanceModifier.tinted(R.drawable.widget_r8, palette.color { tertiaryContainer }).padding(horizontal = 6.dp, vertical = 1.dp)
-                .describe("新上榜"),
+                .describe("New entry"),
         ) {
-            WText("新", WType.time, palette.color { onTertiaryContainer }, weight = FontWeight.Medium)
+            WText("New", WType.time, palette.color { onTertiaryContainer }, weight = FontWeight.Medium)
         }
-        RankDelta.Same -> WText("—", WType.time, palette.color { onSurfaceVariant }, GlanceModifier.width(30.dp).describe("排名不变"), align = TextAlign.End)
-        is RankDelta.Up -> Row(modifier = GlanceModifier.width(30.dp).describe("上升 ${delta.by} 名"), horizontalAlignment = Alignment.End, verticalAlignment = Alignment.CenterVertically) {
+        RankDelta.Same -> WText("—", WType.time, palette.color { onSurfaceVariant }, GlanceModifier.width(30.dp).describe("No change"), align = TextAlign.End)
+        is RankDelta.Up -> Row(modifier = GlanceModifier.width(30.dp).describe("Up ${delta.by}"), horizontalAlignment = Alignment.End, verticalAlignment = Alignment.CenterVertically) {
             WIcon(R.drawable.ic_w_up, 16.dp, palette.color { primary })
             WText("${delta.by}", WType.time, palette.color { primary }, weight = FontWeight.Medium)
         }
-        is RankDelta.Down -> Row(modifier = GlanceModifier.width(30.dp).describe("下降 ${delta.by} 名"), horizontalAlignment = Alignment.End, verticalAlignment = Alignment.CenterVertically) {
+        is RankDelta.Down -> Row(modifier = GlanceModifier.width(30.dp).describe("Down ${delta.by}"), horizontalAlignment = Alignment.End, verticalAlignment = Alignment.CenterVertically) {
             WIcon(R.drawable.ic_w_down, 16.dp, palette.color { onSurfaceVariant })
             WText("${delta.by}", WType.time, palette.color { onSurfaceVariant }, weight = FontWeight.Medium)
         }

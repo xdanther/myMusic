@@ -35,7 +35,7 @@ private val ToolsBreakpoints = listOf(
 )
 
 /**
- * 快捷入口：2×2 是四瓣饼干底板，中间听歌识曲、四角搜索 / 我喜欢 / 听歌模式 / 定时关闭；4×1 是搜索条；1×1 只留识曲。
+ * 快捷入口：2×2 是四瓣饼干底板，中间听歌识曲、四角搜索 / 我喜欢 / 听歌模式 / Sleep timer；4×1 是搜索条；1×1 只留识曲。
  * 没有外框背景，底板和搜索条自己带底色。识曲要用麦克风只能在前台录，所以点了打开 App 并立刻开始听。
  */
 class ToolsWidget : MusicWidget(WidgetKind.Tools) {
@@ -67,7 +67,7 @@ fun ToolsLayout(palette: WidgetPalette, background: WidgetBackground, interactiv
                     ImageProvider(WidgetImages.mask((side.value * density).roundToInt(), WidgetShape.Cookie9, density)),
                     contentScale = ContentScale.FillBounds,
                     colorFilter = ColorFilter.tint(palette.color { primaryContainer }),
-                ).onClick(open(WidgetTarget.Recognize)).describe("听歌识曲"),
+                ).onClick(open(WidgetTarget.Recognize)).describe("Recognize"),
                 contentAlignment = Alignment.Center,
             ) {
                 WIcon(R.drawable.ic_w_eq, side * 0.44f, palette.color { onPrimaryContainer })
@@ -80,14 +80,14 @@ fun ToolsLayout(palette: WidgetPalette, background: WidgetBackground, interactiv
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
-                    modifier = GlanceModifier.defaultWeight().fillMaxHeight().onClick(open(WidgetTarget.Search)).describe("搜索歌曲、歌手或粘贴链接"),
+                    modifier = GlanceModifier.defaultWeight().fillMaxHeight().onClick(open(WidgetTarget.Search)).describe("Search songs, artists or paste a link"),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     WBrandMark(32.dp, palette.color { primary }, palette.color { onSurface })
                     Spacer(GlanceModifier.width(8.dp))
-                    WText("搜索歌曲、歌手或粘贴链接", 14.sp, palette.color { onSurfaceVariant })
+                    WText("Search songs, artists or paste a link", 14.sp, palette.color { onSurfaceVariant })
                 }
-                WIconButton(R.drawable.ic_w_eq, 40.dp, 20.dp, palette, open(WidgetTarget.Recognize), "听歌识曲")
+                WIconButton(R.drawable.ic_w_eq, 40.dp, 20.dp, palette, open(WidgetTarget.Recognize), "Recognize")
             }
         }
         ToolsBp.Cookie -> Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -102,14 +102,14 @@ fun ToolsLayout(palette: WidgetPalette, background: WidgetBackground, interactiv
                     colorFilter = ColorFilter.tint(palette.color { surface }),
                 ),
             ) {
-                CornerButton(a, a, R.drawable.ic_w_search, "搜索", open(WidgetTarget.Search), palette)
-                CornerButton(b, a, R.drawable.ic_w_fav, "我喜欢", open(WidgetTarget.Favorites), palette)
-                CornerButton(a, b, R.drawable.ic_w_headphones, "听歌模式", open(WidgetTarget.Modes), palette)
-                CornerButton(b, b, R.drawable.ic_w_bedtime, "定时关闭", open(WidgetTarget.Timer), palette)
+                CornerButton(a, a, R.drawable.ic_w_search, "Search", open(WidgetTarget.Search), palette)
+                CornerButton(b, a, R.drawable.ic_w_fav, "My favorites", open(WidgetTarget.Favorites), palette)
+                CornerButton(a, b, R.drawable.ic_w_headphones, "Listening mode", open(WidgetTarget.Modes), palette)
+                CornerButton(b, b, R.drawable.ic_w_bedtime, "Sleep timer", open(WidgetTarget.Timer), palette)
                 Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Box(
                         modifier = GlanceModifier.size(64.dp).tinted(R.drawable.widget_oval, palette.color { primary })
-                            .onClick(open(WidgetTarget.Recognize)).describe("听歌识曲"),
+                            .onClick(open(WidgetTarget.Recognize)).describe("Recognize"),
                         contentAlignment = Alignment.Center,
                     ) {
                         WIcon(R.drawable.ic_w_eq, 30.dp, palette.color { onPrimary })

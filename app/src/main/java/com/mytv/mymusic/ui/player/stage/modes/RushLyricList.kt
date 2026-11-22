@@ -19,7 +19,7 @@
 // 改动：列表排在舞台安全区里（最宽 720dp）、上下两端渐隐；锚点用上下留白 + 量出来的误差对齐，不靠每项高度表；
 // 间奏三点按句间空档合成（myMusic 的解析器不保留空行）；换歌后新歌词到之前只显示三点；减少动画时整页静止。
 // 2026-11-18 myMusic 改动：景深模糊有强度（0–1.5 倍），每句的模糊和上限都乘它。
-// 2026-11-18 myMusic 改动：有歌词的行登记长按选句的命中区域，读屏多一个「选这一句分享」操作（歌词分享）。
+// 2026-11-18 myMusic 改动：有歌词的行登记长按选句的命中区域，读屏多一个「Select this line to share」操作（歌词分享）。
 package com.mytv.mymusic.ui.player.stage.modes
 
 import androidx.compose.animation.core.AnimationSpec
@@ -286,7 +286,7 @@ internal fun RushLyricList(ctx: LyricStageContext, look: RushLook, content: Stat
                         .clip(shape)
                         .then(
                             if (display.touch) {
-                                Modifier.clickable(onClickLabel = "从这一句播放") {
+                                Modifier.clickable(onClickLabel = "Play from this line") {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     manual.value = false
                                     ctx.seek(row.startMs)

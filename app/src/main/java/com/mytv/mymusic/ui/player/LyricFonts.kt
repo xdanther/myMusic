@@ -29,8 +29,8 @@ internal object LyricFonts {
     fun import(context: Context, slot: Int, uri: Uri): String {
         require(slot == LYRIC_FONT_PRIMARY || slot == LYRIC_FONT_FALLBACK) { "unknown font slot" }
         val resolver = context.contentResolver
-        val name = displayName(context, uri).ifBlank { "歌词字体" }
-        require(LyricFontRules.supportedName(name)) { "请选择 TTF、OTF、TTC 或 OTC 字体" }
+        val name = displayName(context, uri).ifBlank { "Lyric font" }
+        require(LyricFontRules.supportedName(name)) { "Choose a TTF, OTF, TTC or OTC font" }
         val dir = File(context.filesDir, "lyric-fonts").apply { mkdirs() }
         val target = file(context, slot)
         val temp = File(dir, "import-${slot}-${System.nanoTime()}.tmp")
@@ -43,12 +43,12 @@ internal object LyricFonts {
                         val count = input.read(buffer)
                         if (count < 0) break
                         total += count
-                        if (total > LyricFontRules.MAX_BYTES) throw IllegalArgumentException("字体文件不能超过 30 MB")
+                        if (total > LyricFontRules.MAX_BYTES) throw IllegalArgumentException("Font files must be under 30 MB")
                         output.write(buffer, 0, count)
                     }
                 }
-            } ?: throw IllegalArgumentException("打不开所选字体")
-            if (temp.length() == 0L) throw IllegalArgumentException("字体文件是空的")
+            } ?: throw IllegalArgumentException("Couldn't open the selected font")
+            if (temp.length() == 0L) throw IllegalArgumentException("The font file is empty")
             // createFromFile 会实际解析字体表；无效文件在覆盖旧字体之前就被拒绝。
             Typeface.createFromFile(temp)
             if (!temp.renameTo(target)) {

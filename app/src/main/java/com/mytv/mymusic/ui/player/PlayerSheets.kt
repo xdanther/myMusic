@@ -90,7 +90,7 @@ fun rememberSleepRemaining(sleep: SleepTimerState): androidx.compose.runtime.Sta
 
 fun sleepLabel(sleep: SleepTimerState): String = when {
     !sleep.active -> ""
-    sleep.endOfTrack -> "本首结束"
+    sleep.endOfTrack -> "End of this song"
     else -> formatClock(sleep.remainingMs())
 }
 
@@ -118,7 +118,7 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
         SwipeNotifier { message, undo ->
             scope.launch {
                 sheetSnackbar.currentSnackbarData?.dismiss()
-                val result = sheetSnackbar.showSnackbar(message, actionLabel = if (undo != null) "撤销" else null, duration = SnackbarDuration.Short)
+                val result = sheetSnackbar.showSnackbar(message, actionLabel = if (undo != null) "Undo" else null, duration = SnackbarDuration.Short)
                 if (result == SnackbarResult.ActionPerformed) undo?.invoke()
             }
         }
@@ -126,8 +126,8 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
     val swipeScroll = LocalSongSwipeEnv.current?.coordinator?.scrollConnection
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "播放队列",
-        subtitle = if (state.queue.isEmpty()) "队列是空的" else "${state.queue.size} 首 · 正在播放第 ${currentIndex + 1} 首",
+        title = "Queue",
+        subtitle = if (state.queue.isEmpty()) "The queue is empty" else "${state.queue.size} tracks · playing track ${currentIndex + 1}",
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -139,13 +139,13 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
             // 随机开没开看填充色（读屏读状态），文字不跟着变长
             FilledTonalButton(
                 onClick = { actions.transport("shuffle") },
-                modifier = Modifier.tvFocusRing().semantics { stateDescription = if (state.shuffle) "已开" else "已关" },
+                modifier = Modifier.tvFocusRing().semantics { stateDescription = if (state.shuffle) "On" else "Off" },
                 colors = if (state.shuffle) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors(),
                 contentPadding = QueueModePadding,
             ) {
                 Icon(Icons.Filled.Shuffle, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("随机", maxLines = 1)
+                Text("Shuffle", maxLines = 1)
             }
             FilledTonalButton(
                 onClick = { actions.transport("repeat") },
@@ -157,9 +157,9 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
                 Spacer(Modifier.width(6.dp))
                 Text(
                     when (repeat) {
-                        RepeatMode.Off -> "顺序播放"
-                        RepeatMode.All -> "列表循环"
-                        RepeatMode.One -> "单曲循环"
+                        RepeatMode.Off -> "Play in order"
+                        RepeatMode.All -> "Repeat all"
+                        RepeatMode.One -> "Repeat one"
                     },
                     maxLines = 1,
                 )
@@ -171,14 +171,14 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
                 modifier = Modifier.tvFocusRing(CircleShape),
                 enabled = state.queue.isNotEmpty(),
             ) {
-                Icon(Icons.Filled.GridView, "海报墙")
+                Icon(Icons.Filled.GridView, "Poster wall")
             }
             IconButton(
                 onClick = { actions.clearQueue(); onDismiss() },
                 modifier = Modifier.tvFocusRing(CircleShape),
                 enabled = state.queue.isNotEmpty(),
             ) {
-                Icon(Icons.Filled.DeleteSweep, "清空播放队列")
+                Icon(Icons.Filled.DeleteSweep, "Clear the queue")
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -219,16 +219,16 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
                             Text(formatTime(song.duration * 1000L), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
-                    // 左滑「移出」= 移出播放队列，撤销插回原位置；正在放的这首不能移
+                    // 左滑「移出」= Remove from the queue，撤销插回原位置；正在放的这首不能移
                     swipe = rememberRowSwipe(
                         song,
                         state.queue,
                         delete = if (playing) {
                             null
                         } else {
-                            SwipeDelete("移出", "移出播放队列") {
+                            SwipeDelete("Remove", "Remove from the queue") {
                                 actions.removeQueueIndex(index, song.key)?.let { removal ->
-                                    sheetNotifier.show("已移出「${song.title}」") { actions.restoreQueueItem(removal) }
+                                    sheetNotifier.show("Removed '${song.title}'") { actions.restoreQueueItem(removal) }
                                 }
                             }
                         },
@@ -245,7 +245,7 @@ fun QueueSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit
 }
 
 /**
- * 定时关闭：15 / 30 / 45 / 60 分钟，或播完当前歌曲再停；结束前 30 秒淡出。
+ * Sleep timer：15 / 30 / 45 / 60 分钟，或播完当前歌曲再停；结束前 30 秒淡出。
  * 计时在 PlaybackService 里，后台和锁屏都有效。
  */
 @Composable
@@ -258,10 +258,10 @@ fun SleepTimerSheet(state: MusicUiState, sleep: SleepTimerState, actions: MusicA
     val active = sleep.active
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "定时关闭",
-        subtitle = if (active) "" else "到点前 30 秒音量逐渐变小，然后暂停",
+        title = "Sleep timer",
+        subtitle = if (active) "" else "Volume fades out over the last 30 seconds, then playback pauses",
         subtitleProvider = if (active) {
-            { if (sleep.endOfTrack) "当前歌曲播完后暂停" else "还剩 ${formatClock(remaining.value)}，到点前 30 秒音量逐渐变小" }
+            { if (sleep.endOfTrack) "Pause after the current song" else "${formatClock(remaining.value)} left; volume fades over the last 30 seconds" }
         } else {
             null
         },
@@ -271,20 +271,20 @@ fun SleepTimerSheet(state: MusicUiState, sleep: SleepTimerState, actions: MusicA
                 options = options,
                 selected = if (afterCurrent == 1) null else minutes,
                 onSelect = { minutes = it; afterCurrent = 0 },
-                label = { "$it 分钟" },
+                label = { "$it min" },
                 modifier = Modifier.fillMaxWidth(),
             )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 SwitchRow(
-                    title = "播完当前歌曲再停止",
+                    title = "Stop after the current song",
                     checked = afterCurrent == 1,
                     onCheckedChange = { afterCurrent = if (it) 1 else 0 },
                     index = 0,
                     count = 2,
                 )
                 SwitchRow(
-                    title = "结束时淡出",
-                    summary = "最后 30 秒逐渐降低音量",
+                    title = "Fade out at the end",
+                    summary = "Fade the last 30 seconds",
                     checked = state.sleepFade,
                     onCheckedChange = actions::setSleepFade,
                     index = 1,
@@ -303,9 +303,9 @@ fun SleepTimerSheet(state: MusicUiState, sleep: SleepTimerState, actions: MusicA
                 Spacer(Modifier.width(8.dp))
                 Text(
                     when {
-                        afterCurrent == 1 -> "播完这首后停止"
-                        sleep.active -> "重新定时 $minutes 分钟"
-                        else -> "开始定时"
+                        afterCurrent == 1 -> "Stop after this song"
+                        sleep.active -> "Reset timer to $minutes min"
+                        else -> "Start timer"
                     },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
@@ -315,11 +315,11 @@ fun SleepTimerSheet(state: MusicUiState, sleep: SleepTimerState, actions: MusicA
                 TextButton(
                     onClick = { actions.cancelSleepTimer(); onDismiss() },
                     modifier = Modifier.fillMaxWidth().tvFocusRing(),
-                ) { Text("取消定时") }
+                ) { Text("Cancel timer") }
             }
         }
     }
 }
 
-/** 播放队列顶上两个模式键的内边距：比默认的 24dp 收紧，一行放得下海报墙和清空。 */
+/** Queue顶上两个模式键的内边距：比默认的 24dp 收紧，一行放得下海报墙和清空。 */
 private val QueueModePadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)

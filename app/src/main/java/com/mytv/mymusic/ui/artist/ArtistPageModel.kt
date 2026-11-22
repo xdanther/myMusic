@@ -165,7 +165,7 @@ internal class ArtistPages(
             }
             if (found == null) {
                 update(key) {
-                    it.copy(resolving = false, resolveError = "没有在${it.sourceName.ifBlank { "当前平台" }}找到“$name”")
+                    it.copy(resolving = false, resolveError = "Not found on ${it.sourceName.ifBlank { "Current platform" }} found '$name'")
                 }
                 return@launch
             }
@@ -221,7 +221,7 @@ internal class ArtistPages(
                             songs = songs,
                             songsLoading = false,
                             songsError = if (songs.isEmpty() && current.hotSongs.isEmpty()) {
-                                result.exceptionOrNull()?.message?.takeIf { it.isNotBlank() } ?: "没有读到歌曲"
+                                result.exceptionOrNull()?.message?.takeIf { it.isNotBlank() } ?: "Couldn't read the song"
                             } else {
                                 ""
                             },
@@ -265,7 +265,7 @@ internal class ArtistPages(
         update(key) { current ->
             val pageResult = result.getOrNull()
             if (pageResult == null) {
-                current.copy(albumsLoading = false, albumsError = error?.message?.takeIf { it.isNotBlank() } ?: "专辑没有加载出来")
+                current.copy(albumsLoading = false, albumsError = error?.message?.takeIf { it.isNotBlank() } ?: "Couldn't load the album")
             } else {
                 val merged = (current.albums + pageResult.albums).distinctBy { it.id.ifBlank { it.name } }
                 current.copy(
@@ -340,7 +340,7 @@ internal fun pickArtist(name: String, candidates: List<Playlist>): Playlist? {
 internal fun splitArtistNames(value: String): List<String> =
     value.split(ArtistSeparator)
         .map { it.trim() }
-        .filter { it.isNotBlank() && it != "未知歌手" && !it.equals("various artists", ignoreCase = true) }
+        .filter { it.isNotBlank() && it != "Unknown artist" && !it.equals("various artists", ignoreCase = true) }
         .distinct()
 
 private val ArtistSeparator = Regex("""\s*(?:/|、|,|，|;|；|\bfeat\.?\s|\bft\.?\s)\s*""", RegexOption.IGNORE_CASE)

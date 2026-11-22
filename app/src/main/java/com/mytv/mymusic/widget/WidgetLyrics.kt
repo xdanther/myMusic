@@ -57,16 +57,16 @@ object WidgetLyrics {
         return now + (next.line.timeMs - position)
     }
 
-    /** 没有歌词时的那句话：纯音乐的歌词里通常写着“纯音乐，请欣赏”。 */
+    /** 没有歌词时的那句话：纯音乐的歌词里通常写着“Instrumental, enjoy”。 */
     fun emptyText(snapshot: PlaybackSnapshot): String =
-        if ("纯音乐" in snapshot.lyrics) "纯音乐，请欣赏" else "暂时没有歌词"
+        if ("Instrumental" in snapshot.lyrics) "Instrumental, enjoy" else "No lyrics right now"
 
     /**
      * 歌词区没有可显示的一句时的占位。从磁盘接上的队列要等开播解析地址时才取歌词；不写歌名，旁边已经有了。
      */
     fun placeholder(snapshot: PlaybackSnapshot): String = when {
         snapshot.lyricsReady -> emptyText(snapshot)
-        !snapshot.live && !snapshot.playing -> "开始播放后显示歌词"
-        else -> "正在取歌词…"
+        !snapshot.live && !snapshot.playing -> "Lyrics appear once playback starts"
+        else -> "Fetching lyrics…"
     }
 }

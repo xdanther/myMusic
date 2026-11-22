@@ -19,7 +19,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
 
 /**
- * 播放页「加到歌单」面板（设计稿 04 节）：沿用 [PlaylistPickerSheet] 的勾选模式。
+ * 播放页「Add to playlist」面板（设计稿 04 节）：沿用 [PlaylistPickerSheet] 的勾选模式。
  * 每行右边是勾选框，已经有这首（含同一首的其他平台版本）的勾上；点一下加入或移出，带撤销，面板不自动关，
  * 可以一次加到几个歌单。顶上「新建歌单」建好直接把这首放进去。
  * 绑定了平台歌单的行标出改了以后会怎样，规则同歌单详情页：平台能写的写回平台，平台没有写接口的改了就解除绑定，
@@ -68,7 +68,7 @@ fun AddToPlaylistSheet(song: Song, providers: List<ProviderInfo>, actions: Music
             snackbar.currentSnackbarData?.dismiss()
             val result = snackbar.showSnackbar(
                 message = text,
-                actionLabel = if (undo != null) "撤销" else null,
+                actionLabel = if (undo != null) "Undo" else null,
                 // 电视上要走到“撤销”得按几下方向键，多留一会儿
                 duration = if (tv) SnackbarDuration.Long else SnackbarDuration.Short,
             )
@@ -86,7 +86,7 @@ fun AddToPlaylistSheet(song: Song, providers: List<ProviderInfo>, actions: Music
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                PlaylistEditResult(changed = false, text = "没改成：${error.message.orEmpty()}", error = true)
+                PlaylistEditResult(changed = false, text = "Not changed: ${error.message.orEmpty()}", error = true)
             } finally {
                 busy = busy - id
             }
@@ -99,13 +99,13 @@ fun AddToPlaylistSheet(song: Song, providers: List<ProviderInfo>, actions: Music
         val suffix = binding(playlist).suffix
         if (adding) {
             run(playlist.id, { actions.addSongToPlaylistQuietly(playlist.id, song) }) {
-                show("已加到「${playlist.name}」$suffix") {
+                show("Added to '${playlist.name}'$suffix") {
                     run(playlist.id, { actions.removeSongFromPlaylist(playlist.id, song) }) { }
                 }
             }
         } else {
             run(playlist.id, { actions.removeSongFromPlaylist(playlist.id, song) }) { result ->
-                show("已从「${playlist.name}」移出$suffix") {
+                show("Removed from '${playlist.name}'$suffix") {
                     // 按原位置插回；绑定歌单照写回规则反向写平台
                     result.removed.forEach(actions::restoreEntry)
                 }
@@ -120,12 +120,12 @@ fun AddToPlaylistSheet(song: Song, providers: List<ProviderInfo>, actions: Music
         onCreate = { name ->
             scope.launch {
                 val result = actions.createPlaylistWithSong(name, song).await()
-                show(if (result.changed) "已新建「$name」并加入这首" else result.text)
+                show(if (result.changed) "Created '$name' with this track" else result.text)
             }
         },
         onDismiss = onDismiss,
-        title = "加到歌单",
-        subtitle = "${song.title} · ${song.artist} · 已在 $added 个歌单里",
+        title = "Add to playlist",
+        subtitle = "${song.title} · ${song.artist} · in $added playlists",
         checks = { id ->
             val playlist = ordered.find { it.id == id }
             val binding = playlist?.let(::binding) ?: PlaylistBinding.None
@@ -136,7 +136,7 @@ fun AddToPlaylistSheet(song: Song, providers: List<ProviderInfo>, actions: Music
                 locked = binding == PlaylistBinding.ReadOnly,
             )
         },
-        note = if (tv) "按确认键加入或移出，面板不自动关。" else "点一下加入或移出，面板不自动关；收藏用旁边的心形。",
+        note = if (tv) "Press OK to add or remove; the panel stays open." else "Tap to add or remove; the panel stays open. Use the heart to save.",
         snackbar = snackbar,
         // 电视焦点落在第一个还没加入、能改的歌单上
         focusId = ordered.firstOrNull { it.id !in inPlaylists && binding(it) != PlaylistBinding.ReadOnly }?.id,
@@ -148,11 +148,11 @@ private sealed class PlaylistBinding(val note: String, val suffix: String) {
     data object None : PlaylistBinding("", "")
 
     /** 平台能写：加入 / 移出同时改平台上的歌单。 */
-    class WriteBack(platform: String) : PlaylistBinding("写回$platform", "，并写回$platform")
+    class WriteBack(platform: String) : PlaylistBinding("Write back to $platform", ", and write back to $platform")
 
     /** 平台没有写接口：改了就和平台歌单解绑，之后手动维护（同歌单详情页的“编辑即解绑”）。 */
-    data object Unbinds : PlaylistBinding("改动后解除绑定", "，歌单已解除绑定")
+    data object Unbinds : PlaylistBinding("Unlink after changing it", ", the playlist is now unlinked")
 
     /** 收藏来的歌单（不是当前账号自己的）：不能改。 */
-    data object ReadOnly : PlaylistBinding("收藏的歌单，不能修改", "")
+    data object ReadOnly : PlaylistBinding("The favorites playlist can't be edited", "")
 }

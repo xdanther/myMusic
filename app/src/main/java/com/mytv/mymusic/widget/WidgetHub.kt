@@ -16,7 +16,7 @@ data class PlaybackSnapshot(
     val index: Int,
     val queueSize: Int,
     val playing: Boolean,
-    /** 播放器里装着这份队列，上一首 / 下一首能直接用；false 是从磁盘接上的队列，点播放要先解析地址。 */
+    /** 播放器里装着这份队列，Previous / Next能直接用；false 是从磁盘接上的队列，点播放要先解析地址。 */
     val live: Boolean,
     /** 进度锚点：[anchorAt]（elapsedRealtime）那一刻听到 [positionMs]，播放中按时间往前推。 */
     val positionMs: Long,

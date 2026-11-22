@@ -84,7 +84,7 @@ internal class FlowFieldMotion(moving: Boolean) {
     var reactive = false
     var playing = moving
 
-    /** 此刻按哪个媒体时间（秒）跟拍：听到的位置减去跟拍校准。NaN 表示还不知道听到哪儿（刚跳转、还没出声）。 */
+    /** 此刻按哪个媒体时间（秒）跟拍：听到的位置减去跟拍校准。NaN 表示还不知道听到哪儿（刚跳转、No sound yet）。 */
     var beatTimeS = Double.NaN
 
     /** 此刻该用的拍子网格。 */

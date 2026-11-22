@@ -176,9 +176,9 @@ fun PlayerScreen(
     val wideLayout = book || (window.widthDp >= 600 && window.widthDp > window.heightDp)
     // 暂停时也照样计时：控制栏几秒后淡出，按确认键或点按唤醒。桌面姿态下半屏是平放着用手点的那一面，不进入空闲
     var animationOpen by rememberSaveable { mutableStateOf(false) }
-    // 「加到歌单」面板：打开那一刻的这首。面板开着时切了歌，勾的还是打开时那首，不会悄悄改到下一首上
+    // 「Add to playlist」面板：打开那一刻的这首。面板开着时切了歌，勾的还是打开时那首，不会悄悄改到Next上
     var playlistSong by remember { mutableStateOf<Song?>(null) }
-    // 歌词分享：全屏歌词长按任意一句进选句层，再进分享页；会话是长按那一刻的快照。电视不做分享
+    // 歌词分享：Full-screen lyrics长按任意一句进选句层，再进分享页；会话是长按那一刻的快照。电视不做分享
     val shareAllowed = !window.isTv
     var share by remember { mutableStateOf<ShareSession?>(null) }
     val pickProbe = remember { LyricPickProbe() }
@@ -187,13 +187,13 @@ fun PlayerScreen(
         holdAwake = sheetOpen || (animationOpen && !window.isTv) || playlistSong != null || state.sourcePickerTrack != null || tabletop,
         forceIdle = animationOpen && window.isTv,
     )
-    // 电视环境模式（全屏歌词页）里快退快进的浮层提示：按左右方向键时显示，1.2 秒淡出
+    // 电视环境模式（Full-screen lyrics页）里快退快进的浮层提示：按左右方向键时显示，1.2 秒淡出
     val seekHint = remember { SeekHint() }
     PredictiveBackHandler { events ->
         // 电视上控制栏亮着时，返回键先收起控制栏；已经在环境模式下才退出播放页，和常见视频播放器一致
         val hideControls = window.isTv && !lyricsMode && idle.canAutoHide &&
             !idle.idle && state.sourcePickerTrack == null
-        // 桌面姿态上半屏本来就放歌词时，歌词视图和平常一个样子，返回键直接收起播放页
+        // 桌面姿态上半屏本来就放歌词时，歌词视图和平常一个样子，返回键直接Close the player
         val lyricsView = lyricsMode && !(tabletop && state.tabletopTop == TabletopTop.Lyrics)
         try {
             events.collect { if (!lyricsView && !hideControls) backProgress = it.progress }
@@ -209,11 +209,11 @@ fun PlayerScreen(
     }
     val pulse = rememberBackdropPulse()
     val favorite = remember(favorites, song.key) { favorites.any { it.key == song.key } }
-    // 这首（含同一首的其他平台版本）已经在任一自建歌单里：「加到歌单」按钮换成打勾的图标、填上底色
+    // 这首（含同一首的其他平台版本）已经在任一自建歌单里：「Add to playlist」按钮换成打勾的图标、填上底色
     val inPlaylists by remember(song.key) { actions.playlistsContaining(song) }.collectAsState(initial = emptySet())
     val addedToPlaylist = inPlaylists.isNotEmpty()
     val onAddToPlaylist: () -> Unit = { playlistSong = song }
-    // 切歌后新歌词取回来之前 state.lyrics 还是上一首的（解析失败跳过、取词慢时会一直挂着）：没对上这首就按“还在取”处理
+    // 切歌后新歌词取回来之前 state.lyrics 还是Previous的（解析失败跳过、取词慢时会一直挂着）：没对上这首就按“还在取”处理
     val lyricsReady = state.lyricsKey == song.key
     // 解析放在后台；状态不随原文重建，换歌词文字设置时先保留上一份结果，等新原文解析完成再替换。
     val lyricsState = rememberParsedLyrics(if (lyricsReady) state.lyrics else "", state.lyricText)
@@ -246,8 +246,8 @@ fun PlayerScreen(
     }
     val stageMode = previewMode ?: shownMode
     val stageTag = when {
-        previewing -> StageTag("预览：${stageMode.label} · 还没保存", preview = true)
-        animationDraft != null && stageBeside -> StageTag("正在用：${shownMode.label}", preview = false)
+        previewing -> StageTag("Preview: ${stageMode.label} · not saved", preview = true)
+        animationDraft != null && stageBeside -> StageTag("Using: ${shownMode.label}", preview = false)
         else -> null
     }
     // 面板（平板 400dp、电视 360dp）从右边盖住舞台的宽度，文字区让开；书本姿态面板在左页，不盖舞台
@@ -289,7 +289,7 @@ fun PlayerScreen(
     val haptics = LocalHapticFeedback.current
     val seedColor = LocalSeedColor.current
     SideEffect {
-        // 只在全屏歌词页（桌面姿态是上半屏放歌词时）、有歌词且不在加载时能长按选句；平板非专注时右栏那列歌词不是入口
+        // 只在Full-screen lyrics页（桌面姿态是上半屏放歌词时）、有歌词且不在加载时能长按选句；平板非专注时右栏那列歌词不是入口
         pickProbe.enabled = shareAllowed && share == null && !lyricsLoading && lyrics.raw.isNotBlank() &&
             (if (tabletop) tabletopShown == TabletopTop.Lyrics else lyricsMode)
         pickProbe.onRequest = { hit ->
@@ -326,10 +326,10 @@ fun PlayerScreen(
 
     val source = state.currentSource
     val sourceProvider = source?.actualProviderName
-    val sourceDetail = source?.qualityLabel?.takeUnless { it == "音质未知" }.orEmpty()
+    val sourceDetail = source?.qualityLabel?.takeUnless { it == "Unknown quality" }.orEmpty()
     val playbackMode = modeLabel(state.aggregation.playbackMode)
     val onSkip: (Int) -> Unit = { direction -> actions.transport(if (direction > 0) "next" else "previous") }
-    // 电视全屏歌词页的快退快进：直播没有进度可拖，按了也不提示
+    // 电视Full-screen lyrics页的快退快进：直播没有进度可拖，按了也不提示
     val onSeekBy: (Long) -> Unit = { delta ->
         if (!song.isLive) {
             seekHint.show(delta)
@@ -625,45 +625,45 @@ internal fun MoreMenu(
     var commentsOpen by remember(song.key) { mutableStateOf(false) }
     if (commentsOpen) CommentsSheet(song, actions, onDismiss = { commentsOpen = false })
     Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.Filled.MoreVert, "更多", tint = MaterialTheme.colorScheme.onSurface) }
+        IconButton(onClick = { open = true }) { Icon(Icons.Filled.MoreVert, "More", tint = MaterialTheme.colorScheme.onSurface) }
         DropdownMenu(open, onDismissRequest = { open = false }, shape = RoundedCornerShape(20.dp)) {
-            DropdownMenuItem(text = { Text("全屏歌词") }, leadingIcon = { Icon(Icons.Filled.Lyrics, null) }, onClick = { open = false; onLyricsMode(true) })
-            // 收起播放页，露出队列海报墙
-            DropdownMenuItem(text = { Text("海报墙") }, leadingIcon = { Icon(Icons.Filled.GridView, null) }, onClick = { open = false; actions.openPosterWall() })
-            DropdownMenuItem(text = { Text("选择音源") }, leadingIcon = { Icon(Icons.Filled.SwapHoriz, null) }, onClick = { open = false; onOpenSource() })
+            DropdownMenuItem(text = { Text("Full-screen lyrics") }, leadingIcon = { Icon(Icons.Filled.Lyrics, null) }, onClick = { open = false; onLyricsMode(true) })
+            // Close the player，露出队列海报墙
+            DropdownMenuItem(text = { Text("Poster wall") }, leadingIcon = { Icon(Icons.Filled.GridView, null) }, onClick = { open = false; actions.openPosterWall() })
+            DropdownMenuItem(text = { Text("Choose source") }, leadingIcon = { Icon(Icons.Filled.SwapHoriz, null) }, onClick = { open = false; onOpenSource() })
             if (!song.isLive && actions.supportsComments(song)) {
                 DropdownMenuItem(
-                    text = { Text("查看评论") },
+                    text = { Text("View comments") },
                     leadingIcon = { Icon(Icons.AutoMirrored.Filled.Comment, null) },
                     onClick = { open = false; commentsOpen = true },
                 )
             }
-            // 和歌名行的「加到歌单」按钮是同一个面板；控件淡出、矮窗口里也总能在这里找到
+            // 和歌名行的「Add to playlist」按钮是同一个面板；控件淡出、矮窗口里也总能在这里找到
             DropdownMenuItem(
-                text = { Text("加到歌单…") },
+                text = { Text("Add to playlist…") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, null) },
                 onClick = { open = false; onAddToPlaylist() },
             )
-            // 收起播放页，打开歌手页 / 专辑页；直播（电台）没有这两项
+            // Close the player，打开歌手页 / 专辑页；直播（电台）没有这两项
             if (!song.isLive) {
                 splitArtistNames(song.artist).take(3).forEach { name ->
                     DropdownMenuItem(
-                        text = { Text("歌手：$name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        text = { Text("Artist: $name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         leadingIcon = { Icon(Icons.Filled.Person, null) },
                         onClick = { open = false; actions.openArtistByName(name, song) },
                     )
                 }
                 if (song.album.isNotBlank()) {
                     DropdownMenuItem(
-                        text = { Text("专辑：${song.album}", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        text = { Text("Album: ${song.album}", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         leadingIcon = { Icon(Icons.Filled.Album, null) },
                         onClick = { open = false; actions.openAlbumOf(song) },
                     )
                 }
             }
-            DropdownMenuItem(text = { Text("下载到本机") }, leadingIcon = { Icon(Icons.Filled.Download, null) }, onClick = { open = false; actions.download(song) })
+            DropdownMenuItem(text = { Text("Download to this device") }, leadingIcon = { Icon(Icons.Filled.Download, null) }, onClick = { open = false; actions.download(song) })
             if (deepLink.isNotBlank()) {
-                DropdownMenuItem(text = { Text("在平台打开") }, onClick = { open = false; actions.openDeepLink() })
+                DropdownMenuItem(text = { Text("Open on the platform") }, onClick = { open = false; actions.openDeepLink() })
             }
         }
     }
@@ -688,7 +688,7 @@ internal fun pulseWaveBpm(pulse: BackdropPulse): Float =
 /**
  * 收藏切换按钮（M3E）：48dp（专注歌词标题行是 40dp），未收藏是透明底的圆，收藏后变成 14dp 圆角的 primaryContainer 方块，
  * 圆角随快速空间弹簧过渡。读屏文案与原来的收藏按钮一致。
- * [onLongClick]：长按打开「加到歌单」面板（和旁边那个按钮同一个面板），读屏用户走长按操作。
+ * [onLongClick]：长按打开「Add to playlist」面板（和旁边那个按钮同一个面板），读屏用户走长按操作。
  */
 @Composable
 internal fun FavoriteToggle(
@@ -721,10 +721,10 @@ internal fun FavoriteToggle(
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             onLongClick()
                         }
-                        .semantics { onLongClick(label = "加到歌单") { onLongClick(); true } }
+                        .semantics { onLongClick(label = "Add to playlist") { onLongClick(); true } }
                 },
             )
-            .semantics { stateDescription = if (favorite) "已收藏" else "未收藏" },
+            .semantics { stateDescription = if (favorite) "Saved" else "Not saved" },
         colors = IconButtonDefaults.iconToggleButtonColors(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -732,7 +732,7 @@ internal fun FavoriteToggle(
             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
     ) {
-        Icon(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "收藏")
+        Icon(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "Save")
     }
 }
 
@@ -740,9 +740,9 @@ internal fun FavoriteToggle(
 private fun checkedCorner(size: Dp): Dp = if (size >= 48.dp) 14.dp else 12.dp
 
 /**
- * 「加到歌单」按钮：和收藏同尺寸，排在收藏左边，点了打开加到歌单面板（[AddToPlaylistSheet]）。
+ * 「Add to playlist」按钮：和收藏同尺寸，排在收藏左边，点了打开Add to playlist面板（[AddToPlaylistSheet]）。
  * 这首已经在任一自建歌单里（[added]）时图标换成 PlaylistAddCheck，底色同收藏按钮的选中态（primaryContainer、14dp 圆角）。
- * 不是开关：点它不会直接加或移出，读屏读“加到歌单”加上现在在不在歌单里。
+ * 不是开关：点它不会直接加或移出，读屏读“Add to playlist”加上现在在Not in a playlist。
  */
 @Composable
 internal fun AddToPlaylistButton(added: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, size: Dp = 48.dp) {
@@ -753,13 +753,13 @@ internal fun AddToPlaylistButton(added: Boolean, onClick: () -> Unit, modifier: 
         modifier = modifier
             .size(size)
             .tvFocusRing(shape)
-            .semantics { stateDescription = if (added) "已在歌单里" else "不在歌单里" },
+            .semantics { stateDescription = if (added) "In a playlist" else "Not in a playlist" },
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = if (added) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
             contentColor = if (added) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
         ),
     ) {
-        Icon(if (added) Icons.AutoMirrored.Filled.PlaylistAddCheck else Icons.AutoMirrored.Filled.PlaylistAdd, "加到歌单")
+        Icon(if (added) Icons.AutoMirrored.Filled.PlaylistAddCheck else Icons.AutoMirrored.Filled.PlaylistAdd, "Add to playlist")
     }
 }
 
@@ -801,13 +801,13 @@ internal fun SourcePill(
     onOpenSource: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val provider = sourceProvider ?: if (song.url.startsWith("file:")) "本机" else song.source
+    val provider = sourceProvider ?: if (song.url.startsWith("file:")) "This device" else song.source
     Surface(
         onClick = onOpenSource,
         modifier = modifier
             .height(32.dp)
             .tvFocusRing(RoundedCornerShape(16.dp))
-            .semantics { contentDescription = "音源：$provider $sourceDetail，$playbackMode。点按切换音源" },
+            .semantics { contentDescription = "Source: $provider $sourceDetail, $playbackMode. Tap to switch" },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f),
         contentColor = MaterialTheme.colorScheme.onSurface,

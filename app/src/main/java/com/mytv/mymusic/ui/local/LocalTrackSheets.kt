@@ -106,12 +106,12 @@ import java.util.Date
 import java.util.Locale
 
 internal fun matchMethodLabel(method: String): String = when (method) {
-    LocalMatchMethod.TAG -> "按标签匹配"
-    LocalMatchMethod.AUDIO -> "听歌识曲匹配"
-    LocalMatchMethod.MANUAL -> "手动选择"
-    LocalMatchMethod.NONE -> "自动匹配没找到"
-    LocalMatchMethod.REJECTED -> "已设为不匹配"
-    else -> "等待匹配"
+    LocalMatchMethod.TAG -> "Match by tags"
+    LocalMatchMethod.AUDIO -> "Audio recognition match"
+    LocalMatchMethod.MANUAL -> "Choose manually"
+    LocalMatchMethod.NONE -> "Automatic matching found nothing"
+    LocalMatchMethod.REJECTED -> "Marked as not matched"
+    else -> "Waiting to match"
 }
 
 private fun percent(value: Float): String = "${(value.coerceIn(0f, 1f) * 100).toInt()}%"
@@ -131,8 +131,8 @@ internal fun formatLine(item: LocalItem): String {
 }
 
 /**
- * ⋮ 歌曲信息：匹配结果（可以换一个）、歌词用的是哪份、文件的位置格式大小指纹，底部“加入歌单 / 下一首播放”。
- * [cloudCopies] 是云端副本那一段的位置，上传落地后从这里接进来；现在为空就不画。
+ * ⋮ 歌曲信息：匹配结果（可以换一个）、歌词用的是哪份、文件的位置格式大小指纹，底部“Add to playlist / Play next”。
+ * [cloudCopies] 是Cloud copy那一段的位置，上传落地后从这里接进来；现在为空就不画。
  */
 @Composable
 internal fun LocalTrackInfoSheet(
@@ -159,17 +159,17 @@ internal fun LocalTrackInfoSheet(
         title = song.title,
         subtitle = listOf(song.artist, song.album).filter { it.isNotBlank() }.joinToString(" · "),
     ) {
-        // 中间可滚动、底部按钮固定：小屏或候选很多时“加入歌单 / 使用这个”也不会被挤出屏幕
+        // 中间可滚动、底部按钮固定：小屏或候选很多时“Add to playlist / Use this”也不会被挤出屏幕
         Column(
             Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).fillMaxWidth().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(SegmentGap),
         ) {
-            SectionLabel("封面和歌词")
+            SectionLabel("Cover and lyrics")
             ListRow(
                 // 别的设备同步来的匹配只知道平台和 ID，歌名是歌单里的那个，不能冒充平台上的歌名
                 title = when {
-                    match == null -> "没匹配"
-                    syncedMatch -> "${providerName(emptyList(), row.matchProvider)}的版本"
+                    match == null -> "Not matched"
+                    syncedMatch -> "the ${providerName(emptyList(), row.matchProvider)} version"
                     else -> "${providerName(emptyList(), row.matchProvider)} · ${match.name}"
                 },
                 index = 0,
@@ -179,41 +179,41 @@ internal fun LocalTrackInfoSheet(
                 leading = { Cover(match?.cover?.ifBlank { null } ?: song.cover, song.title, 40.dp, corner = 10.dp) },
                 // 手动选的就是用户认定的那首（记满分，好在同步时盖过自动匹配），相似度没有意义，不写百分比
                 summary = when {
-                    syncedMatch -> "${matchMethodLabel(row.matchMethod)} · 在另一台设备上选的"
+                    syncedMatch -> "${matchMethodLabel(row.matchMethod)} · chosen on another device"
                     match != null && row.matchMethod != LocalMatchMethod.MANUAL && row.matchConfidence < 1f ->
                         "${matchMethodLabel(row.matchMethod)} · ${percent(row.matchConfidence)}"
                     else -> matchMethodLabel(row.matchMethod)
                 },
                 showChevron = false,
                 trailing = {
-                    TextButton(onClick = onRematch, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("换一个") }
+                    TextButton(onClick = onRematch, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("Change") }
                 },
             )
             ListRow(
-                title = "歌词",
+                title = "Lyrics",
                 index = 1,
                 count = 2,
                 onClick = null,
                 icon = Icons.Filled.Lyrics,
                 summary = when {
-                    hasLrc && preferLrc -> "用文件旁的同名 .lrc"
-                    match != null && hasLrc -> "用${providerName(emptyList(), row.matchProvider)}的歌词；文件旁有同名 .lrc"
-                    match != null -> "用${providerName(emptyList(), row.matchProvider)}的歌词"
-                    hasLrc -> "用文件旁的同名 .lrc"
-                    else -> "没有歌词：匹配上或在文件旁放同名 .lrc 就有"
+                    hasLrc && preferLrc -> "Use the matching .lrc next to the file"
+                    match != null && hasLrc -> "Use ${providerName(emptyList(), row.matchProvider)} lyrics; a matching .lrc sits next to the file"
+                    match != null -> "Use ${providerName(emptyList(), row.matchProvider)} lyrics"
+                    hasLrc -> "Use the matching .lrc next to the file"
+                    else -> "No lyrics: match the track or put a matching .lrc next to the file"
                 },
                 showChevron = false,
             )
             if (cloudCopies != null) {
-                SectionLabel("云端副本")
+                SectionLabel("Cloud copy")
                 cloudCopies()
             }
-            SectionLabel("文件")
+            SectionLabel("File")
             val fileRows = listOf(
-                Triple(Icons.Filled.Folder, "位置", (row.relativePath + row.displayName).ifBlank { row.displayName }),
-                Triple(Icons.Filled.GraphicEq, "格式", formatLine(item).ifBlank { "未知" }),
-                Triple(Icons.Filled.Storage, "大小", formatBytes(row.size)),
-                Triple(Icons.Filled.Fingerprint, "指纹", LocalIdentity.short(row.localId)),
+                Triple(Icons.Filled.Folder, "Location", (row.relativePath + row.displayName).ifBlank { row.displayName }),
+                Triple(Icons.Filled.GraphicEq, "Format", formatLine(item).ifBlank { "Unknown" }),
+                Triple(Icons.Filled.Storage, "Size", formatBytes(row.size)),
+                Triple(Icons.Filled.Fingerprint, "Fingerprint", LocalIdentity.short(row.localId)),
             )
             fileRows.forEachIndexed { at, (icon, label, value) ->
                 ListRow(
@@ -228,7 +228,7 @@ internal fun LocalTrackInfoSheet(
             }
             if (row.missing) {
                 Spacer(Modifier.size(8.dp))
-                InfoNote("文件不在了：可能被删了或搬走了。重新扫描能找回搬走的文件；歌单里的这首不受影响。", "amber")
+                InfoNote("The file is gone: it may have been deleted or moved. Rescanning finds moved files; this track stays in playlists.", "amber")
                 TextButton(
                     onClick = {
                         library.launch { forget(row.localId) }
@@ -236,7 +236,7 @@ internal fun LocalTrackInfoSheet(
                     },
                     modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
                 ) {
-                    Text("从本地音乐移除", color = MaterialTheme.colorScheme.error)
+                    Text("Remove from local music", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -247,11 +247,11 @@ internal fun LocalTrackInfoSheet(
             OutlinedButton(
                 onClick = onAddToPlaylist,
                 modifier = Modifier.weight(1f).heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-            ) { Text("加入歌单") }
+            ) { Text("Add to playlist") }
             Button(
                 onClick = onPlayNext,
                 modifier = Modifier.weight(1f).heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-            ) { Text("下一首播放") }
+            ) { Text("Play next") }
         }
     }
 }
@@ -261,12 +261,12 @@ internal fun LocalRematchSheet(item: LocalItem, library: LocalLibrary, onDismiss
     LocalRematchSheet(item.matchTarget(), library, onDismiss)
 
 /**
- * 换一个匹配：搜索框预填文件标签或文件名，按已启用的平台搜；百分比是现有换源匹配的打分。
- * “再听一次歌识曲”换一段（第 60 秒起）重新识别。“不匹配”清掉匹配，回到文件自己的标签和内嵌封面。
- * 只改应用里显示的封面、歌词和标题，文件不动。
+ * Choose another match：搜索框预填文件标签或文件名，按已启用的平台搜；百分比是现有换源匹配的打分。
+ * “Recognize the audio again”Use another clip (from 0:60) to recognize again。“No match”清掉匹配，回到文件自己的标签和内嵌封面。
+ * Only changes the cover, lyrics and title shown in the app; the file is untouched。
  *
- * 这台设备上没有文件的歌（第 ⑧ 张“找一首平台版本”）也用它：按歌单里的歌名和同步来的文件名搜，
- * 没有识曲、没有“不匹配”；选好的匹配记进线索，随同步回到有文件的设备。
+ * 这台设备上没有文件的歌（第 ⑧ 张“Find a platform version”）也用它：按歌单里的歌名和同步来的文件名搜，
+ * 没有识曲、没有“No match”；选好的匹配记进线索，随同步回到有文件的设备。
  */
 @Composable
 internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, onDismiss: () -> Unit) {
@@ -280,7 +280,7 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
     var results by remember { mutableStateOf<List<LocalCandidate>>(emptyList()) }
     var loading by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
-    // 现在的匹配放在第一位并默认选中；选别的才能“使用这个”
+    // 现在的匹配放在第一位并默认选中；选别的才能“Use this”
     val current = remember(target.match, target.matchProvider) {
         target.match?.let { LocalCandidate(it, target.matchProvider.ifBlank { it.source }, target.matchConfidence, target.matchMethod) }
     }
@@ -294,13 +294,13 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
         job = scope.launch {
             try {
                 results = block()
-                if (results.isEmpty()) error = "没有找到结果"
+                if (results.isEmpty()) error = "No results"
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (failure: LocalMatchNetworkException) {
-                error = "网络连不上，稍后再试"
+                error = "No network; try again later"
             } catch (failure: Exception) {
-                error = failure.message?.takeIf { it.isNotBlank() } ?: "搜索失败"
+                error = failure.message?.takeIf { it.isNotBlank() } ?: "Search failed"
             } finally {
                 loading = ""
             }
@@ -310,7 +310,7 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
     fun search() {
         val providerId = provider ?: return
         val text = query
-        run("正在搜索…") { library.search(localId, text, providerId, target.song) }
+        run("Searching…") { library.search(localId, text, providerId, target.song) }
     }
 
     LaunchedEffect(localId) {
@@ -324,8 +324,8 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
     }
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "换一个匹配",
-        subtitle = "只改应用里显示的封面、歌词和标题，文件不动",
+        title = "Choose another match",
+        subtitle = "Only changes the cover, lyrics and title shown in the app; the file is untouched",
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             OutlinedTextField(
@@ -333,7 +333,7 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth().focusRequester(searchFocus),
                 singleLine = true,
-                label = { Text("搜索") },
+                label = { Text("Search") },
                 leadingIcon = { Icon(Icons.Filled.Search, null) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { search() }),
@@ -393,19 +393,19 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
             if (target.canListen) {
                 Spacer(Modifier.size(8.dp))
                 ListRow(
-                    title = "再听一次歌识曲",
+                    title = "Recognize the audio again",
                     index = 0,
                     count = 1,
                     onClick = {
-                        run("正在听…") { library.listenAgain(localId) }
+                        run("Listening…") { library.listenAgain(localId) }
                     },
                     icon = Icons.Filled.Hearing,
-                    summary = "换一段（第 60 秒起）重新识别",
+                    summary = "Use another clip (from 0:60) to recognize again",
                     showChevron = false,
                 )
             } else {
                 Spacer(Modifier.size(8.dp))
-                InfoNote("这台设备上没有这个文件：选好的匹配会同步到其他设备，有文件的那台也会用它的封面和歌词。")
+                InfoNote("This device doesn't have the file: the chosen match syncs to other devices, and the device holding the file uses its cover and lyrics too.")
             }
         }
         Row(
@@ -419,7 +419,7 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
                         onDismiss()
                     },
                     modifier = Modifier.weight(1f).heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-                ) { Text("不匹配") }
+                ) { Text("No match") }
             }
             val choice = shown.firstOrNull { it.song.key == picked }
             Button(
@@ -429,7 +429,7 @@ internal fun LocalRematchSheet(target: LocalMatchTarget, library: LocalLibrary, 
                 },
                 enabled = choice != null && choice.song.key != current?.song?.key,
                 modifier = Modifier.weight(1f).heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-            ) { Text("使用这个") }
+            ) { Text("Use this") }
         }
     }
 }
@@ -452,8 +452,8 @@ private fun CandidateRow(
         song.title,
         detail,
         providerName(emptyList(), candidate.providerId),
-        "相似度 $score",
-        if (current) "当前匹配" else "",
+        "Similarity $score",
+        if (current) "Current match" else "",
     ).filter { it.isNotBlank() }.joinToString("，")
     Row(
         Modifier
@@ -471,7 +471,7 @@ private fun CandidateRow(
         Column(Modifier.weight(1f).clearAndSetSemantics {}) {
             Text(song.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                listOf(providerName(emptyList(), candidate.providerId), detail, if (current) "当前" else "").filter { it.isNotBlank() }.joinToString(" · "),
+                listOf(providerName(emptyList(), candidate.providerId), detail, if (current) "Current" else "").filter { it.isNotBlank() }.joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
                 maxLines = 1,
@@ -491,7 +491,7 @@ private fun CandidateRow(
 
 /**
  * 点了放不了的本地歌（设计稿第 ⑧ 张）：标题写文件在哪（“只在 Pixel 8 上”），说明怎么才能在这里播，
- * 下面两条能做的事：找一首平台版本（匹配会同步回去）、从歌单移除（所有设备上都会移除）。不弹错误。
+ * 下面两条能做的事：Find a platform version（匹配会同步回去）、从歌单移除（所有设备上都会移除）。不弹错误。
  */
 @Composable
 internal fun LocalUnplayableSheet(
@@ -512,17 +512,17 @@ internal fun LocalUnplayableSheet(
     val size = ref?.fileSize?.takeIf { it > 0 } ?: row?.size ?: 0L
     val match = index.matchOf(song.id)
     val matchText = when {
-        match != null && !index.platformFallback -> "匹配到了${providerName(emptyList(), match.source)}的版本（「没有文件时用平台版本」关着）"
-        match != null -> "匹配到了${providerName(emptyList(), match.source)}的版本"
-        else -> "没有匹配到平台版本"
+        match != null && !index.platformFallback -> "Matched the ${providerName(emptyList(), match.source)} version (Use the platform version when the file is missing is off)"
+        match != null -> "Matched the ${providerName(emptyList(), match.source)} version"
+        else -> "No platform version matched"
     }
     val device = state.device
     val explanation = when {
         state.kind == LocalCopyKind.CloudTrouble ->
-            "${cloudInText(state.provider).trimStart()}里的副本现在放不了：${state.note}。在有文件的设备上重新上传，或者找一首平台版本。"
-        row != null -> "这台设备上的文件${state.note.ifBlank { "不在了" }.removePrefix("文件")}。重新扫描能找回搬走的文件；歌单里的这首不受影响。"
-        device.isNotBlank() -> "文件在 $device 的本地音乐里，还没有上传。在那台设备上打开「我的 › 本地音乐」上传它，这里会自动变成可以播放。"
-        else -> "文件在原来那台设备的本地音乐里，这台设备上没有。在那台设备上传到云盘后，这里会自动变成可以播放。"
+            "The copy in ${cloudInText(state.provider).trimStart()} can't play right now: ${state.note}. Re-upload it on the device that has the file, or find a platform version."
+        row != null -> "The file on this device${state.note.ifBlank { "Missing" }.removePrefix("File")}. Rescanning finds moved files; this track stays in playlists."
+        device.isNotBlank() -> "The file is in local music on $device and not uploaded yet. Upload it from Library › Local music on that device and it becomes playable here."
+        else -> "The file is in local music on its original device, not this one. Once it is uploaded to the cloud there it becomes playable here."
     }
     val focus = remember { FocusRequester() }
     TvDefaultFocus(focus)
@@ -543,16 +543,16 @@ internal fun LocalUnplayableSheet(
             Spacer(Modifier.size(8.dp))
             val count = if (onRemove != null) 2 else 1
             ListRow(
-                title = "找一首平台版本",
+                title = "Find a platform version",
                 index = 0,
                 count = count,
                 onClick = onFindPlatform,
                 modifier = Modifier.focusRequester(focus),
                 icon = Icons.Filled.Search,
                 summary = if (device.isNotBlank()) {
-                    "按文件名在已启用的平台里搜，匹配会同步回 $device"
+                    "Searches enabled platforms by file name; the match syncs back to $device"
                 } else {
-                    "按文件名在已启用的平台里搜，匹配会同步到其他设备"
+                    "Searches enabled platforms by file name; the match syncs to other devices"
                 },
             )
             if (onRemove != null) {
@@ -573,11 +573,11 @@ internal fun LocalUnplayableSheet(
 }
 
 /**
- * 歌曲信息里的「云端副本」段（设计稿第 ④ 张）：每个云端一行，写状态、大小、上传日期；⋮ 里是
+ * 歌曲信息里的「Cloud copy」段（设计稿第 ④ 张）：每个云端一行，写状态、大小、上传日期；⋮ 里是
  * “从网易云盘删除 / 从 WebDAV 删除”，删前确认。删云端只把这份标成已删除，不碰本机文件，也不动歌单。
  *
- * [onUpload] 打开上传面板（第 ⑥ 张），第二个参数是“重新上传”（这个云端已经有一份，用户明确要再传）：
- * 这台设备上有文件时才传，还没传过的云端那行显示“上传”，⋮ 里有“重新上传”。
+ * [onUpload] 打开上传面板（第 ⑥ 张），第二个参数是“Re-upload”（这个云端已经有一份，用户明确要再传）：
+ * 这台设备上有文件时才传，还没传过的云端那行显示“上传”，⋮ 里有“Re-upload”。
  * 正在排队 / 正在传 / 传失败的写在那一行的说明里。没有任何副本、也没有上传入口时返回 null，整段不画。
  */
 internal fun localCloudCopiesSection(
@@ -608,11 +608,11 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
         val queued = uploadState?.find(localId)?.firstOrNull { it.provider == provider }?.item
         val queuedText = when {
             queued == null -> ""
-            queued.stage == CloudUploadStage.FAILED -> "上传失败：${queued.error?.message.orEmpty()}"
-            queued.stage == CloudUploadStage.UPLOADING -> "正在上传 · ${(queued.progress.fraction * 100).toInt()}%"
+            queued.stage == CloudUploadStage.FAILED -> "Upload failed: ${queued.error?.message.orEmpty()}"
+            queued.stage == CloudUploadStage.UPLOADING -> "Uploading · ${(queued.progress.fraction * 100).toInt()}%"
             queued.stage == CloudUploadStage.READY -> ""
-            uploadState.active.any { it.localId == localId && it.provider == provider } -> "正在上传"
-            else -> "等待上传"
+            uploadState.active.any { it.localId == localId && it.provider == provider } -> "Uploading"
+            else -> "Waiting to upload"
         }
         ListRow(
             title = provider.label,
@@ -626,7 +626,7 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
             },
             summary = when {
                 queuedText.isNotBlank() -> queuedText
-                slot == null -> "还没上传"
+                slot == null -> "Not uploaded"
                 else -> cloudCopySummary(slot, provider, index.clouds)
             },
             showChevron = false,
@@ -636,21 +636,21 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
                     queued?.stage == CloudUploadStage.FAILED && uploads != null -> TextButton(
                         onClick = { uploads.retry(provider, localId) },
                         modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text("重试") }
+                    ) { Text("Retry") }
                     pending -> Unit
-                    // 删掉过的那份也能再传：它不算“已经有一份”，不用当成重新上传
+                    // 删掉过的那份也能再传：它不算“已经有一份”，不用当成Re-upload
                     (slot == null || slot.status == CloudRefStatus.DELETED) && onUpload != null && provider.canUpload -> TextButton(
                         onClick = { onUpload(provider, false) },
                         modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text(if (slot == null) "上传" else "重新上传") }
+                    ) { Text(if (slot == null) "Upload" else "Re-upload") }
                     slot != null && slot.status != CloudRefStatus.DELETED -> Box {
                         IconButton(onClick = { menu = true }, modifier = Modifier.tvFocusRing(androidx.compose.foundation.shape.CircleShape)) {
-                            Icon(Icons.Filled.MoreVert, "${cloudInText(provider).trimStart()}副本的更多操作")
+                            Icon(Icons.Filled.MoreVert, "More actions for the ${cloudInText(provider).trimStart()} copy")
                         }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             if (onUpload != null && provider.canUpload) {
                                 DropdownMenuItem(
-                                    text = { Text("重新上传到${cloudInText(provider).trimEnd()}") },
+                                    text = { Text("Re-upload to ${cloudInText(provider).trimEnd()}") },
                                     onClick = {
                                         menu = false
                                         onUpload(provider, true)
@@ -658,7 +658,7 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
                                 )
                             }
                             DropdownMenuItem(
-                                text = { Text("从${cloudInText(provider)}删除", color = MaterialTheme.colorScheme.error) },
+                                text = { Text("Delete from ${cloudInText(provider)}", color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     menu = false
                                     confirm = provider
@@ -673,9 +673,9 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
     if (error.isNotBlank()) InfoNote(error, "red")
     confirm?.let { provider ->
         ConfirmDialog(
-            title = "从${cloudInText(provider)}删除？",
-            message = "只删云端这一份。本机文件和歌单里的这首都不受影响；其他设备会改用本机文件或平台版本播放。",
-            confirmLabel = "删除",
+            title = "Delete from ${cloudInText(provider)}?",
+            message = "Deletes only this cloud copy. Local files and this track in playlists are unaffected; other devices will play the local file or a platform version.",
+            confirmLabel = "Delete",
             danger = true,
             onConfirm = {
                 error = ""
@@ -685,7 +685,7 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
                     } catch (cancel: CancellationException) {
                         throw cancel
                     } catch (failure: Exception) {
-                        error = failure.message?.takeIf { it.isNotBlank() } ?: "删除失败"
+                        error = failure.message?.takeIf { it.isNotBlank() } ?: "Delete failed"
                     }
                 }
             },
@@ -694,14 +694,14 @@ private fun LocalCloudCopies(localId: String, library: LocalLibrary, onUpload: (
     }
 }
 
-/** “可以播放 · 31 MB · 11 月 8 日上传”；放不了时写原因。 */
+/** “Playable · 31 MB · 11 月 8 日上传”；放不了时写原因。 */
 internal fun cloudCopySummary(slot: LocalRemoteEntity, provider: CloudProvider, configured: Set<CloudProvider>): String {
     val status = when {
-        slot.status == CloudRefStatus.DELETED -> "已从云端删除"
-        else -> LocalCopyRules.cloudProblem(slot, provider, configured, System.currentTimeMillis())?.first ?: "可以播放"
+        slot.status == CloudRefStatus.DELETED -> "Deleted from the cloud"
+        else -> LocalCopyRules.cloudProblem(slot, provider, configured, System.currentTimeMillis())?.first ?: "Playable"
     }
     val uploaded = SyncTime.toMillis(slot.uploadedAt).takeIf { it > 0 }?.let {
-        SimpleDateFormat("M 月 d 日", Locale.CHINA).format(Date(it)) + "上传"
+        SimpleDateFormat("MMM d", Locale.CHINA).format(Date(it)) + "Upload"
     }.orEmpty()
     return listOf(status, if (slot.fileSize > 0) formatBytes(slot.fileSize) else "", uploaded)
         .filter { it.isNotBlank() }.joinToString(" · ")

@@ -268,7 +268,7 @@ internal data class ResolvedSwipe(
 }
 
 /**
- * 设置 + 这一行的情况 → 两侧按钮和拉到头。不出现的按钮不占位（另一个占满）；禁用的（已下载、下载中）照样显示。
+ * 设置 + 这一行的情况 → 两侧按钮和拉到头。不出现的按钮不占位（另一个占满）；禁用的（Downloaded、Downloading）照样显示。
  * 拉到头的动作不出现或禁用时这一侧没有「拉到头」：拖到露出宽度就停，不震、不执行。
  */
 internal fun resolveSwipe(prefs: SwipePrefs, facts: SwipeFacts): ResolvedSwipe {
@@ -277,8 +277,8 @@ internal fun resolveSwipe(prefs: SwipePrefs, facts: SwipeFacts): ResolvedSwipe {
         SwipeAction.None -> null
         SwipeAction.Download -> when {
             facts.local || facts.live -> null
-            facts.download == DOWNLOAD_DONE -> ResolvedAction(action, false, "已下载")
-            facts.download == DOWNLOAD_ACTIVE -> ResolvedAction(action, false, "下载中")
+            facts.download == DOWNLOAD_DONE -> ResolvedAction(action, false, "Downloaded")
+            facts.download == DOWNLOAD_ACTIVE -> ResolvedAction(action, false, "Downloading")
             else -> ResolvedAction(action, true, action.label)
         }
         SwipeAction.Unfavorite -> if (facts.favorite) ResolvedAction(action, true, action.label) else null
@@ -409,9 +409,9 @@ fun rememberRowSwipe(
                 spoken = { r ->
                     when (r.action) {
                         SwipeAction.Delete -> deleteSpoken.ifBlank { r.label }
-                        SwipeAction.OpenArtist -> "查看歌手：${artist.orEmpty()}"
-                        SwipeAction.OpenAlbum -> "查看专辑：${current.album}"
-                        SwipeAction.Download -> if (r.enabled) "下载「${current.title}」" else r.label
+                        SwipeAction.OpenArtist -> "View artist: ${artist.orEmpty()}"
+                        SwipeAction.OpenAlbum -> "View album: ${current.album}"
+                        SwipeAction.Download -> if (r.enabled) "Download '${current.title}'" else r.label
                         else -> r.label
                     }
                 },
@@ -424,14 +424,14 @@ fun rememberRowSwipe(
                             SwipeAction.AddToPlaylist -> env.openAddToPlaylist(target)
                             SwipeAction.Favorite -> if (keys.any { it in env.favorites.value }) {
                                 // 已收藏时只提示，不会变成取消（取消在另一侧，免得手滑）
-                                notify("「${target.title}」已在收藏里", null)
+                                notify("'${target.title}' is already saved", null)
                             } else {
                                 actions.favorite(target)
-                                notify("已收藏「${target.title}」", null)
+                                notify("Saved '${target.title}'", null)
                             }
                             SwipeAction.Unfavorite -> keys.firstNotNullOfOrNull { env.favorites.value[it] }?.let { record ->
                                 actions.favorite(runCatching { record.song() }.getOrDefault(target))
-                                notify("已取消收藏「${target.title}」") { actions.restoreSaved(listOf(record)) }
+                                notify("Removed '${target.title}' from favorites") { actions.restoreSaved(listOf(record)) }
                             }
                             SwipeAction.Delete -> latestDelete.value?.run?.invoke()
                             SwipeAction.PlayNext -> actions.playSongNext(target)
@@ -465,10 +465,10 @@ fun rememberDemoRowSwipe(prefs: SwipePrefs, notify: (String) -> Unit): RowSwipe 
     val content = remember(prefs) {
         mutableStateOf(
             swipeContentOf(
-                resolved = resolveSwipe(prefs.copy(enabled = true), SwipeFacts(favorite = true, delete = SwipeDeleteFacts("删除"))),
+                resolved = resolveSwipe(prefs.copy(enabled = true), SwipeFacts(favorite = true, delete = SwipeDeleteFacts("Delete"))),
                 deleteIcon = Icons.Filled.Delete,
                 spoken = { it.label },
-                run = { action -> { latestNotify.value("演示：${action.label}") } },
+                run = { action -> { latestNotify.value("Demo: ${action.label}") } },
             ),
         )
     }
@@ -693,10 +693,10 @@ internal fun SwipeRowFrame(
                     // 开着时点前景只是收起，不放歌
                     onClick = { if (row.offset != 0f) row.close() else onClick() },
                     onLongClick = onLongClick,
-                    onLongClickLabel = onLongClick?.let { "更多操作" },
+                    onLongClickLabel = onLongClick?.let { "More actions" },
                 )
                 .semantics {
-                    if (playing) stateDescription = "正在播放"
+                    if (playing) stateDescription = "Now playing"
                     // 读屏「操作」菜单里挂同样的动作（读屏开着时单指横滑是下一项，不能抢）
                     val items = swipe.content.value.accessibility
                     if (items.isNotEmpty()) {
@@ -766,7 +766,7 @@ private fun SwipeUnderlay(row: SwipeRowState, swipe: RowSwipe, modifier: Modifie
                 ) {
                     Icon(full.icon, null, Modifier.size(26.dp).graphicsLayer { scaleX = scale; scaleY = scale }, tint = fg)
                     Text(
-                        if (atFull) "松手${full.label}" else full.label,
+                        if (atFull) "Release to ${full.label}" else full.label,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = fg,
@@ -792,7 +792,7 @@ private fun SwipeButton(item: SwipeItem, modifier: Modifier, onClick: () -> Unit
     ) {
         val fade = if (item.enabled) Modifier else Modifier.alpha(0.38f)
         Icon(item.icon, null, fade.size(22.dp), tint = fg)
-        // 两个按钮各 64dp，「下一首播放」「加到播放队列」放不下 11sp，缩到放得下为止
+        // 两个按钮各 64dp，「Next播放」「加到播放队列」放不下 11sp，缩到放得下为止
         Text(
             item.label,
             fade.padding(top = 4.dp),

@@ -114,9 +114,9 @@ internal fun rowsForStyle(style: ShareCardStyle, rows: List<ShareRow>): List<Sha
 
 /** 选的句子用不完时样式条下面的一句提示；用得完时 null。 */
 internal fun unusedLinesNote(style: ShareCardStyle, selected: Int): String? = when {
-    style == ShareCardStyle.AlbumArt -> "「封面」样式不放歌词"
-    style.lines == 1 && selected >= 2 -> "「${style.label}」只用第一句，其余选中的句子不上卡。"
-    style.lines == 2 && selected >= 3 -> "「${style.label}」用前两句，其余选中的句子不上卡。"
+    style == ShareCardStyle.AlbumArt -> "The Cover style shows no lyrics"
+    style.lines == 1 && selected >= 2 -> "'${style.label}' uses only the first line; other selected lines stay off the card."
+    style.lines == 2 && selected >= 3 -> "'${style.label}' uses the first two lines; other selected lines stay off the card."
     else -> null
 }
 
@@ -152,7 +152,7 @@ private fun songLine(title: String, artist: String): String = listOf(title, arti
 
 /** 导出的 PNG 文件名：「歌名 - 歌手 yyyyMMdd-HHmmss.png」，去掉文件名里不能用的字符，歌名歌手部分最长 80 个字符。 */
 internal fun shareFileName(title: String, artist: String, now: Long, zone: TimeZone = TimeZone.getDefault()): String {
-    val name = listOf(title, artist).map(::cleanFileName).filter { it.isNotBlank() }.joinToString(" - ").ifBlank { "歌词" }
+    val name = listOf(title, artist).map(::cleanFileName).filter { it.isNotBlank() }.joinToString(" - ").ifBlank { "Lyrics" }
     val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).apply { timeZone = zone }.format(Date(now))
     return "${name.take(SHARE_FILE_NAME_MAX).trim()} $stamp.png"
 }

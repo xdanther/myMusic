@@ -447,13 +447,13 @@ fun LyricsList(
     val layoutSp = rememberLyricLayoutSp(sizing) { base.value == sizing.baseSp && grow.value == sizing.grow }
     if (loading && (lyrics.raw.isBlank() || !lyrics.synced)) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("正在加载歌词…", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Loading lyrics…", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
     if (lyrics.raw.isBlank()) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-            Text("这首歌没有歌词", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("This track has no lyrics", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
@@ -567,7 +567,7 @@ private fun LyricsAutoScroll(
 ) {
     val activeIndex = active.value
     val spec = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
-    // 换了一份歌词后第一次直接定位，不从上一首的滚动位置滑过来
+    // 换了一份歌词后第一次直接定位，不从Previous的滚动位置滑过来
     val placed = remember(lyrics) { mutableStateOf(false) }
     LaunchedEffect(activeIndex, manualAt, sizing, lyrics) {
         if (activeIndex < 0) return@LaunchedEffect
@@ -580,7 +580,7 @@ private fun LyricsAutoScroll(
 
 /** 把第 [index] 行的中心移到锚点；[spec] 为 null 时直接定位。 */
 private suspend fun LazyListState.centerOn(index: Int, anchor: () -> Float, spec: AnimationSpec<Float>?) {
-    // 直接定位多用于刚换歌词，旧的布局信息可能还是上一首的，先跳一次强制重新测量
+    // 直接定位多用于刚换歌词，旧的布局信息可能还是Previous的，先跳一次强制重新测量
     if (spec == null) {
         scrollToItem(index)
     } else if (layoutInfo.visibleItemsInfo.none { it.index == index }) {
@@ -652,7 +652,7 @@ private fun LyricRow(
             // 不放大：整行放大会让左对齐的字横着跳一下
             .tvFocusRing(LyricRowShape, scale = 1f)
             .clip(LyricRowShape)
-            .then(if (synced && line.timeMs >= 0) Modifier.clickable(onClickLabel = "从这一句播放") { onSeek(line.timeMs) } else Modifier)
+            .then(if (synced && line.timeMs >= 0) Modifier.clickable(onClickLabel = "Play from this line") { onSeek(line.timeMs) } else Modifier)
             .padding(horizontal = 8.dp)
             // 文字按放大后的字号、整列宽度排版，变成当前行时不重新折行；占位高度按缩小后的视觉高度算，
             // 缩放本身在下面的 graphicsLayer 里做，不重新排版
@@ -731,7 +731,7 @@ private fun LyricRow(
 }
 
 /**
- * 逐字卡拉OK行：底层暗字、上层亮字按各字起止时间裁剪。播放进度 100ms 刷新一次，
+ * 逐字卡拉OK行：底层暗字、上层亮字按各字起止时间裁剪。Playback progress 100ms 刷新一次，
  * 播放中用帧时钟在两次校准之间线性外推；时间只在 draw 阶段读取，逐帧变化不触发列表重组。
  * 电视上和背景、封面旋转共用 30 帧节拍（[TvFrameGate]），十英尺外看不出填色少了一半帧；
  * [capFrames] 为 true 时（海报墙的大卡）手机、平板上也限 30 帧。

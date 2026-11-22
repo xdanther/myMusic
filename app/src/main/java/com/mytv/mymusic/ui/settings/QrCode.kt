@@ -22,7 +22,7 @@ import kotlin.math.floor
  * 二维码必须是浅底深码，扫码器才认，所以这里不跟随主题配色。
  */
 @Composable
-internal fun QrCodeImage(text: String, modifier: Modifier = Modifier, description: String = "登录二维码") {
+internal fun QrCodeImage(text: String, modifier: Modifier = Modifier, description: String = "Sign-in QR code") {
     val matrix = key(text) {
         val result by produceState<Array<BooleanArray>?>(null, text) {
             value = withContext(Dispatchers.Default) { QrEncoder.encode(text) }

@@ -681,7 +681,7 @@ fun LocalPlaylistScreen(
                                         PlaylistSyncTag(playlist.dirty, sync, conflict, long = true)
                                     }
                                     Text(
-                                        "${relativeTime(playlist.updatedAt).ifBlank { "Just now" }}编辑",
+                                        "${relativeTime(playlist.updatedAt).ifBlank { "Just now" }} edit",
                                         Modifier.padding(top = 8.dp, bottom = 16.dp),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -89,19 +89,19 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * 队列海报墙：播放队列铺成的墙（[PosterWall]）加上浮层——顶栏胶囊（返回 + 标题）、“定位”和设置。
+ * 队列海报墙：Queue铺成的墙（[PosterWall]）加上浮层——顶栏胶囊（返回 + 标题）、“定位”和设置。
  * 挂在 MyMusicApp 里主界面之上、播放页之下，外面套 PlayerTheme（深色，随当前封面取色、450ms 过渡）。
  *
  * - 手机 / 平板：胶囊在左上，“定位”48dp 圆钮和设置 56dp FAB 在右下，都让开系统栏；
  * - 电视：顶部 80dp 一排只有胶囊和时钟（“电视时钟”开着时），大卡放在它下面；空闲 6 秒浮层淡出，时钟留着。
  *   墙是无限的、方向键永远留在墙里，一排上没有任何能拿方向的按钮：返回靠遥控器的返回键，
- *   “回到正在播放”和“海报墙设置”都在长按 OK 的单曲操作面板末尾（焦点够得到的入口只放在那一处）；
- * - 返回：设置 / 歌曲操作面板自己先关 → 墙这一层（漂移唤醒、焦点交回墙、收起别的歌的大卡、清焦点）→ 离开海报墙；
+ *   “Back to now playing”和“Poster wall settings”都在长按 OK 的单曲操作面板末尾（焦点够得到的入口只放在那一处）；
+ * - 返回：设置 / Track actions面板自己先关 → 墙这一层（漂移唤醒、焦点交回墙、收起别的歌的大卡、清焦点）→ 离开海报墙；
  * - [active] 为 false（播放页盖在上面）时墙停下帧循环和跟拍、大卡里的动画也停，不拿焦点、不给读屏；
  *   墙的状态留在这里，关掉播放页回来镜头还在原处（期间切了歌就已经停在新歌上）；
  * - [focusReady] 播放页已经完全退场：电视上这时才把焦点交给墙（播放页的焦点组退场途中不放焦点出去）。
  *
- * 大卡“播放”走 seekTo（[MusicActions.playQueueIndex]），不换队列，听歌模式的续流不断；“下一首播放”只在队列里挪位置，
+ * 大卡“播放”走 seekTo（[MusicActions.playQueueIndex]），不换队列，Listening mode的续流不断；“Next播放”只在队列里挪位置，
  * 挪过去的那首在新位置上接着放大。
  */
 @Composable
@@ -142,7 +142,7 @@ internal fun PosterWallScreen(
         visible = active,
     )
     val pulseScale = remember(pulse) { { pulse.coverScale } }
-    // 切歌后新歌词取回来之前 state.lyrics 还是上一首的
+    // 切歌后新歌词取回来之前 state.lyrics 还是Previous的
     val lyricsReady = state.lyricsKey == currentKey
     // 和墙同一份版式：折叠屏上格距按大卡那一段选，浮层的让位、大卡圆角也跟着它
     val spec = rememberWallSpec(wall)
@@ -182,12 +182,12 @@ internal fun PosterWallScreen(
         val target = queueMoveNextTarget(index, currentIndex, songs.size)
         when {
             song == null -> Unit
-            target == null -> toast("「${song.title}」已经是下一首")
+            target == null -> toast("'${song.title}' is already next")
             else -> {
                 actions.moveQueueItemNext(index)
                 // 槽位按序号排：挪完这首坐到 target 那一位，在新位置上接着放大
                 wall.growSong(target)
-                toast("「${song.title}」将在下一首播放")
+                toast("'${song.title}' will play next")
             }
         }
     }
@@ -228,8 +228,8 @@ internal fun PosterWallScreen(
                 }
             },
             onGrownConfirm = { _, _ ->
-                // 焦点交进卡里：正在播放的卡落在播放键上（再按 OK 播放 / 暂停，左右键到上一首、下一首、打开播放页和进度条），
-                // 别的歌落在“播放”上，再选“播放 / 下一首播放 / 更多”；返回键回到墙上
+                // 焦点交进卡里：正在播放的卡落在播放键上（再按 OK 播放 / 暂停，左右键到Previous、Next、打开播放页和进度条），
+                // 别的歌落在“播放”上，再选“播放 / Next播放 / 更多”；返回键回到墙上
                 runCatching { primaryFocus.requestFocus() }
             },
             autoFocus = false,
@@ -316,7 +316,7 @@ internal fun PosterWallScreen(
     if (settingsOpen) {
         PosterSettingsSheet(state.poster, metrics.kind.scope, actions::setPosterPrefs) { settingsOpen = false }
     }
-    // 电视上墙里的方向键永远留在墙里，顶栏没有能拿焦点的按钮：回到正在播放、海报墙设置接在长按 OK / 菜单键的面板里
+    // 电视上墙里的方向键永远留在墙里，顶栏没有能拿焦点的按钮：Back to now playing, poster wall settings接在长按 OK / 菜单键的面板里
     val menuNow = rememberUpdatedState {
         queueWallMenu(feed?.name ?: QUEUE_TITLE, currentIndex >= 0, wall::locate) { settingsOpen = true }
     }
@@ -335,30 +335,30 @@ internal fun PosterWallScreen(
 
 private val NoPulse: () -> Float = { 1f }
 
-private const val QUEUE_TITLE = "播放队列"
+private const val QUEUE_TITLE = "Queue"
 
-/** 队列海报墙的整页操作（电视）：正在放的那首在队列里才给“回到正在播放”，再加海报墙设置；小标题是胶囊上的标题。 */
+/** 队列海报墙的整页操作（电视）：正在放的那首在队列里才给“Back to now playing”，再加Poster wall settings；小标题是胶囊上的标题。 */
 internal fun queueWallMenu(title: String, playingHere: Boolean, onLocate: () -> Unit, onSettings: () -> Unit): WallMenu = WallMenu(
     title = title,
     items = listOfNotNull(
-        if (playingHere) WallMenuItem(Icons.Filled.MyLocation, "回到正在播放", onLocate) else null,
-        WallMenuItem(Icons.Filled.Tune, "海报墙设置", onSettings),
+        if (playingHere) WallMenuItem(Icons.Filled.MyLocation, "Back to now playing", onLocate) else null,
+        WallMenuItem(Icons.Filled.Tune, "Poster wall settings", onSettings),
     ),
 )
 
 /**
- * 胶囊副标题。队列：“30 首 · 正在播放第 3 首”。听歌模式不写总首数（一直在变）：
- * “听歌模式 · 网易云音乐 · 已听 12 首 · 后面还有 5 首”，续取中再加“正在续取…”。
+ * 胶囊副标题。队列：“30 首 · 正在播放第 3 首”。Listening mode不写总首数（一直在变）：
+ * “Listening mode · 网易云音乐 · heard 12 tracks · 5 首”，续取中再加“正在续取…”。
  */
 internal fun wallSubtitle(feed: ListeningFeedUi?, count: Int, currentIndex: Int): String {
-    if (feed == null) return if (currentIndex >= 0) "$count 首 · 正在播放第 ${currentIndex + 1} 首" else "$count 首"
+    if (feed == null) return if (currentIndex >= 0) "$count tracks · playing track ${currentIndex + 1}" else "$count tracks"
     val heard = currentIndex.coerceAtLeast(0)
     val left = (count - heard - 1).coerceAtLeast(0)
     return buildString {
-        append("听歌模式")
+        append("Listening mode")
         if (feed.providerName.isNotBlank()) append(" · ").append(feed.providerName)
-        append(" · 已听 ").append(heard).append(" 首 · 后面还有 ").append(left).append(" 首")
-        if (feed.appending) append(" · 正在续取…")
+        append(" · heard ").append(heard).append(" tracks · ").append(left).append(" tracks")
+        if (feed.appending) append(" · loading more…")
     }
 }
 
@@ -399,7 +399,7 @@ private const val ChromeFadeMs = 500
 private const val ChromeScrimAlpha = 0.86f
 
 /**
- * 手机 / 平板：胶囊在左上，定位和设置在右下（平板留得更宽）。读屏开着时胶囊下面多一个“以列表浏览”。
+ * 手机 / 平板：胶囊在左上，定位和设置在右下（平板留得更宽）。读屏开着时胶囊下面多一个“Browse as a list”。
  * 书本 / 双竖时胶囊收在左页里（[leftPage]，dp），长标题省略，不压折痕；右下的按钮本来就在右页。
  * 桌面 / 双横时胶囊挪到下半屏顶上（[lowerTop]，墙本地 dp），上半屏整块留给大卡。
  */
@@ -449,15 +449,15 @@ private fun TouchChrome(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 elevation = FloatingActionButtonDefaults.elevation(defaultElevation = ChromeShadow),
-            ) { Icon(Icons.Filled.Tune, "海报墙设置") }
+            ) { Icon(Icons.Filled.Tune, "Poster wall settings") }
         }
     }
 }
 
 /**
  * 电视顶部一排：左边胶囊，最右是时钟，中间没有按钮——墙里的方向键永远留在墙里，这一排上的钮根本拿不到焦点，
- * 所以不画：返回用遥控器的返回键，“回到正在播放”和“海报墙设置”在长按 OK 的单曲操作面板里。
- * 空闲时胶囊淡出，时钟留着（时钟本来就是给空闲时看的）。读屏开着时胶囊旁边多一个“以列表浏览”。
+ * 所以不画：返回用遥控器的返回键，“Back to now playing”和“Poster wall settings”在长按 OK 的单曲操作面板里。
+ * 空闲时胶囊淡出，时钟留着（时钟本来就是给空闲时看的）。读屏开着时胶囊旁边多一个“Browse as a list”。
  */
 @Composable
 private fun TvTopRow(
@@ -483,7 +483,7 @@ private fun TvTopRow(
         ) {
             // 电视没有返回钮（遥控器有返回键）；这一排也不放定位 / 设置（选不到），只用一行提示告诉用户它们在哪
             WallTitlePill(title, subtitle, onBack = null, Modifier.weight(1f, fill = false))
-            TvWallHint(withMenu = false, then = "回到正在播放、海报墙设置")
+            TvWallHint(withMenu = false, then = "Back to now playing, poster wall settings")
             if (screenReader) ListEntry(onOpenQueue)
         }
         if (showClock) {
@@ -523,7 +523,7 @@ private fun WallTitlePill(title: String, subtitle: String, onBack: (() -> Unit)?
         ) {
             if (onBack != null) {
                 IconButton(onClick = onBack, modifier = Modifier.size(40.dp).tvFocusRing(CircleShape)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "关闭海报墙")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Close the poster wall")
                 }
             }
             Column {
@@ -546,7 +546,7 @@ private fun WallTitlePill(title: String, subtitle: String, onBack: (() -> Unit)?
     }
 }
 
-/** 手机 / 平板的“定位正在播放”：正在播放的那首没放大时高亮成主色。高亮只在这个小组件里读墙的状态。 */
+/** 手机 / 平板的“Jump to now playing”：正在播放的那首没放大时高亮成主色。高亮只在这个小组件里读墙的状态。 */
 @Composable
 private fun LocateButton(wall: PosterWallState) {
     val hot = wall.hasCurrent && !wall.currentGrown
@@ -566,16 +566,16 @@ private fun LocateButton(wall: PosterWallState) {
         contentColor = content,
         shadowElevation = ChromeShadow,
     ) {
-        Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.MyLocation, "定位正在播放") }
+        Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.MyLocation, "Jump to now playing") }
     }
 }
 
-/** 读屏开着时的“以列表浏览”：直接打开原来的队列面板。 */
+/** 读屏开着时的“Browse as a list”：直接打开原来的队列面板。 */
 @Composable
 private fun ListEntry(onOpenQueue: () -> Unit) {
     FilledTonalButton(onClick = onOpenQueue, modifier = Modifier.tvFocusRing(CircleShape)) {
         Icon(Icons.AutoMirrored.Filled.ViewList, null, Modifier.size(18.dp))
         Spacer(Modifier.width(6.dp))
-        Text("以列表浏览")
+        Text("Browse as a list")
     }
 }

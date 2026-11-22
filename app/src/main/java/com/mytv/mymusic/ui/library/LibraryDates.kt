@@ -17,7 +17,7 @@ import java.util.Locale
  * 与旧实现一致；时区在调用时传入，测试可以固定为指定时区。
  */
 internal object LibraryDates {
-    val defaultDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M 月 d 日", Locale.getDefault())
+    val defaultDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
     val defaultTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 
     fun today(now: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault()): LocalDate =
@@ -32,8 +32,8 @@ internal object LibraryDates {
     ): String {
         val date = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
         return when (date) {
-            today -> "今天"
-            today.minusDays(1) -> "昨天"
+            today -> "Today"
+            today.minusDays(1) -> "Yesterday"
             else -> formatter.format(date)
         }
     }

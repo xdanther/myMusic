@@ -35,10 +35,10 @@ fun CollectionSearchField(query: String, onQueryChange: (String) -> Unit, modifi
         onValueChange = onQueryChange,
         modifier = modifier.fillMaxWidth().tvFocusRing(RoundedCornerShape(4.dp)),
         textStyle = MaterialTheme.typography.bodyMedium,
-        placeholder = { Text("搜索本页歌名、歌手或专辑", maxLines = 1) },
+        placeholder = { Text("Search this page by title, artist or album", maxLines = 1) },
         leadingIcon = { Icon(Icons.Filled.Search, null) },
         trailingIcon = if (query.isEmpty()) null else ({
-            IconButton(onClick = { onQueryChange("") }) { Icon(Icons.Filled.Close, "清空检索") }
+            IconButton(onClick = { onQueryChange("") }) { Icon(Icons.Filled.Close, "Clear search") }
         }),
         singleLine = true,
     )

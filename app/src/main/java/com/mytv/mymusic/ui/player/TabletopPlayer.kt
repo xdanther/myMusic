@@ -218,7 +218,7 @@ private fun TabletopTopBar(
         Modifier.fillMaxWidth().height(TabletopBarHeight).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "收起播放页", tint = MaterialTheme.colorScheme.onSurface) }
+        IconButton(onClick = onClose) { Icon(Icons.Filled.KeyboardArrowDown, "Close the player", tint = MaterialTheme.colorScheme.onSurface) }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
             SourcePill(song, sourceProvider, sourceDetail, playbackMode, onOpenSource)
         }
@@ -500,7 +500,7 @@ internal class TabletopControlSlots(val tops: IntArray, val scale: Float)
  * 最小间距也放不下就按最小间距排，整组等比缩小到 [height] 以内。
  */
 internal fun tabletopControlSlots(height: Int, blocks: IntArray, ideal: IntArray, min: IntArray): TabletopControlSlots {
-    require(ideal.size == blocks.size - 1 && min.size == ideal.size) { "间距要比块少一个" }
+    require(ideal.size == blocks.size - 1 && min.size == ideal.size) { "Spacing must be one less than blocks" }
     val fixed = blocks.sum()
     val room = height - fixed
     val idealSum = ideal.sum()

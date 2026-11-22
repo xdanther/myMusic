@@ -46,22 +46,22 @@ import kotlin.math.sin
  * 约四成聚在斜向的银河带里，中央一团很淡的星云光晕。流星不时从屏幕外滑入、斜穿画面再滑出，拖尾由亮到透明，头部也是四角星。
  * 当前句的每个字出现在安全区里的随机位置（同句和还亮着的旧字之间尽量不重叠）：先是一颗小光点，放大成字、颜色从强调色变成文字色，
  * 正在唱的字罩一圈柔和的径向光罩、带同色辉光；唱完停留 [StardriftConfig.hold] 秒，再变回强调色缩小消失，光罩先快速缩没。
- * 换句时上一句已经开始的字不打断，自己走完。音乐呼吸：响度调制星星亮度、星云和字的辉光、停留时字的不透明度。
+ * 换句时上一句已经开始的字不打断，自己走完。Music breathing：响度调制星星亮度、星云和字的辉光、停留时字的不透明度。
  *
  * 移植取舍：
  * - 原版用 Math.random，这里一律以歌曲种子派生：星星按“星位 × 轮次”算出位置和节奏（[StardriftSky]，不存历史），
  *   每句的落点用该句自己的随机序列，同一首歌画面可复现，也方便截图测试。
  * - 星星、流星、闪烁用宿主的动画时钟（暂停时停，跳转不重建星海）；字的生命周期用歌词时间，往回跳或往前跳超过 0.5 秒时清空重排（同原版）。
- * - 所有星点按颜色（3 种）× 亮度（10 档）分批合成 Path，一帧最多 30 次 drawPath，不逐个画；星星数量乘电视的 countScale。
+ * - 所有星点按颜色（3 种）× 亮度（10 档）分批合成 Path，一帧最多 30 次 drawPath，不逐个画；Stars乘电视的 countScale。
  * - 光罩是一支以原点为中心的径向渐变，按字的位置和光罩大小平移缩放后画圆，全句共用；辉光用文字阴影（所有版本可用），
  *   模糊半径取整后缓存 Shadow。没有律动数据（[LyricStageContext.audio] 为 null）时不呼吸，原版这时按时间缓慢起伏。
- * - 流星数量面板按 0.25 步进：整数部分照原版“少了立刻补”，小数部分按屏上有流星的时间占比补（见 [stardriftMeteorRate]）。
+ * - Shooting stars面板按 0.25 步进：整数部分照原版“少了立刻补”，小数部分按屏上有流星的时间占比补（见 [stardriftMeteorRate]）。
  * - 原模组 15 项设置，面板放 8 项；变化速度 1、辉光强度 1、星星大小 1、光罩深浅 1、光圈大小 1、字缩放时间 0.5 秒、流星大小 1 按原默认值写死。
  * - 减少动态效果：星海取固定时刻的静帧，一颗定格的流星，当前句的字按落点全部显示在停留态（各带光罩），没有运动。
  */
 object StardriftVisualizer : LyricVisualizer {
     override val id = "stardrift"
-    override val label = "星潮·银河"
+    override val label = "Stardrift"
     override val origin = ModOrigin("stardrift", "1.38.0", "w0w1w2", "MIT")
     override val order = 70
     override val hostBackground = true
@@ -71,14 +71,14 @@ object StardriftVisualizer : LyricVisualizer {
     override val hiddenSettings = 7
 
     override val settings: List<LyricSetting> = listOf(
-        LyricSetting.Number("density", "星星数量", 30f, 300f, 10f, 150f, ::formatInt),
-        LyricSetting.Number("fontScale", "字号", 0.6f, 1.6f, 0.05f, 1f),
-        LyricSetting.Number("hold", "字停留", 0f, 5f, 0.25f, 0.5f, ::formatSeconds, summary = "每个字唱完后继续停留的时间"),
-        LyricSetting.Number("meteor", "流星数量", 0f, 3f, 0.25f, 1f, summary = "同屏最多几颗；带小数时按比例时有时无"),
-        LyricSetting.Toggle("ring", "读字光罩", true, summary = "正在唱的字罩一圈柔光"),
-        LyricSetting.Toggle("ringLatin", "英文不亮圈", true, summary = "英文字母和数字不罩光圈"),
-        LyricSetting.Toggle("punctHide", "屏蔽标点", true, summary = "标点不显示，也不亮光圈"),
-        LyricSetting.Toggle("pulse", "音乐呼吸", true, summary = "星星和字的辉光随响度起伏"),
+        LyricSetting.Number("density", "Stars", 30f, 300f, 10f, 150f, ::formatInt),
+        LyricSetting.Number("fontScale", "Size", 0.6f, 1.6f, 0.05f, 1f),
+        LyricSetting.Number("hold", "Text hold", 0f, 5f, 0.25f, 0.5f, ::formatSeconds, summary = "How long each character lingers after being sung"),
+        LyricSetting.Number("meteor", "Shooting stars", 0f, 3f, 0.25f, 1f, summary = "Most stars on screen; a fraction makes some appear intermittently"),
+        LyricSetting.Toggle("ring", "Character ring", true, summary = "The singing character gets a soft ring"),
+        LyricSetting.Toggle("ringLatin", "No ring on Latin text", true, summary = "Latin letters and digits get no ring"),
+        LyricSetting.Toggle("punctHide", "Hide punctuation", true, summary = "Punctuation is hidden and gets no glow"),
+        LyricSetting.Toggle("pulse", "Music breathing", true, summary = "Star and text glow follow loudness"),
     )
 
     @Composable

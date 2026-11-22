@@ -42,9 +42,9 @@ internal data class WallConfig(
     val active: Boolean = true,
     /** 换了一份队列（首数一样也算）时变：整面墙重排、重新入场。 */
     val resetKey: Any? = null,
-    /** 正在播放那首的 key：序号变了 key 没变是队列重排（“下一首播放”把前面的歌挪到它后面），不算切歌，镜头不跟。 */
+    /** 正在播放那首的 key：序号变了 key 没变是队列重排（“Next播放”把前面的歌挪到它后面），不算切歌，镜头不跟。 */
     val currentKey: String? = null,
-    /** 墙上开着面板（设置、歌曲操作、换源）：按键进了面板的窗口，墙收不到，空闲计时一直归零，浮层不淡出、不起漂。 */
+    /** 墙上开着面板（设置、Track actions、换源）：按键进了面板的窗口，墙收不到，空闲计时一直归零，浮层不淡出、不起漂。 */
     val holdAwake: Boolean = false,
     /** 有分页的折痕时大卡那一段（墙本地 dp，见 [wallSpecFor]）；null 是普通窗口。 */
     val segment: WallSegment? = null,
@@ -152,7 +152,7 @@ internal fun idleWaitSeconds(
  * 屏幕层要用的：
  * - [grownIndex] 放大的是第几首（-1 没有）；[currentGrown] 正在播放的那首就是放大的那张——为 false 且 [hasCurrent] 时“定位”按钮高亮，
  *   [hasCurrent] 为 false（详情页这张歌单没在放）时“定位”该置灰；
- * - [locate] “定位”：镜头弹到离屏幕中心最近的那一份并放大；[growSong] 放大某一首（“下一首播放”之后跟着它）；
+ * - [locate] “定位”：镜头弹到离屏幕中心最近的那一份并放大；[growSong] 放大某一首（“Next播放”之后跟着它）；
  * - [takeFocus] 电视进页面时调：焦点交给墙并选中离可用区中心最近的那格（顶排没有能拿焦点的按钮，焦点只能在墙上）；
  * - [handleBack] 墙这一层的返回（见 [wallBackStep]），返回 false 时页面离开；面板由页面自己先关；
  * - [chromeVisible] 电视空闲 6 秒或漂移中为 false，浮层跟着淡出；[wake] 有操作时调，返回 true 表示刚才在漂移、这一下只用来唤醒；
@@ -624,7 +624,7 @@ internal class PosterWallState internal constructor(
     }
 
     /**
-     * 放大第 [song] 首离屏幕中心最近的那一份并居中：“下一首播放”把这首挪了位，让它在新位置上接着放大，留在眼前。
+     * 放大第 [song] 首离屏幕中心最近的那一份并居中：“Next播放”把这首挪了位，让它在新位置上接着放大，留在眼前。
      * 方向键焦点跟过去；Compose 焦点原来在旧那张卡的按钮上的话，卡换了位置按钮就没了，交回墙。
      */
     fun growSong(song: Int) {
@@ -751,7 +751,7 @@ internal class PosterWallState internal constructor(
     }
 
     /**
-     * 墙节点本身有 Compose 焦点时的按键：方向键移焦点，OK 放大 / 交给大卡，长按 OK 或菜单键是歌曲操作。
+     * 墙节点本身有 Compose 焦点时的按键：方向键移焦点，OK 放大 / 交给大卡，长按 OK 或菜单键是Track actions。
      * 墙是无限的，方向键总有邻格，焦点出不去：电视上墙外不放能拿焦点的按钮，整页操作都在长按 / 菜单键的面板里。
      */
     internal fun onKey(key: WallKey, down: Boolean, repeatCount: Int, longPress: Boolean): Boolean {
@@ -816,7 +816,7 @@ internal class PosterWallState internal constructor(
     }
 
     /**
-     * 长按 OK、菜单键：焦点格的歌曲操作。还没选中格（刚进来、返回键清掉了）时先选中离中心最近的那格，
+     * 长按 OK、菜单键：焦点格的Track actions。还没选中格（刚进来、返回键清掉了）时先选中离中心最近的那格，
      * 菜单键要的是整页操作，不该因为没选格就没反应。
      */
     private fun longPressFocused(fromMenu: Boolean) {

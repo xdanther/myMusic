@@ -40,7 +40,7 @@ import com.mytv.mymusic.ui.providerMark
 import com.mytv.mymusic.ui.providerName
 import com.mytv.mymusic.ui.relativeTime
 
-/** 本地音乐库是应用级的（扫描、匹配跟着进程走），界面直接从 Application 拿，和律动分析器一样。 */
+/** Local music库是应用级的（扫描、匹配跟着进程走），界面直接从 Application 拿，和律动分析器一样。 */
 @Composable
 internal fun rememberLocalLibrary(): LocalLibrary? {
     val context = LocalContext.current
@@ -72,12 +72,12 @@ internal fun localEntrySummary(
     uploads.paused?.let { (provider, reason) -> return LocalUploadRules.pausedText(provider, reason) }
     val uploaded = index.uploadedCount
     return when {
-        scan.running && count == 0 -> "正在扫描…"
-        scan.running -> "$count 首 · 扫描中…"
-        matching.running -> "$count 首 · 正在匹配 ${matching.done}/${matching.total}"
-        count == 0 -> "扫描手机里的歌，自动补封面和歌词"
-        uploaded > 0 -> "$count 首 · 已上传 $uploaded"
-        else -> "$count 首"
+        scan.running && count == 0 -> "Scanning…"
+        scan.running -> "$count tracks · scanning…"
+        matching.running -> "$count tracks · matching ${matching.done}/${matching.total}"
+        count == 0 -> "Scan songs on this phone and fill in covers and lyrics"
+        uploaded > 0 -> "$count tracks · $uploaded uploaded"
+        else -> "$count tracks"
     }
 }
 
@@ -85,29 +85,29 @@ internal fun localEntrySummary(
 internal fun localPageSubtitle(index: LocalIndex, scan: LocalScanState, lastScanAt: Long): String {
     val count = index.items.size
     val scanned = when {
-        scan.running -> "正在扫描"
+        scan.running -> "Scanning"
         // “刚刚 / N 分钟前”直接接“扫描”；超过一周是“MM-dd”，中间留个空格
         lastScanAt > 0 -> relativeTime(lastScanAt).let {
             when {
                 it.isBlank() -> ""
-                it.last().isDigit() -> "$it 扫描"
-                else -> "${it}扫描"
+                it.last().isDigit() -> "$it · scan"
+                else -> "${it} · scan"
             }
         }
         else -> ""
     }
-    return listOf("$count 首", scanned).filter { it.isNotBlank() }.joinToString(" · ")
+    return listOf("$count tracks", scanned).filter { it.isNotBlank() }.joinToString(" · ")
 }
 
 internal fun scanProgressLabel(scan: LocalScanState): String = when (scan.phase) {
-    LocalScanPhase.Listing -> "正在扫描 · 列出文件"
-    LocalScanPhase.Hashing -> "正在扫描 · 已找到 ${scan.found} 首"
-    LocalScanPhase.Tags -> "正在读取标签和封面 · ${scan.done}/${scan.total}"
+    LocalScanPhase.Listing -> "Scanning · listing files"
+    LocalScanPhase.Hashing -> "Scanning · ${scan.found} found"
+    LocalScanPhase.Tags -> "Reading tags and covers · ${scan.done}/${scan.total}"
     LocalScanPhase.Idle -> ""
 }
 
 /**
- * 「我的」里的“本地音乐”行，和“汽水天天送会员”并成一组（[index] / [count] 决定圆角）。
+ * 「我的」里的“Local music”行，和“汽水天天送会员”并成一组（[index] / [count] 决定圆角）。
  * 说明里写总数，扫描中带上进度。
  */
 @Composable
@@ -127,7 +127,7 @@ internal fun LocalMusicEntryRow(onOpen: () -> Unit, index: Int, count: Int, modi
     }
     val busy = progress?.takeIf { it.busy && it.paused == null }
     ListRow(
-        title = "本地音乐",
+        title = "Local music",
         index = index,
         count = count,
         onClick = onOpen,
@@ -159,11 +159,11 @@ internal fun rememberLocalEntrySummary(): String {
     val matching by library.matching.collectAsStateWithLifecycle()
     val uploads = uploadsHub?.state?.collectAsStateWithLifecycle()?.value ?: LocalUploadState()
     val summary = localEntrySummary(local, scan, matching, uploads)
-    return if (uploads.busy && uploads.paused == null) "$summary · 正在上传 ${uploads.current}/${uploads.total}" else summary
+    return if (uploads.busy && uploads.paused == null) "$summary · uploading ${uploads.current}/${uploads.total}" else summary
 }
 
 /**
- * 歌单、收藏、最近播放里的本地歌：这台设备上有文件时换成本地音乐库现在的显示信息（内嵌封面、匹配后的标题），
+ * 歌单、收藏、最近播放里的本地歌：这台设备上有文件时换成Local music库现在的显示信息（内嵌封面、匹配后的标题），
  * 没有文件但有匹配（同步来的，或在这台设备上换的）时补上匹配到的封面。非本地歌直接返回。
  */
 @Composable
@@ -195,10 +195,10 @@ internal fun rememberLocalCopies(): (Song) -> LocalCopyState? {
 
 /** 徽标上的字：本机 / 网易云盘 / WebDAV / 平台简称 / 本地（设计稿第 ⑨ 张）。 */
 internal fun localCopyMark(state: LocalCopyState): String = when (state.kind) {
-    LocalCopyKind.Device -> "本机"
-    LocalCopyKind.Cloud, LocalCopyKind.CloudTrouble -> state.provider?.label ?: "云端"
+    LocalCopyKind.Device -> "This device"
+    LocalCopyKind.Cloud, LocalCopyKind.CloudTrouble -> state.provider?.label ?: "Cloud"
     LocalCopyKind.Platform -> providerMark(providerName(emptyList(), state.platform))
-    LocalCopyKind.None -> "本地"
+    LocalCopyKind.None -> "Local"
 }
 
 /**
@@ -206,7 +206,7 @@ internal fun localCopyMark(state: LocalCopyState): String = when (state.kind) {
  * 和全应用“已同步到 WebDAV”的写法一致；纯中文名（网易云盘）照写。在句首用时自己 trimStart。
  */
 internal fun cloudInText(provider: CloudProvider?): String {
-    val label = provider?.label ?: "云端"
+    val label = provider?.label ?: "Cloud"
     val ascii = { ch: Char -> ch.code < 128 && ch.isLetterOrDigit() }
     return buildString {
         if (ascii(label.first())) append(' ')
@@ -217,10 +217,10 @@ internal fun cloudInText(provider: CloudProvider?): String {
 
 /** 读屏念的那一句。 */
 internal fun localCopySpoken(state: LocalCopyState): String = when (state.kind) {
-    LocalCopyKind.Device -> "本机文件"
-    LocalCopyKind.Cloud -> "从${cloudInText(state.provider)}播放"
-    LocalCopyKind.Platform -> "用${providerName(emptyList(), state.platform)}的版本播放"
-    LocalCopyKind.CloudTrouble -> "${state.provider?.label ?: "云端"}：${state.note}"
+    LocalCopyKind.Device -> "Local file"
+    LocalCopyKind.Cloud -> "Play from ${cloudInText(state.provider)}"
+    LocalCopyKind.Platform -> "Play the ${providerName(emptyList(), state.platform)} version"
+    LocalCopyKind.CloudTrouble -> "${state.provider?.label ?: "Cloud"}：${state.note}"
     LocalCopyKind.None -> state.note
 }
 
@@ -242,7 +242,7 @@ internal fun LocalSongBadge(state: LocalCopyState) {
  */
 internal fun localSubtitle(song: Song, state: LocalCopyState?): String = when (state?.kind) {
     null, LocalCopyKind.Device, LocalCopyKind.Cloud -> song.subtitle
-    LocalCopyKind.Platform -> "用${providerName(emptyList(), state.platform)}的版本"
+    LocalCopyKind.Platform -> "Use the ${providerName(emptyList(), state.platform)} version"
     LocalCopyKind.CloudTrouble, LocalCopyKind.None -> state.note
 }
 
@@ -254,16 +254,16 @@ internal fun localElsewhereNote(states: List<LocalCopyState>): String {
     if (gone.isEmpty()) return ""
     val devices = gone.map { it.device }.distinct()
     val where = when {
-        devices.size == 1 && devices.first().isNotBlank() -> "只在 ${devices.first()} 上"
-        devices.all { it.isBlank() } -> "只在原来的设备上"
-        else -> "只在其他设备上"
+        devices.size == 1 && devices.first().isNotBlank() -> "Only on ${devices.first()}"
+        devices.all { it.isBlank() } -> "Only on the original device"
+        else -> "Only on another device"
     }
-    return "有 ${gone.size} 首$where。在那台设备上传到云盘后，这里就能播。"
+    return "${gone.size} tracks $where. Upload them to the cloud from that device and they play here."
 }
 
 /**
  * 点了放不了的本地歌（设计稿第 ⑧ 张）：不弹错误、不去播放，打开“只在 X 上”面板；
- * 面板里“找一首平台版本”接着打开换一个匹配。歌单、收藏、最近播放、队列、本地音乐页共用。
+ * 面板里“找一首平台版本”接着打开换一个匹配。歌单、收藏、最近播放、队列、Local music页共用。
  */
 @Stable
 internal class LocalUnplayableHost {

@@ -70,7 +70,7 @@ internal fun albumCardSubtitle(album: AlbumSummary): String {
     val parts = listOf(album.year.ifBlank { album.publishTime }, album.type).filter { it.isNotBlank() }
     return when {
         parts.isNotEmpty() -> parts.joinToString(" · ")
-        album.trackCount > 0 -> "${album.trackCount} 首"
+        album.trackCount > 0 -> "${album.trackCount} tracks"
         else -> album.artist
     }
 }
@@ -86,7 +86,7 @@ internal fun AlbumCard(album: AlbumSummary, onClick: () -> Unit, modifier: Modif
         onClick = onClick,
         modifier = modifier,
         coverShape = RoundedCornerShape(16.dp),
-        spokenTitle = listOf("专辑", album.name, subtitle).filter { it.isNotBlank() }.joinToString("，"),
+        spokenTitle = listOf("Album", album.name, subtitle).filter { it.isNotBlank() }.joinToString("，"),
     )
 }
 
@@ -176,7 +176,7 @@ internal fun VinylCover(
 }
 
 /**
- * 简介：默认收起成 [collapsedLines] 行，超出时显示“展开”；点整块切换。没超出就是普通文字，不可点。
+ * 简介：默认Collapse成 [collapsedLines] 行，超出时显示“Expand”；点整块切换。没超出就是普通文字，不可点。
  */
 @Composable
 internal fun ExpandableText(
@@ -196,9 +196,9 @@ internal fun ExpandableText(
                 if (expandable) {
                     Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable(onClickLabel = if (expanded) "收起" else "展开") { expanded = !expanded }
+                        .clickable(onClickLabel = if (expanded) "Collapse" else "Expand") { expanded = !expanded }
                         .tvFocusRing(RoundedCornerShape(12.dp), scale = 1.01f)
-                        .semantics { stateDescription = if (expanded) "已展开" else "已收起" }
+                        .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" }
                 } else {
                     Modifier
                 },
@@ -214,7 +214,7 @@ internal fun ExpandableText(
         )
         if (expandable) {
             Text(
-                if (expanded) "收起" else "展开",
+                if (expanded) "Collapse" else "Expand",
                 Modifier.padding(top = 4.dp),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
@@ -235,7 +235,7 @@ internal fun ArtistPill(name: String, onClick: () -> Unit, modifier: Modifier = 
             .tvFocusRing(CircleShape)
             .semantics {
                 role = Role.Button
-                contentDescription = "歌手：$name，打开歌手页"
+                contentDescription = "Artist: $name, open the artist page"
             },
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.72f),
@@ -267,10 +267,10 @@ internal fun StatBlock(value: String, label: String, modifier: Modifier = Modifi
     }
 }
 
-/** 数字缩写：过亿 / 过万用中文单位；不到 100 万 / 100 亿时留一位小数（1.9 万），再大就取整（5102 万）。 */
+/** 数字缩写：过亿 / 过万用中文单位；不到 100K / 100M时留一位小数（1.9K），再大就取整（5102K）。 */
 internal fun compactCount(value: Long): String = when {
-    value >= 100_000_000L -> scaled(value / 100_000_000.0) + " 亿"
-    value >= 10_000L -> scaled(value / 10_000.0) + " 万"
+    value >= 100_000_000L -> scaled(value / 100_000_000.0) + "M"
+    value >= 10_000L -> scaled(value / 10_000.0) + "K"
     else -> value.toString()
 }
 
@@ -287,7 +287,7 @@ internal fun totalDurationLabel(songs: List<Song>): String {
     val seconds = songs.sumOf { it.duration.coerceAtLeast(0).toLong() }
     if (seconds <= 0) return ""
     val minutes = ((seconds + 30) / 60).coerceAtLeast(1)
-    return if (minutes >= 60) "${minutes / 60} 小时 ${minutes % 60} 分钟" else "$minutes 分钟"
+    return if (minutes >= 60) "${minutes / 60} h ${minutes % 60} min" else "$minutes min"
 }
 
 /** 专辑页头部的信息行：发行日期 · 类型 · 厂牌。 */

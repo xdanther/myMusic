@@ -28,9 +28,9 @@ import kotlin.math.min
  *   字多的块有一成多的机会“先描边、再按块内进度从左到右或从上到下填色”；
  * - 小字报：整句按切分方式（整句、词、分句、逐字、对半）拆成单元，单元依次浮起点亮，落在居中、上三分、下三分、
  *   左右侧带或宽银幕底部之一；
- * - 斜切丝带：6 条强调色的斜带横穿整屏（左右轮流倾斜，平角不超过三分之一），带身有斜向光泽、外发光和投影，
+ * - Diagonal ribbon：6 条强调色的斜带横穿整屏（左右轮流倾斜，平角不超过三分之一），带身有斜向光泽、外发光和投影，
  *   主题底色的粗体字沿带子往左走，整条再上下慢慢漂。
- * 大字报和小字报的句子还会配跑马灯带：上下两条（或沿屏四边一圈）滚动原文、翻译或歌名，带子朝屏心那条边是一道强调色的灯管辉光。
+ * 大字报和小字报的句子还会配Marquee band：上下两条（或沿屏四边一圈）滚动原文、翻译或歌名，带子朝屏心那条边是一道强调色的灯管辉光。
  * 句与句之间是溶解转场（0.14–0.28 秒）：上一句的带子先淡出、这一句的带子后淡入；不紧邻的句子在行窗口末尾自己溶解退场。
  *
  * 移植取舍：
@@ -39,7 +39,7 @@ import kotlin.math.min
  *   这里先哈希成数再掷，落点按句变化。三个版式权重都为 0 时按等权（原版退成全小字报）。
  * - “屏”是安全区：原版按 vh / vw 定的尺寸都按安全区的宽高折算，CSS px 按屏短边 720 折算；带厚取屏短边 12%，
  *   但不超过正文基准字号的 1.6 倍（竖屏手机、桌面姿态的矮舞台上带子不会粗得占掉一大截）；小字报字号再按文字盒宽限到一行至少 7 个字。
- *   宿主副行（翻译 / 罗马音）让到跑马灯带上面（[subtitleInset]），正文和丝带都不压到副行那一条。
+ *   宿主副行（翻译 / 罗马音）让到Marquee band上面（[subtitleInset]），正文和丝带都不压到副行那一条。
  *   丝带切在屏边上，四边各渐隐一小段（原版切在窗口边，看不出硬边）；频谱卡片开着时宿主把屏底让出卡片那一截。
  * - 只做原版的暗色主题那一套（播放页是深色）：带边辉光、丝带外发光；亮色主题的“暗槽”画法不做。屏面填充让位给宿主背景，只留扫描线和暗角。
  * - 原版每层文字是 CSS 多重 text-shadow（14px 暗投影 + 30px 同色辉光），这里只保留同色辉光（Shadow，浓度量化缓存）；
@@ -56,7 +56,7 @@ import kotlin.math.min
  */
 object CineramaVisualizer : LyricVisualizer {
     override val id = "cinerama"
-    override val label = "巨幕"
+    override val label = "Cinerama"
     override val origin = ModOrigin("cinerama", "1.0.0", "tumuyan", "AGPL-3.0")
     override val order = 60
     override val hostBackground = true
@@ -65,25 +65,25 @@ object CineramaVisualizer : LyricVisualizer {
     override val drawsWithoutLyrics = false
     override val hiddenSettings = 24
 
-    /** 上下两条跑马灯带和让到带子上面的副行先占掉一截，文字区再矮正文只剩一条缝，退回经典。 */
+    /** 上下两条Marquee band和让到带子上面的副行先占掉一截，文字区再矮正文只剩一条缝，退回经典。 */
     override val minTextHeight = 240.dp
 
     override val settings: List<LyricSetting> = listOf(
         LyricSetting.Choice(
             "marquee",
-            "跑马灯带",
-            listOf("off" to "关", "auto" to "自动", "bands" to "双带", "frame" to "四边"),
+            "Marquee band",
+            listOf("off" to "Off", "auto" to "Auto", "bands" to "Double band", "frame" to "Four sides"),
             "auto",
         ),
-        LyricSetting.Number("heroWeight", "大字报", 0f, 1f, 0.05f, 0.4f, ::formatPercent, summary = "三种版式的出现比例"),
-        LyricSetting.Number("smallWeight", "小字报", 0f, 1f, 0.05f, 0.2f, ::formatPercent),
-        LyricSetting.Number("ribbonWeight", "斜切丝带", 0f, 1f, 0.05f, 0.4f, ::formatPercent),
-        LyricSetting.Number("fontScale", "字号", 0.6f, 1.6f, 0.05f, 1f),
-        LyricSetting.Number("marqueeSpeed", "带速", 0.2f, 3f, 0.1f, 1f),
+        LyricSetting.Number("heroWeight", "Big type", 0f, 1f, 0.05f, 0.4f, ::formatPercent, summary = "How often each layout appears"),
+        LyricSetting.Number("smallWeight", "Small type", 0f, 1f, 0.05f, 0.2f, ::formatPercent),
+        LyricSetting.Number("ribbonWeight", "Diagonal ribbon", 0f, 1f, 0.05f, 0.4f, ::formatPercent),
+        LyricSetting.Number("fontScale", "Size", 0.6f, 1.6f, 0.05f, 1f),
+        LyricSetting.Number("marqueeSpeed", "Band speed", 0.2f, 3f, 0.1f, 1f),
     )
 
     /**
-     * 跑马灯带占着安全区底部：宿主副行（本来在安全区底部往上 14dp）让到带子上方带厚 × 1.25 处。
+     * Marquee band占着安全区底部：宿主副行（本来在安全区底部往上 14dp）让到带子上方带厚 × 1.25 处。
      * 频谱卡片开着时宿主已经把安全区底部让出卡片那一截，带子和副行都跟着上移，这里不用另算。
      */
     override fun subtitleInset(ctx: LyricStageContext, stage: Size, density: Density): Float =
@@ -139,7 +139,7 @@ private fun cineramaConfig(s: SettingValues) = CineramaConfig(
     speed = s.number("marqueeSpeed"),
 )
 
-/** 跑马灯带厚（px）：安全区短边的 12%，但不超过正文基准字号的 1.6 倍。 */
+/** Marquee band厚（px）：安全区短边的 12%，但不超过正文基准字号的 1.6 倍。 */
 private fun cineramaBand(safe: Rect, textPx: Float): Float =
     max(1f, min(CINERAMA_BAND_RATIO * min(safe.width, safe.height), textPx * CINERAMA_BAND_TEXT))
 

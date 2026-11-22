@@ -123,7 +123,7 @@ fun SourceChip(
                 clip = true
             }
             .tvFocusRing(RoundedCornerShape(12.dp))
-            .semantics { contentDescription = "音源：$providerName $detail，$mode。点按切换音源" },
+            .semantics { contentDescription = "Source: $providerName $detail, $mode. Tap to switch" },
         shape = RectangleShape,
         color = container,
         contentColor = content,

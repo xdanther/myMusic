@@ -1212,7 +1212,7 @@ internal class CineramaProgram(val plans: List<CineramaPlan>) {
 }
 
 /**
- * 原版 compileCineramaProgram：每句按 "种子:序号:原文" 派生句种子，抽切分（相邻不重复）、排版、样式（权重 + 相邻不重复），
+ * 原版 compileCineramaProgram：每句按 "seed:index:text" 派生句种子，抽切分（相邻不重复）、排版、样式（权重 + 相邻不重复），
  * 再定跑马灯带。行窗口取“句末 + [tailSec]”（Folia 的 renderEndTime 也是句末加一段视觉尾巴），夹到下一句开口。
  */
 internal fun cineramaCompile(

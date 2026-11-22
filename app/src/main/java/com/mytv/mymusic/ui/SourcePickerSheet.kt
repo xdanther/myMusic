@@ -69,7 +69,7 @@ import com.mytv.mymusic.ui.components.tvFocusRing
 
 /**
  * 换源：选择这首歌从哪个平台播放。手机是底部面板，平板是侧边面板，电视是右侧面板（AdaptiveSheet）。
- * 当前音源打勾；可用性同时用文字和形状标注。常从深色播放页打开，所以只用 colorScheme 角色。
+ * Current source打勾；可用性同时用文字和形状标注。常从深色播放页打开，所以只用 colorScheme 角色。
  */
 @Composable
 fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
@@ -84,7 +84,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
         addAll(track.alternatives.map { it.providerId })
     }.distinct().filter { it != LxPlatform.PROVIDER_ID || lxAvailable }
     val ordered = state.aggregation.priorityFor(providerIds)
-    // 只有正在播放的就是这首歌时才有“当前音源”
+    // 只有正在播放的就是这首歌时才有“Current source”
     val currentId = state.currentSource?.providerId?.takeIf { state.currentTrack?.id == track.id }
     val pinnedId = state.aggregation.pinnedProvider?.takeIf { state.aggregation.playbackMode == PlaybackMode.Pinned }
     var rememberChoice by rememberSaveable(track.id) { mutableStateOf(false) }
@@ -96,7 +96,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
     fun availability(source: TrackSource?): Availability? =
         source?.let { availabilityOf(it, state.cookies[it.providerId].orEmpty()) }
 
-    // 电视默认焦点：下一个完整可播的音源，没有就落在第一个非当前音源
+    // 电视默认焦点：下一个完整可播的音源，没有就落在第一个非Current source
     val focusId = ordered.firstOrNull { id ->
         id != currentId && (id == LxPlatform.PROVIDER_ID || availability(track.sources.find { it.providerId == id }) == Availability.Playable)
     } ?: ordered.firstOrNull { it != currentId } ?: ordered.firstOrNull()
@@ -104,7 +104,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
 
     AdaptiveSheet(
         onDismiss = actions::closeSource,
-        title = "选择音源",
+        title = "Choose source",
         subtitle = listOf(track.title, track.artistLabel).filter { it.isNotBlank() }.joinToString(" · "),
     ) {
         // 放在面板内容里：电视上面板是 Dialog，内容要等窗口显示、进场动画开始后才组合，在外面请求时行还没挂上
@@ -128,7 +128,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
             }
             if (splitMode) {
                 Text(
-                    "点按要拆分出去的音源。拆分后它会作为独立版本出现在搜索结果里，只影响本机。",
+                    "Tap the source to split off. It then appears as a separate version in search results and only affects this device.",
                     Modifier.padding(start = 4.dp, bottom = 8.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -144,7 +144,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
                         availability = if (providerId == LxPlatform.PROVIDER_ID) Availability.Playable else availability(source),
                         duration = track.durationLabel,
                         detailOverride = if (providerId == LxPlatform.PROVIDER_ID) {
-                            "${lxRecords.count { it.enabled }} 个启用脚本 · 按自定义音源顺序解析"
+                            "${lxRecords.count { it.enabled }} scripts enabled · resolved in custom source order"
                         } else null,
                         current = providerId == currentId,
                         pinned = providerId == pinnedId,
@@ -161,7 +161,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
                                     splitMode = false
                                     actions.splitSource(track, source)
                                 }
-                                // 点当前音源不重新播放，除非要顺便固定这个平台
+                                // 点Current source不重新播放，除非要顺便固定这个平台
                                 providerId == currentId && !rememberChoice -> actions.closeSource()
                                 else -> actions.chooseSource(providerId, rememberChoice)
                             }
@@ -173,8 +173,8 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
             Spacer(Modifier.height(12.dp))
             // 现有逻辑记住的是全局“固定平台”模式，不是只对这首歌生效，文案按实际行为写
             SwitchRow(
-                title = "以后固定用所选音源",
-                summary = "播放模式改为固定音源，可在“播放与换源”中改回自动",
+                title = "Pin the chosen source from now on",
+                summary = "Playback now pins this source; switch back to auto under Playback and sources",
                 checked = rememberChoice,
                 onCheckedChange = { rememberChoice = it },
                 index = 0,
@@ -183,8 +183,8 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
             )
             if (track.alternatives.isNotEmpty()) {
                 ExpandRow(
-                    label = "其他版本 · ${track.alternatives.size}",
-                    summary = "Live、伴奏、重制版不会自动合并",
+                    label = "Other versions · ${track.alternatives.size}",
+                    summary = "Live, instrumental and remastered versions are never merged automatically",
                     expanded = showAlternatives,
                     onToggle = { showAlternatives = !showAlternatives },
                 )
@@ -208,7 +208,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
                     ) {
                         Icon(Icons.AutoMirrored.Filled.CallSplit, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(if (splitMode) "取消拆分" else "匹配有误？拆分音源")
+                        Text(if (splitMode) "Undo split" else "Wrong match? Split the source")
                     }
                 }
                 TextButton(
@@ -220,11 +220,11 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
                 ) {
                     Icon(Icons.Filled.Merge, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("合并到…")
+                    Text("Merge into…")
                 }
             }
             Text(
-                "换到原生平台时会重新检索同一录音；洛雪使用已导入的脚本集合。换源不会转移会员权益。",
+                "Switching to a native platform looks the same recording up again; LX Music uses the imported scripts. A source switch never transfers membership.",
                 Modifier.padding(start = 4.dp, top = 4.dp, bottom = 8.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -233,7 +233,7 @@ fun SourcePickerSheet(state: MusicUiState, actions: MusicActions) {
     }
 }
 
-/** 平台行：左侧平台图标（当前音源加 primary 描边），中间可用性 + 音质，右侧是对勾、标签或“播放”。 */
+/** 平台行：左侧平台图标（Current source加 primary 描边），中间可用性 + 音质，右侧是对勾、标签或“播放”。 */
 @Composable
 private fun SourceRow(
     providerId: String,
@@ -258,16 +258,16 @@ private fun SourceRow(
     val variant = if (current) MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
     val detail = when {
         detailOverride != null -> detailOverride
-        source == null -> "未匹配 · 点按后在该平台检索同一版本"
+        source == null -> "Not matched · tap to look up the same version on that platform"
         else -> listOf(
             when (availability) {
-                Availability.Playable -> "完整"
-                Availability.PreviewOnly -> "试听片段"
-                Availability.VipOnly -> "VIP · 需要会员"
-                Availability.Unavailable -> "没有版权"
-                else -> "待检测"
+                Availability.Playable -> "Full"
+                Availability.PreviewOnly -> "Preview clip"
+                Availability.VipOnly -> "VIP · membership required"
+                Availability.Unavailable -> "Not licensed"
+                else -> "Unchecked"
             },
-            source.qualityLabel.takeIf { it != "音质未知" }.orEmpty(),
+            source.qualityLabel.takeIf { it != "Unknown quality" }.orEmpty(),
             duration,
         ).filter { it.isNotBlank() }.joinToString(" · ")
     }
@@ -281,8 +281,8 @@ private fun SourceRow(
             .clickable(enabled = enabled, onClick = onClick)
             .semantics {
                 role = Role.Button
-                // “已固定”在行内有文字标签，这里只补当前音源，避免读两遍
-                stateDescription = if (current) "当前音源" else ""
+                // “已固定”在行内有文字标签，这里只补Current source，避免读两遍
+                stateDescription = if (current) "Current source" else ""
             }
             .padding(start = 12.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -292,7 +292,7 @@ private fun SourceRow(
             id = providerId,
             name = providerName,
             size = 40.dp,
-            // 当前音源用 primary 描边标出，和设置里的平台头像一致
+            // Current source用 primary 描边标出，和设置里的平台头像一致
             active = current,
         )
         Column(Modifier.weight(1f)) {
@@ -305,7 +305,7 @@ private fun SourceRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (pinned) SmallLabel("已固定", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+                if (pinned) SmallLabel("Pinned", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (availability != null) StatusGlyph(availability, glyphColor(availability), 8.dp)
@@ -321,13 +321,13 @@ private fun SourceRow(
         when {
             busy -> LoadingIndicator(Modifier.size(32.dp))
             splitMode -> if (source != null && enabled) {
-                Text("拆分", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                Text("Split", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
             }
             current -> Icon(Icons.Filled.Check, null, tint = MaterialTheme.colorScheme.primary)
             availability == Availability.VipOnly -> SmallLabel("VIP", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
-            availability == Availability.PreviewOnly -> SmallLabel("试听", MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant)
+            availability == Availability.PreviewOnly -> SmallLabel("Preview", MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant)
             else -> Text(
-                if (source == null && providerId != LxPlatform.PROVIDER_ID) "检索" else "播放",
+                if (source == null && providerId != LxPlatform.PROVIDER_ID) "Look up" else "Play",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -388,7 +388,7 @@ private fun ExpandRow(label: String, summary: String, expanded: Boolean, onToggl
             .tvFocusRing(shape, scale = 1.02f)
             .clip(shape)
             .clickable(onClick = onToggle)
-            .semantics { stateDescription = if (expanded) "已展开" else "已收起" }
+            .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" }
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -419,7 +419,7 @@ private fun AlternativeRow(track: CanonicalTrack, source: TrackSource, index: In
             TextButton(
                 onClick = { actions.mergeAlternative(track, source) },
                 modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-            ) { Text("合并") }
+            ) { Text("Merge") }
         },
         onLongClick = null,
         container = MaterialTheme.colorScheme.surfaceContainerHigh,

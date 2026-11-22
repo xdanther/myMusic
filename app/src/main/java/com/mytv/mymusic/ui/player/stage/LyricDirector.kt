@@ -33,7 +33,7 @@ import kotlin.random.Random
  *
  * 优先级：这首歌固定用的（[LyricStagePrefs.pins]）> 固定 / 随机 / 按速度。随机时记忆里有这首就用记住的（即使已经不在池里），
  * 没有才从随机池里抽。
- * 固定、这首歌固定用的立刻换；随机、按速度自己换时只在不打断演唱的时候换（[canSwitchAt]），等不到合适的空当就留到下一首。
+ * 固定、这首歌固定用的立刻换；随机、按速度自己换时只在不打断演唱的时候换（[canSwitchAt]），等不到合适的空当就留到Next。
  * 面板里点了“保存并应用”、改了这首歌固定用哪个（[applyNow]）：按新设置重算这首歌，马上换，不等空当（舞台用 0.4 秒淡入淡出）；
  * 按速度且还没测出速度时，测到了立刻换。
  * 随机抽到的模式和测到的速度按歌记下来（最近 2000 首），再听时一开始就是同一个。
@@ -234,7 +234,7 @@ internal fun rememberLyricDirector(
         // 想要的和正在显示的一样：不消费“立即应用”，等新设置到了、想要的变了再用
         if (wanted == null || wanted == director.shown) return@LaunchedEffect
         if (!immediate && director.applyFor != key) {
-            // 歌词还在解析时 lines 是上一首的，等解析完再判断
+            // 歌词还在解析时 lines 是Previous的，等解析完再判断
             snapshotFlow {
                 shouldSwitchNow(false, director.applyFor == key, waiting, canSwitchAt(lines, position.value))
             }.first { it }
@@ -255,7 +255,7 @@ private fun tempoDecision(rules: List<TempoRule>, bpm: Float): SongDecision {
     return SongDecision.Tempo(id, bpm, tempoTier(rules, bpm))
 }
 
-/** 等节拍网格锁定（置信度到 0.5）；切歌后头 4 秒的网格可能还是上一首的，不算。 */
+/** 等节拍网格锁定（置信度到 0.5）；切歌后头 4 秒的网格可能还是Previous的，不算。 */
 private suspend fun awaitTempo(analyzer: RhythmAnalyzer, position: State<Long>): Float {
     while (true) {
         if (position.value >= TEMPO_SETTLE_MS) {
@@ -269,7 +269,7 @@ private suspend fun awaitTempo(analyzer: RhythmAnalyzer, position: State<Long>):
     }
 }
 
-/** 随机抽一个，不和 [exclude]（上一首的）重复；只有一个候选时就是它。 */
+/** 随机抽一个，不和 [exclude]（Previous的）重复；只有一个候选时就是它。 */
 internal fun pickRandomMode(candidates: List<String>, exclude: String?, random: Random): String {
     val pool = candidates.filter { it != exclude }.ifEmpty { candidates }
     return pool.getOrElse(random.nextInt(pool.size.coerceAtLeast(1))) { ClassicVisualizer.id }

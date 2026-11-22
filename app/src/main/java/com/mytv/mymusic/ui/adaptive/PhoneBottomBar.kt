@@ -197,7 +197,7 @@ private fun FloatingNavBar(
 }
 
 /**
- * 悬浮胶囊迷你播放器。点按按设置打开播放页或海报墙，左滑下一首、右滑打开来源歌单并定位当前歌曲，
+ * 悬浮胶囊迷你播放器。点按按设置Open player或海报墙，左滑Next、右滑Open the source playlist at the current track，
  * 上滑总是展开播放页，长按打开队列；手势都有对应的按钮或读屏自定义操作，读屏用户不需要手势。
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -228,7 +228,7 @@ fun MiniPlayer(state: MusicUiState, position: State<Long>, actions: MusicActions
         ) {
             Icon(Icons.Filled.MyLocation, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
             Text(
-                "打开来源歌单",
+                "Open the source playlist",
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.labelLarge,
             )
@@ -242,7 +242,7 @@ fun MiniPlayer(state: MusicUiState, position: State<Long>, actions: MusicActions
                 .miniPlayerProgress(position, state.duration, state.current?.isLive == true)
             .combinedClickable(
                 onClickLabel = state.miniPlayerTarget.openLabel,
-                onLongClickLabel = "打开播放队列",
+                onLongClickLabel = "Open the queue",
                 onClick = actions::openNowPlaying,
                 onLongClick = onOpenQueue,
             )
@@ -273,15 +273,15 @@ fun MiniPlayer(state: MusicUiState, position: State<Long>, actions: MusicActions
                 }
             }
             .semantics {
-                contentDescription = "正在播放 ${song.title}，${song.artist}"
+                contentDescription = "Playing ${song.title}, ${song.artist}"
                 customActions = listOfNotNull(
-                    CustomAccessibilityAction("下一首") { actions.transport("next"); true },
-                    CustomAccessibilityAction("上一首") { actions.transport("previous"); true },
-                    CustomAccessibilityAction("打开来源歌单并定位当前歌曲") { actions.openPlaybackOrigin(); true },
-                    CustomAccessibilityAction("打开播放队列") { onOpenQueue(); true },
+                    CustomAccessibilityAction("Next") { actions.transport("next"); true },
+                    CustomAccessibilityAction("Previous") { actions.transport("previous"); true },
+                    CustomAccessibilityAction("Open the source playlist at the current track") { actions.openPlaybackOrigin(); true },
+                    CustomAccessibilityAction("Open the queue") { onOpenQueue(); true },
                     // 点按去了海报墙时，上滑展开播放页要有对应的读屏操作
                     if (state.miniPlayerTarget == MiniPlayerTarget.PosterWall) {
-                        CustomAccessibilityAction("打开播放页") { actions.openPlayer(); true }
+                        CustomAccessibilityAction("Open player") { actions.openPlayer(); true }
                     } else {
                         null
                     },
@@ -312,7 +312,7 @@ fun MiniPlayer(state: MusicUiState, position: State<Long>, actions: MusicActions
         }
         PlayPauseButton(state.playing, { actions.transport("play") }, size = PlayButtonSize.Mini)
         IconButton(onClick = { actions.transport("next") }, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.Filled.SkipNext, "下一首", tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            Icon(Icons.Filled.SkipNext, "Next", tint = MaterialTheme.colorScheme.onSecondaryContainer)
         }
     }
     }

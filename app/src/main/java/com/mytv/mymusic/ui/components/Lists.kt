@@ -124,7 +124,7 @@ fun SongRow(
     /** 前三名加粗变主色（榜单 / 热门）；专辑曲目号不需要。 */
     rankEmphasis: Boolean = true,
     /** 序号的读屏文案；默认“第 N 名”，专辑曲目传“第 N 首”。 */
-    rankLabel: (Int) -> String = { "第 $it 名" },
+    rankLabel: (Int) -> String = { "#$it" },
     /** 左右滑（[rememberRowSwipe]）；null = 不滑（电视、没接入的列表、多选中）。 */
     swipe: RowSwipe? = null,
     /** 鼠标悬停时滑动按钮替换 [trailing]；trailing 本身是按钮的列表传 false，滑动按钮插在它前面。 */
@@ -141,9 +141,9 @@ fun SongRow(
                 .tvFocusRing(shape, scale = 1.02f)
                 .clip(shape)
                 .background(background)
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = onLongClick?.let { "更多操作" })
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = onLongClick?.let { "More actions" })
                 // 正在播放只靠底色和字重区分，读屏要单独说出来
-                .semantics { if (playing) stateDescription = "正在播放" }
+                .semantics { if (playing) stateDescription = "Now playing" }
                 .padding(padding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -230,7 +230,7 @@ private fun RowScope.SongRowBody(
     trailing?.invoke(this)
     if (onMore != null) {
         IconButton(onClick = onMore, modifier = Modifier.tvFocusRing(CircleShape)) {
-            Icon(Icons.Filled.MoreVert, "更多操作：$title", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.Filled.MoreVert, "More actions: $title", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

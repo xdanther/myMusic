@@ -69,7 +69,7 @@ import com.mytv.mymusic.ui.components.tvFocusRing
 fun PlatformImportSheet(state: PlatformImportUi, actions: MusicActions) {
     if (!state.open) return
     val tv = LocalAppWindow.current.isTv
-    val tagline = if (state.providerName.isBlank()) "" else "已登录${state.providerName}"
+    val tagline = if (state.providerName.isBlank()) "" else "Signed in to ${state.providerName}"
     var confirmLeave by remember { mutableStateOf(false) }
     // 导入中下滑、点外面、按返回都先问一句：已经写进去的照留，剩下的取消
     val guard = remember(state.applying) {
@@ -80,15 +80,15 @@ fun PlatformImportSheet(state: PlatformImportUi, actions: MusicActions) {
     }
     AdaptiveSheet(
         onDismiss = { actions.dismissPlatformImport() },
-        title = "导入你的歌单",
-        subtitle = if (tagline.isBlank()) "选中的会变成跟随平台更新的歌单" else "$tagline · 选中的会变成跟随平台更新的歌单",
+        title = "Import your playlists",
+        subtitle = if (tagline.isBlank()) "Selected playlists follow platform updates" else "$tagline · selected playlists follow platform updates",
         dismissGuard = guard,
     ) {
         when {
             state.loading -> Column(
                 Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-            ) { AppLoading(text = "正在读取歌单…") }
+            ) { AppLoading(text = "Reading playlists…") }
             state.error.isNotBlank() -> Column(
                 Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -98,14 +98,14 @@ fun PlatformImportSheet(state: PlatformImportUi, actions: MusicActions) {
                 TextButton(
                     onClick = { actions.openPlatformImport(state.provider) },
                     modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                ) { Text("重试") }
+                ) { Text("Retry") }
             }
             state.playlists.isEmpty() -> Column(
                 Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    "这个账号没有可导入的歌单。",
+                    "This account has no playlists to import.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -116,10 +116,10 @@ fun PlatformImportSheet(state: PlatformImportUi, actions: MusicActions) {
     if (confirmLeave) {
         AlertDialog(
             onDismissRequest = { confirmLeave = false },
-            title = { DialogAvoidsFold(); Text("导入还在进行") },
+            title = { DialogAvoidsFold(); Text("Import still running") },
             text = {
                 Text(
-                    "离开后已经导入的歌单会保留，剩下的会取消。",
+                    "Playlists already imported are kept; the rest are cancelled.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -128,9 +128,9 @@ fun PlatformImportSheet(state: PlatformImportUi, actions: MusicActions) {
                 TextButton(onClick = {
                     confirmLeave = false
                     actions.dismissPlatformImport()
-                }) { Text("离开") }
+                }) { Text("Leave") }
             },
-            dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("继续导入") } },
+            dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("Keep importing") } },
         )
     }
 }
@@ -164,7 +164,7 @@ private fun ColumnScope.PlatformImportBody(state: PlatformImportUi, actions: Mus
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    "勾上的会变成跟随平台更新的歌单：平台那边增删歌，这里会自动跟上。已经绑过的会跳过。",
+                    "Ticked playlists follow platform updates: additions and removals on the platform are applied here. Already linked ones are skipped.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -172,7 +172,7 @@ private fun ColumnScope.PlatformImportBody(state: PlatformImportUi, actions: Mus
         }
         Spacer(Modifier.size(12.dp))
         SectionLabel(
-            "${state.providerName.ifBlank { "平台" }} · ${state.playlists.size} 个歌单",
+            "${state.providerName.ifBlank { "Platform" }} · ${state.playlists.size} playlists",
             trailing = {
                 TextButton(
                     onClick = {
@@ -180,7 +180,7 @@ private fun ColumnScope.PlatformImportBody(state: PlatformImportUi, actions: Mus
                     },
                     enabled = applying == null && selectable.isNotEmpty(),
                     modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                ) { Text(if (selected.size == selectable.size && selectable.isNotEmpty()) "全不选" else "全选") }
+                ) { Text(if (selected.size == selectable.size && selectable.isNotEmpty()) "Select none" else "Select all") }
             },
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -217,9 +217,9 @@ private fun ColumnScope.PlatformImportBody(state: PlatformImportUi, actions: Mus
     ) {
         Text(
             when {
-                applying != null -> "正在导入 ${applying.first + 1}/${applying.second}…"
-                chosen.isEmpty() -> "没有勾选歌单"
-                else -> "导入 ${chosen.size} 个歌单 · ${chosen.sumOf { it.trackCount }} 首"
+                applying != null -> "Importing ${applying.first + 1}/${applying.second}…"
+                chosen.isEmpty() -> "No playlists selected"
+                else -> "Import ${chosen.size} playlists · ${chosen.sumOf { it.trackCount }} tracks"
             },
             style = MaterialTheme.typography.titleSmall,
         )
@@ -231,11 +231,11 @@ private fun ColumnScope.PlatformImportBody(state: PlatformImportUi, actions: Mus
         TextButton(
             onClick = { actions.dismissPlatformImport() },
             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-        ) { Text("以后再说") }
+        ) { Text("Later") }
         TextButton(
             onClick = { actions.dismissPlatformImport(forever = true) },
             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-        ) { Text("这个平台不再询问") }
+        ) { Text("Don't ask again for this platform") }
     }
 }
 
@@ -288,7 +288,7 @@ private fun PlatformImportRow(
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "${playlist.trackCount} 首",
+                    "${playlist.trackCount} tracks",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -310,7 +310,7 @@ private fun PlatformImportRow(
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
                             Text(
-                                "已绑定",
+                                "Linked",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -321,9 +321,9 @@ private fun PlatformImportRow(
             }
             Text(
                 when {
-                    bound -> "已经在这里了，不会重复导入"
-                    merges -> "会合并进同名歌单"
-                    else -> "导入后跟随平台更新"
+                    bound -> "Already here; won't be imported twice"
+                    merges -> "Merges into the playlist with the same name"
+                    else -> "Follow platform updates after importing"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

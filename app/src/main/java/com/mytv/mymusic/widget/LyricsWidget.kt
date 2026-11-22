@@ -99,16 +99,16 @@ fun LyricsLayout(
     }
     Box(
         modifier = GlanceModifier.fillMaxSize().widgetBackground(palette, config.background) { primaryContainer }
-            .onClick(lyricsAction).describe(if (playback == null) "还没有播放记录，打开 myMusic" else "歌词，打开歌词视图"),
+            .onClick(lyricsAction).describe(if (playback == null) "No play history yet, open myMusic" else "Lyrics, open the lyrics view"),
     ) {
         val window = playback?.let { WidgetLyrics.window(it, now) }
         val translation = window?.translation?.takeIf { config.translation }.orEmpty()
         val none: String? = when {
-            playback == null -> "还没有播放记录"
+            playback == null -> "No play history yet"
             window != null -> null
             else -> WidgetLyrics.placeholder(playback)
         }
-        val songLine = playback?.let { "${it.song.title} · ${it.song.artist}" } ?: "点这里挑一首歌"
+        val songLine = playback?.let { "${it.song.title} · ${it.song.artist}" } ?: "Tap to pick a song"
         when (bp) {
             LyricsBp.Line -> Row(
                 modifier = GlanceModifier.fillMaxSize().padding(start = 12.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
@@ -199,7 +199,7 @@ private fun LyricsHead(playback: PlaybackSnapshot?, songLine: String, ink: Lyric
                 if (playing) R.drawable.ic_w_pause else R.drawable.ic_w_play,
                 size = 40.dp, iconSize = 22.dp, palette = palette,
                 action = if (interactive) WidgetActions.play else null,
-                description = if (playing) "暂停，正在播放" else "播放，已暂停",
+                description = if (playing) "Paused, now playing" else "Playing, paused",
                 tonal = false, tint = ink.strong,
             )
         }

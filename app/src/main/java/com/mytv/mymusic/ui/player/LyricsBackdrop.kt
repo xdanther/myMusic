@@ -391,7 +391,7 @@ private fun ceilDiv(value: Int, divisor: Int): Int = ((value + divisor - 1) / di
 /**
  * 律动模式下的分析器：只在播放且页面在前台时取样（海报墙的跟拍也用它；两处都在时按 [RhythmAnalyzer.capture] 合起来算）。分析帧由帧循环通过 [RhythmFeedReader] 按听到的位置取走。
  * 切歌不用在这里重置：跳转、换歌由 [com.mytv.mymusic.playback.RhythmAudioSink] 在音频线程上判断，
- * 无缝衔接时分析比界面先进入下一首，界面这边知道换歌时新歌的前半秒已经分析过了。
+ * 无缝衔接时分析比界面先进入Next，界面这边知道换歌时新歌的前半秒已经分析过了。
  */
 @Composable
 internal fun RhythmFeed(analyzer: RhythmAnalyzer, playing: Boolean) {
@@ -414,7 +414,7 @@ internal fun RhythmFeed(analyzer: RhythmAnalyzer, playing: Boolean) {
 /**
  * 帧循环每帧调用：按“此刻听到的位置 − 跟拍校准”给 [FlowFieldMotion] 定跟拍时间和网格，再交出已经播到的分析帧。
  * 拍子时钟在拍前 [BeatClock.PRE_S] 起势，低频起拍要提前这么多交给它，所以多取这一点；电平只用 pts 不晚于跟拍时间的帧，
- * 早取的留到下一帧。还不知道听到哪儿（刚跳转、还没出声）时什么都不取，跟拍时间记成 NaN。
+ * 早取的留到下一帧。还不知道听到哪儿（刚跳转、No sound yet）时什么都不取，跟拍时间记成 NaN。
  */
 internal class RhythmFeedReader(private val analyzer: RhythmAnalyzer) {
     private val cursor = RhythmTimeline.Cursor()

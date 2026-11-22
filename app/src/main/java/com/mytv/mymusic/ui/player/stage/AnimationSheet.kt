@@ -526,7 +526,7 @@ private fun SongModeRow(
             is SongDecision.Remembered -> "Picked when you last listened; remembered"
             is SongDecision.Drawn -> "Drawn from the pool this time"
             is SongDecision.Tempo ->
-                "Measured ${decision.bpm.roundToInt()} BPM → falls in '${TEMPO_NAMES.getOrElse(decision.tier) { "第 ${decision.tier + 1} 档" }}」"
+                "Measured ${decision.bpm.roundToInt()} BPM → falls in '${TEMPO_NAMES.getOrElse(decision.tier) { "Tier ${decision.tier + 1}" }}」"
             SongDecision.Measuring -> "Listening for tempo…"
             SongDecision.NoAnalyzer -> "Can't detect tempo yet, using the one shown"
             SongDecision.Unknown -> "Deciding…"

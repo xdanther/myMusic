@@ -146,9 +146,9 @@ class FloatingLyricsService : Service() {
             setPadding(dp(6), dp(6), dp(6), dp(6))
             setOnClickListener { action() }
         }
-        val play = button(android.R.drawable.ic_media_play, "播放或暂停") { transport("play") }
-        val next = button(android.R.drawable.ic_media_next, "下一首") { transport("next") }
-        val close = button(android.R.drawable.ic_menu_close_clear_cancel, "关闭悬浮歌词", ::closeFromOverlay)
+        val play = button(android.R.drawable.ic_media_play, "Play or pause") { transport("play") }
+        val next = button(android.R.drawable.ic_media_next, "Next") { transport("next") }
+        val close = button(android.R.drawable.ic_menu_close_clear_cancel, "Close floating lyrics", ::closeFromOverlay)
         close.alpha = CONTROL_ALPHA
         val controls = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -231,9 +231,9 @@ class FloatingLyricsService : Service() {
 
     private fun updateOverlayDescription() {
         val content = shown ?: return
-        val interaction = if (controlsVisible) "点按歌词打开应用" else "点按显示播放控制"
+        val interaction = if (controlsVisible) "Tap the lyrics to open the app" else "Tap to show playback controls"
         root?.contentDescription = listOf(content.primary, content.secondary).filter { it.isNotBlank() }
-            .joinToString("，") + "。$interaction，拖动调整位置"
+            .joinToString("，") + ". $interaction, drag to move"
     }
 
     private fun attachDragging(bar: View) {
@@ -323,7 +323,7 @@ class FloatingLyricsService : Service() {
         val app = application as? MyMusicApp ?: return
         scope.launch {
             val ok = runCatching { app.musicViewModel.widgetTransport(action) }.getOrDefault(false)
-            if (!ok) Toast.makeText(this@FloatingLyricsService, "暂时无法控制播放，请打开 myMusic 重试", Toast.LENGTH_SHORT).show()
+            if (!ok) Toast.makeText(this@FloatingLyricsService, "Can't control playback right now; open myMusic and try again", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -333,7 +333,7 @@ class FloatingLyricsService : Service() {
             if (app != null) {
                 withContext(Dispatchers.IO) { app.settings.floatingLyricsEnabled(false) }
             }
-            Toast.makeText(this@FloatingLyricsService, "悬浮歌词已关闭", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@FloatingLyricsService, "Floating lyrics closed", Toast.LENGTH_SHORT).show()
             stopSelf()
         }
     }

@@ -166,7 +166,7 @@ object WidgetUpdater {
                 }
             }
         }
-        // Android 6 没有倒数的 Chronometer：定时关闭的剩余时间只显示到分钟，每分钟推一次
+        // Android 6 没有倒数的 Chronometer：Sleep timer的剩余时间只显示到分钟，每分钟推一次
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             scope.launch {
                 data.sleep.map { it.active }.distinctUntilChanged().collectLatest { active ->

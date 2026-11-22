@@ -48,7 +48,7 @@ class SelectionState {
     var backProgress: Float by mutableFloatStateOf(0f)
         internal set
 
-    /** 进入多选但不预选任何歌，全选按钮可用。 */
+    /** 进入多选但不预选任何歌，Select all按钮可用。 */
     fun start() {
         active = true
         selected = emptySet()
@@ -64,7 +64,7 @@ class SelectionState {
         if (selected.isEmpty()) active = false
     }
 
-    /** 全选 / 全不选，按当前是否已全选翻转。 */
+    /** Select all / 全不选，按当前是否已Select all翻转。 */
     fun toggleAll(keys: Collection<String>) {
         selected = if (keys.isNotEmpty() && keys.all { it in selected }) emptySet() else keys.toSet()
     }
@@ -77,7 +77,7 @@ class SelectionState {
 
 /**
  * 多选退出的预测性返回：手势过程中把进度写进 [SelectionState.backProgress]，
- * 松手才退出多选，取消时进度归零。放在页面里多选界面之后（注册顺序晚于编辑、菜单等返回）。
+ * 松手才Exit multi-select，取消时进度归零。放在页面里多选界面之后（注册顺序晚于编辑、菜单等返回）。
  */
 @Composable
 fun SelectionPredictiveBack(selection: SelectionState) {
@@ -93,7 +93,7 @@ fun SelectionPredictiveBack(selection: SelectionState) {
 }
 
 /**
- * 多选操作条的跟手退出：进度不为零时淡出并上移，预览退出多选后的页面。
+ * 多选操作条的跟手退出：进度不为零时淡出并上移，预览Exit multi-select后的页面。
  * 只读 [SelectionState.backProgress]，状态变化只重绘图层，不触发重组。
  */
 fun Modifier.selectionBackPreview(selection: SelectionState): Modifier = graphicsLayer {
@@ -130,14 +130,14 @@ fun SelectionBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "已选 $count",
+                "$count selected",
                 Modifier.padding(start = 8.dp),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.weight(1f))
             TextButton(onToggleAll, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Text(if (allSelected) "清除" else "全选")
+                Text(if (allSelected) "Clear" else "Select all")
             }
             onRemove?.let {
                 TextButton(
@@ -145,15 +145,15 @@ fun SelectionBar(
                     enabled = count > 0,
                     modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
                 ) {
-                    Text("移除", color = MaterialTheme.colorScheme.error)
+                    Text("Remove", color = MaterialTheme.colorScheme.error)
                 }
             }
             TextButton(onPlay, enabled = count > 0, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Text("播放")
+                Text("Play")
             }
             onUpload?.let {
                 TextButton(it, enabled = count > 0, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                    Text("上传")
+                    Text("Upload")
                 }
             }
             Button(
@@ -161,10 +161,10 @@ fun SelectionBar(
                 enabled = count > 0,
                 modifier = Modifier.tvFocusRing(RoundedCornerShape(24.dp)),
             ) {
-                Text("加入歌单")
+                Text("Add to playlist")
             }
             IconButton(onExit, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Icon(Icons.Filled.Close, contentDescription = "退出多选")
+                Icon(Icons.Filled.Close, contentDescription = "Exit multi-select")
             }
         }
     }

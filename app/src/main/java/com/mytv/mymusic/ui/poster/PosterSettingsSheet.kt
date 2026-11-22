@@ -39,7 +39,7 @@ import com.mytv.mymusic.ui.components.tvFocusRing
 import kotlin.math.roundToInt
 
 /**
- * 墙内设置：染色、视角、关灯、序号、翻译、跟随，电视上再加空闲漂移。队列海报墙和详情页海报视图共用一份，改了立即生效。
+ * 墙内设置：染色、视角、Dim、序号、翻译、跟随，电视上再加空闲漂移。队列海报墙和详情页海报视图共用一份，改了立即生效。
  * 视角按 [scope]（墙这一次的格距档）读写那一份。
  * 手机是底部面板，平板是侧板，电视是右侧面板（[AdaptiveSheet]）。
  */
@@ -53,11 +53,11 @@ internal fun PosterSettingsSheet(
     val tv = LocalAppWindow.current.isTv
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "海报墙设置",
-        subtitle = if (tv) "←→ 调视角 · 返回关闭" else "队列和歌单详情共用，只影响本机",
+        title = "Poster wall settings",
+        subtitle = if (tv) "←→ adjusts the view · Back closes" else "Shared by the queue and playlist details; only affects this device",
     ) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-            SectionLabel("海报染色", Modifier.padding(horizontal = 24.dp))
+            SectionLabel("Poster tint", Modifier.padding(horizontal = 24.dp))
             ConnectedToggleGroup(
                 options = PosterTint.entries,
                 selected = prefs.tint,
@@ -68,7 +68,7 @@ internal fun PosterSettingsSheet(
             val zoom = prefs.zoom.of(scope)
             val setZoom: (Float) -> Unit = { v -> onChange { it.copy(zoom = it.zoom.with(scope, v)) } }
             SectionLabel(
-                "视角",
+                "View",
                 Modifier.padding(horizontal = 24.dp),
                 trailing = {
                     Text(
@@ -82,24 +82,24 @@ internal fun PosterSettingsSheet(
             ZoomPresets(zoom, setZoom, Modifier.padding(horizontal = 20.dp).fillMaxWidth())
             Text(
                 when (scope) {
-                    ZoomScope.Phone -> "拉远能一屏看到整个歌单，适合截图给朋友看；双指捏合也能调。"
-                    ZoomScope.Tablet -> "平板上也能双指捏合，松手吸附到最近的刻度。"
-                    ZoomScope.Tv -> "电视上格子本来是 76dp，拉到 0.5× 时一屏的封面约是默认的 4 倍。"
+                    ZoomScope.Phone -> "Zooming out fits the whole playlist on one screen, handy for screenshots; pinching works too."
+                    ZoomScope.Tablet -> "You can also pinch on tablets; releasing snaps to the nearest step."
+                    ZoomScope.Tv -> "Tiles are 76dp on TV, so 0.5x fits about 4 times as many covers."
                 },
                 Modifier.padding(start = 28.dp, end = 24.dp, top = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             val rows = buildList<Triple<String, String, Pair<Boolean, (Boolean) -> Unit>>> {
-                add(Triple("关灯", "除了正在播放的那首，其余格子都压暗", prefs.lightsOut to { v: Boolean -> onChange { it.copy(lightsOut = v) } }))
-                add(Triple("显示序号", "格子左上角标出第几首（队列里的位置，歌单里的曲目序号）", prefs.showIndex to { v: Boolean -> onChange { it.copy(showIndex = v) } }))
-                add(Triple("显示歌词翻译", "大卡里当前行下面跟一行翻译", prefs.translation to { v: Boolean -> onChange { it.copy(translation = v) } }))
-                add(Triple("切歌时自动跟随", "镜头滑到新歌最近的那一份并放大", prefs.follow to { v: Boolean -> onChange { it.copy(follow = v) } }))
+                add(Triple("Dim", "Dims every tile except the playing one", prefs.lightsOut to { v: Boolean -> onChange { it.copy(lightsOut = v) } }))
+                add(Triple("Show numbers", "Shows the track number in the top-left of each tile (queue position or playlist track number)", prefs.showIndex to { v: Boolean -> onChange { it.copy(showIndex = v) } }))
+                add(Triple("Show lyric translations", "Adds a translation line under the current line on the large card", prefs.translation to { v: Boolean -> onChange { it.copy(translation = v) } }))
+                add(Triple("Follow track changes", "The camera slides to and enlarges the nearest copy of the new track", prefs.follow to { v: Boolean -> onChange { it.copy(follow = v) } }))
                 if (tv) {
-                    add(Triple("空闲时镜头漂移", "30 秒不操作，镜头缓慢漂移，减少电视残影", prefs.tvDrift to { v: Boolean -> onChange { it.copy(tvDrift = v) } }))
+                    add(Triple("Camera drift when idle", "After 30 idle seconds the camera drifts slowly to reduce TV burn-in", prefs.tvDrift to { v: Boolean -> onChange { it.copy(tvDrift = v) } }))
                 }
             }
-            SectionLabel("显示", Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp))
+            SectionLabel("Show", Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp))
             Column(Modifier.padding(horizontal = 16.dp)) {
                 rows.forEachIndexed { index, (title, summary, value) ->
                     SwitchRow(
@@ -158,7 +158,7 @@ private fun ZoomSlider(value: Float, onChange: (Float) -> Unit, modifier: Modifi
                     else -> false
                 }
             }
-            .semantics { stateDescription = "${zoomLabel(value)} 倍" }
+            .semantics { stateDescription = "${zoomLabel(value)}x" }
             .tvFocusRing(RoundedCornerShape(12.dp)),
     )
 }
@@ -166,7 +166,7 @@ private fun ZoomSlider(value: Float, onChange: (Float) -> Unit, modifier: Modifi
 /** 滑块下面的「远 / 默认 / 近」：各自对着自己的刻度（两头的贴边），点了直接跳到那一档。 */
 @Composable
 private fun ZoomPresets(value: Float, onChange: (Float) -> Unit, modifier: Modifier = Modifier) {
-    val presets = listOf(PosterZoom.MIN to "远", PosterZoom.DEFAULT to "默认", PosterZoom.MAX to "近")
+    val presets = listOf(PosterZoom.MIN to "Far", PosterZoom.DEFAULT to "Default", PosterZoom.MAX to "Close")
     Layout(
         content = {
             presets.forEach { (zoom, label) ->
@@ -197,8 +197,8 @@ private fun ZoomPresets(value: Float, onChange: (Float) -> Unit, modifier: Modif
 
 internal val PosterTint.label: String
     get() = when (this) {
-        PosterTint.Off -> "关"
-        PosterTint.Weak -> "弱"
-        PosterTint.Medium -> "中"
-        PosterTint.Strong -> "强"
+        PosterTint.Off -> "Off"
+        PosterTint.Weak -> "Light"
+        PosterTint.Medium -> "Medium"
+        PosterTint.Strong -> "Strong"
     }

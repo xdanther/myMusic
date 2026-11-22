@@ -202,14 +202,14 @@ class MusicActions(private val model: MusicViewModel) {
     fun consumePlaybackLocate() = model.consumePlaybackLocate()
     fun playQueueIndex(index: Int) = model.playQueueIndex(index)
     fun moveQueueItemNext(index: Int) = model.moveQueueItemNext(index)
-    /** 任意一首（不一定在队列里）的“下一首播放”，详情页海报视图的大卡用。 */
+    /** 任意一首（不一定在队列里）的“Next播放”，详情页海报视图的大卡用。 */
     fun playSongNext(song: Song) = model.playSongNext(song)
     /** 一首接到队列末尾（滑动的「加到播放队列」）。 */
     fun addToQueue(song: Song) = model.addToQueue(song)
     /** 播放队列移出一首；正在放的不能移，返回 null。返回值交给 [restoreQueueItem] 撤销。 */
     fun removeQueueIndex(index: Int, songKey: String? = null): QueueRemoval? = model.removeQueueIndex(index, songKey)
     fun restoreQueueItem(removal: QueueRemoval) = model.restoreQueueItem(removal)
-    /** 播放进度（每 100ms），只在需要画进度的叶子里读，见 MusicViewModel.position。 */
+    /** Playback progress（每 100ms），只在需要画进度的叶子里读，见 MusicViewModel.position。 */
     val position: kotlinx.coroutines.flow.StateFlow<Long> get() = model.position
     fun clearQueue() = model.clearQueue()
     fun favorite(song: Song) = model.toggleFavorite(song)
@@ -673,7 +673,7 @@ fun ConfirmDialog(
 }
 
 /**
- * 电视海报墙的整页操作（播放全部、切回列表视图、海报墙设置……），接在歌曲操作下面成一组。
+ * 电视海报墙的整页操作（播放全部、切回列表视图、海报墙设置……），接在Track actions下面成一组。
  * [title] 是组的小标题“类型 · 标题”，读屏和眼睛都靠它分清哪些是这一首、哪些是整页的。
  */
 @androidx.compose.runtime.Immutable
@@ -684,17 +684,17 @@ class WallMenu(val title: String, val items: List<WallMenuItem>)
 class WallMenuItem(val icon: ImageVector, val label: String, val onClick: () -> Unit, val summary: String = "")
 
 /**
- * 歌曲操作面板里要不要接整页操作：[menu] 打开面板时才取（墙上的长按回调在页面组合之外设，
+ * Track actions面板里要不要接整页操作：[menu] 打开面板时才取（墙上的长按回调在页面组合之外设，
  * 直接存菜单会让页面每次重组都写一遍状态），[fromMenuKey] 是菜单键打开的——面板滚到这一组、焦点落在第一行。
  */
 @androidx.compose.runtime.Immutable
 class WallPageActions(val menu: () -> WallMenu?, val fromMenuKey: Boolean)
 
 /**
- * 歌曲操作：手机是底部面板，平板是侧边面板，电视是右侧面板。
+ * Track actions：手机是底部面板，平板是侧边面板，电视是右侧面板。
  * 顶部三个快捷操作（收藏 / 下载 / 加歌单）用大按钮，其余是列表。
  * [wallPage] 只在电视的海报墙里传：墙内焦点在墙自己手里，墙外不放能拿焦点的工具栏，
- * 整页操作接在歌曲操作下面成一组，从任意格长按 OK 或按菜单键都能进。
+ * 整页操作接在Track actions下面成一组，从任意格长按 OK 或按菜单键都能进。
  */
 @Composable
 fun TrackActionsSheet(
@@ -714,7 +714,7 @@ fun TrackActionsSheet(
      * （歌曲信息只在本地音乐页里），选好的匹配记进线索表并同步回有文件的设备。非本地歌为 null。
      */
     onRematch: (() -> Unit)? = null,
-    /** 在当前面板里切到评论，不关闭外层歌曲操作。 */
+    /** 在当前面板里切到评论，不关闭外层Track actions。 */
     onOpenComments: (() -> Unit)? = null,
     /** “查看歌手：某某”，每位歌手一行（最多 3 位）；参数是点的那位歌手名。 */
     onOpenArtist: ((String) -> Unit)? = null,
@@ -823,7 +823,7 @@ private class SheetRow(
 )
 
 /**
- * 歌曲操作下面的整页操作组：小标题 + 一列行。[focusFirst]（菜单键打开）时面板滚到小标题、焦点落在第一行
+ * Track actions下面的整页操作组：小标题 + 一列行。[focusFirst]（菜单键打开）时面板滚到小标题、焦点落在第一行
  * （电视上焦点行按系统的跟焦规则停在面板约三成高处，小标题就在它上面）。
  * 面板在电视上是滑进来的，内容晚一帧才摆好，焦点请求要等摆好再发，没接住就下一帧再试。
  */

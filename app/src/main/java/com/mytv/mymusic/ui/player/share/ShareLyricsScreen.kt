@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 // 2026-11-18 myMusic 改写：分享页照 Rush（shub39/Rush@5a952bf）的 SharePage（预览缩放到放得下、可以双指放大，
-// 卡片和全屏画布各录一个图层，配色、圆角照它做过渡）和 SharePageEdit（选项：样式、配色和自定义两色、圆角、封面形状、
-// 全屏；叠卡 / 封面换背景图、乱排重新打乱、随机一套）。改动：选项一直铺在预览下面（宽屏在右栏），样式是一排真卡片的
+// 卡片和全屏画布各录一个图层，配色、圆角照它做过渡）和 SharePageEdit（选项：样式、配色和自定义两色、圆角、Cover shape、
+// 全屏；叠卡 / 封面换Background image、乱排Shuffle again、随机一套）。改动：选项一直铺在预览下面（宽屏在右栏），样式是一排真卡片的
 // 缩略图，形状是 7 列网格；不引 zoomable、FileKit，缩放和存图自己写；导出前等过渡停、图片取完；全部免费。
-// 选句、副行、文字格式、三种设备摆法是 myMusic 自己的。
+// 选句、副行、Text format、三种设备摆法是 myMusic 自己的。
 package com.mytv.mymusic.ui.player.share
 
 import android.Manifest
@@ -190,7 +190,7 @@ internal fun ShareOverlay(
     BackHandler {
         if (session.page == SharePage.Share) session.page = SharePage.Pick else onClose()
     }
-    // 选句层也按会话的种子色：选句时切了歌，列表还是这首歌的词，配色也不该跟着下一首变
+    // 选句层也按会话的种子色：选句时切了歌，列表还是这首歌的词，配色也不该跟着Next变
     PlayerTheme(seed = session.seed) {
         AnimatedContent(
             session.page,
@@ -209,7 +209,7 @@ internal fun ShareOverlay(
 private enum class ShareAction { Copy, Save, Share }
 
 /**
- * 分享页：预览、选项、三个操作（复制文字、保存图片、分享）。手机上下排；宽 ≥ 600dp 左预览、右边 420dp 的选项栏，
+ * 分享页：预览、选项、三个操作（Copy text、Save image、分享）。手机上下排；宽 ≥ 600dp 左预览、右边 420dp 的选项栏，
  * 操作挪到顶栏右边（书本姿态按折痕分左右页）；桌面姿态上半屏预览、下半屏选项和操作条。
  */
 @Composable
@@ -248,7 +248,7 @@ private fun ShareLyricsScreen(
     val colors = rememberStageColors(song.cover)
     val imagesState = rememberShareImages(song.cover, session.picture) {
         session.picture = null
-        snack("这张图读不出来")
+        snack("Couldn't read this image")
     }
     val images = imagesState.value
     val allRows = remember(session.lines, session.selected) { shareRows(session.lines, session.selected) }
@@ -290,16 +290,16 @@ private fun ShareLyricsScreen(
                 snapshotFlow { imagesState.value.ready }.first { it }
                 val bitmap = captureLayer(if (prefs.fullScreen) canvasLayer else cardLayer)
                 if (bitmap == null) {
-                    snack("卡片还没画好，稍等再试")
+                    snack("The card isn't drawn yet; try again in a moment")
                     return@launch
                 }
                 val name = shareFileName(song.title, song.artist, System.currentTimeMillis())
                 if (kind == ShareAction.Save) {
-                    if (saveToGallery(context, bitmap, name) != null) snack("已保存到相册 Pictures/$SHARE_ALBUM") else snack("保存失败")
+                    if (saveToGallery(context, bitmap, name) != null) snack("Saved to Pictures/$SHARE_ALBUM") else snack("Save failed")
                 } else {
                     val file = writeShareCache(context, bitmap, name)
                     runCatching { context.startActivity(shareImageIntent(context, file, text)) }
-                        .onFailure { snack("没有能分享图片的应用") }
+                        .onFailure { snack("No app can receive the image") }
                 }
             } finally {
                 busy = null
@@ -307,7 +307,7 @@ private fun ShareLyricsScreen(
         }
     }
     val storage = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) export(ShareAction.Save) else snack("没有存储权限，图片没存上；可以用「分享」发给自己")
+        if (granted) export(ShareAction.Save) else snack("No storage permission, so the image wasn't saved; use Share to send it to yourself")
     }
     val onSave = {
         val needs = Build.VERSION.SDK_INT < 29 &&
@@ -316,9 +316,9 @@ private fun ShareLyricsScreen(
     }
     val onCopy: () -> Unit = {
         scope.launch {
-            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("歌词", text)))
+            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Lyrics", text)))
             // Android 13 起系统自己会弹「已复制」
-            if (Build.VERSION.SDK_INT < 33) snack("已复制 ${session.selected.size} 句歌词")
+            if (Build.VERSION.SDK_INT < 33) snack("Copied ${session.selected.size} lyric lines")
         }
     }
     val buttons = ShareButtons(
@@ -410,8 +410,8 @@ private fun ShareLyricsScreen(
         val background = Color(prefs.customBackground)
         val content = Color(prefs.customContent)
         ColorPickerSheet(
-            title = if (editingText) "文字色" else "背景色",
-            subtitle = "分享卡片 · 自定义配色",
+            title = if (editingText) "Text color" else "Background color",
+            subtitle = "Share card · custom colors",
             initial = if (editingText) content else background,
             background = background,
             text = content,
@@ -440,7 +440,7 @@ private fun ShareLyricsScreen(
 private fun SharePrefs.withCustom(text: Boolean, color: Color): SharePrefs =
     if (text) copy(customContent = color.toArgb()) else copy(customBackground = color.toArgb())
 
-/** 配色对应的底色、字色：鲜艳 / 柔和是封面色（Rush 的 dominant / muted），播放页是 PlayerTheme 的表面色和文字色。 */
+/** 配色对应的底色、字色：鲜艳 / 柔和是封面色（Rush 的 dominant / muted），播放页是 PlayerTheme 的表面色和Text color。 */
 private fun cardColors(prefs: SharePrefs, colors: StageColors): Pair<Color, Color> = when (prefs.palette) {
     ShareCardPalette.Vibrant -> colors.coverVibrant to colors.onCoverVibrant
     ShareCardPalette.Muted -> colors.coverMuted to colors.onCoverMuted
@@ -528,7 +528,7 @@ private fun SharePreview(
                     offset = Offset.Zero
                 })
             }
-            .semantics { contentDescription = "卡片预览，双指放大，双击复位" },
+            .semantics { contentDescription = "Card preview: pinch to zoom, double-tap to reset" },
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -558,24 +558,24 @@ private fun ShareTopBar(onBack: () -> Unit, onRandom: () -> Unit, buttons: Share
         Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回选句") }
+        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to line selection") }
         Text(
-            "分享歌词",
+            "Share lyrics",
             Modifier.weight(1f).padding(start = 4.dp),
             style = MaterialTheme.typography.titleLarge,
             maxLines = 1,
         )
-        IconButton(onClick = onRandom) { Icon(Icons.Filled.Casino, "随机换一套") }
+        IconButton(onClick = onRandom) { Icon(Icons.Filled.Casino, "Randomize colors") }
         if (buttons != null) {
             Spacer(Modifier.width(8.dp))
             TextButton(onClick = buttons.onCopy, enabled = buttons.busy == null) {
-                ActionLabel(Icons.Filled.ContentCopy, "复制文字", buttons.busy == ShareAction.Copy)
+                ActionLabel(Icons.Filled.ContentCopy, "Copy text", buttons.busy == ShareAction.Copy)
             }
             TextButton(onClick = buttons.onSave, enabled = buttons.busy == null && buttons.canExport) {
-                ActionLabel(Icons.Filled.Save, "保存图片", buttons.busy == ShareAction.Save)
+                ActionLabel(Icons.Filled.Save, "Save image", buttons.busy == ShareAction.Save)
             }
             Button(onClick = buttons.onShare, enabled = buttons.busy == null && buttons.canExport, modifier = Modifier.padding(start = 4.dp, end = 8.dp)) {
-                ActionLabel(Icons.Filled.Share, "分享", buttons.busy == ShareAction.Share)
+                ActionLabel(Icons.Filled.Share, "Share", buttons.busy == ShareAction.Share)
             }
         }
     }
@@ -600,13 +600,13 @@ private fun ActionLabel(icon: androidx.compose.ui.graphics.vector.ImageVector, t
     Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
 
-/** 手机、桌面姿态底部的操作条：复制文字、保存图片（tonal）、分享（实心），各占三分之一。 */
+/** 手机、桌面姿态底部的操作条：Copy text、Save image（tonal）、分享（实心），各占三分之一。 */
 @Composable
 private fun ActionBar(buttons: ShareButtons, modifier: Modifier) {
     val padding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilledTonalButton(onClick = buttons.onCopy, enabled = buttons.busy == null, modifier = Modifier.weight(1f), contentPadding = padding) {
-            ActionLabel(Icons.Filled.ContentCopy, "复制文字", buttons.busy == ShareAction.Copy)
+            ActionLabel(Icons.Filled.ContentCopy, "Copy text", buttons.busy == ShareAction.Copy)
         }
         FilledTonalButton(
             onClick = buttons.onSave,
@@ -614,7 +614,7 @@ private fun ActionBar(buttons: ShareButtons, modifier: Modifier) {
             modifier = Modifier.weight(1f),
             contentPadding = padding,
         ) {
-            ActionLabel(Icons.Filled.Save, "保存图片", buttons.busy == ShareAction.Save)
+            ActionLabel(Icons.Filled.Save, "Save image", buttons.busy == ShareAction.Save)
         }
         Button(
             onClick = buttons.onShare,
@@ -622,7 +622,7 @@ private fun ActionBar(buttons: ShareButtons, modifier: Modifier) {
             modifier = Modifier.weight(1f),
             contentPadding = padding,
         ) {
-            ActionLabel(Icons.Filled.Share, "分享", buttons.busy == ShareAction.Share)
+            ActionLabel(Icons.Filled.Share, "Share", buttons.busy == ShareAction.Share)
         }
     }
 }
@@ -697,8 +697,8 @@ private fun TabletopBody(
 // ---------- 选项 ----------
 
 /**
- * 选项区（三种布局共用，顺序照稿子）：样式缩略图一排 → 用句提示 → 配色（自定义时两个色块）→ 卡片圆角 → 封面形状 →
- * 全屏 9:16、背景图（叠卡 / 封面）、重新打乱（乱排）、副行（有翻译或罗马音时）、文字格式。
+ * 选项区（三种布局共用，顺序照稿子）：样式缩略图一排 → 用句提示 → 配色（自定义时两个色块）→ Card corner radius → Cover shape →
+ * Full screen 9:16、Background image（叠卡 / 封面）、Shuffle again（乱排）、副行（有翻译或罗马音时）、Text format。
  */
 @Composable
 private fun ShareOptions(
@@ -723,7 +723,7 @@ private fun ShareOptions(
             Text(note, Modifier.padding(top = 6.dp, start = 4.dp), fontSize = 14.sp, color = scheme.onSurfaceVariant)
         }
 
-        SectionLabel("配色")
+        SectionLabel("Colors")
         ConnectedToggleGroup(
             options = ShareCardPalette.entries,
             selected = prefs.palette,
@@ -737,16 +737,16 @@ private fun ShareOptions(
         )
         if (prefs.palette == ShareCardPalette.Custom) {
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ColorSwatchButton("背景", Color(prefs.customBackground), Modifier.weight(1f)) { onEditColor(false) }
-                ColorSwatchButton("文字", Color(prefs.customContent), Modifier.weight(1f)) { onEditColor(true) }
+                ColorSwatchButton("Background", Color(prefs.customBackground), Modifier.weight(1f)) { onEditColor(false) }
+                ColorSwatchButton("Text", Color(prefs.customContent), Modifier.weight(1f)) { onEditColor(true) }
             }
         }
 
-        SectionLabel("卡片圆角")
+        SectionLabel("Card corner radius")
         ConnectedToggleGroup(ShareCardCorners.entries, prefs.corners, { onChange(prefs.copy(corners = it)) }, { it.label })
 
         val noArt = prefs.style == ShareCardStyle.Brat
-        SectionLabel(if (noArt) "封面形状 · 粗糙样式不放封面" else "封面形状") {
+        SectionLabel(if (noArt) "Cover shape · rough styles show no cover" else "Cover shape") {
             Text(prefs.shape.label, fontSize = 13.sp, color = scheme.onSurfaceVariant)
         }
         ShapeGrid(prefs.shape, Modifier.alpha(if (noArt) 0.38f else 1f)) { onChange(prefs.copy(shape = it)) }
@@ -755,26 +755,26 @@ private fun ShareOptions(
         val rows = buildList<@Composable (Int, Int) -> Unit> {
             add { i, n ->
                 SwitchRow(
-                    "全屏 9:16",
+                    "Full screen 9:16",
                     prefs.fullScreen,
                     { onChange(prefs.copy(fullScreen = it)) },
                     i,
                     n,
-                    summary = "卡片放进 1080×1920 的画布，适合发动态",
+                    summary = "Fits the card into a 1080×1920 canvas, ready for stories",
                 )
             }
             if (prefs.style == ShareCardStyle.Rushed || prefs.style == ShareCardStyle.AlbumArt) {
                 add { i, n ->
                     val chosen = session.picture != null
                     ListRow(
-                        "背景图",
+                        "Background image",
                         i,
                         n,
                         onClick = { if (chosen) session.picture = null else onPickPicture() },
-                        summary = if (chosen) "已换成自选图片" else "默认用封面；可以从相册换一张",
+                        summary = if (chosen) "Using the picked image" else "Uses the cover by default; pick another from the gallery",
                         trailing = {
                             IconButton(onClick = { if (chosen) session.picture = null else onPickPicture() }) {
-                                Icon(if (chosen) Icons.Filled.Close else Icons.Filled.Image, if (chosen) "清掉自选图片" else "从相册选一张")
+                                Icon(if (chosen) Icons.Filled.Close else Icons.Filled.Image, if (chosen) "Clear the picked image" else "Pick from gallery")
                             }
                         },
                     )
@@ -783,11 +783,11 @@ private fun ShareOptions(
             if (prefs.style == ShareCardStyle.Messy) {
                 add { i, n ->
                     ListRow(
-                        "重新打乱",
+                        "Shuffle again",
                         i,
                         n,
                         onClick = { session.messySeed++ },
-                        summary = "大小写、粗细、字宽、角度、反色每个词重新随机",
+                        summary = "Randomizes case, weight, width, angle and inversion per word again",
                         trailing = { Icon(Icons.Filled.Casino, null, Modifier.padding(end = 12.dp), tint = scheme.onSurfaceVariant) },
                     )
                 }
@@ -795,7 +795,7 @@ private fun ShareOptions(
             if (session.hasSubline) {
                 add { i, n ->
                     val label = sublineLabel(subline)
-                    SwitchRow(label, prefs.translation, { onChange(prefs.copy(translation = it)) }, i, n, summary = "每句下面带一行$label")
+                    SwitchRow(label, prefs.translation, { onChange(prefs.copy(translation = it)) }, i, n, summary = "Adds a $label line under each line")
                 }
             }
             add { i, n -> TextFormatRow(prefs.textFormat, session.link.isNotBlank(), i, n) { onChange(prefs.copy(textFormat = it)) } }
@@ -809,9 +809,9 @@ private fun ShareOptions(
 
 /** 副行开关的叫法，跟着「歌词下面那一行」的设置。 */
 private fun sublineLabel(subline: LyricSubline): String = when (subline) {
-    LyricSubline.Translation -> "译文"
-    LyricSubline.Romanization -> "罗马音"
-    LyricSubline.Both -> "译文和罗马音"
+    LyricSubline.Translation -> "Translation"
+    LyricSubline.Romanization -> "Romanization"
+    LyricSubline.Both -> "Translation and romanization"
 }
 
 @Composable
@@ -875,7 +875,7 @@ private fun ColorSwatchButton(label: String, color: Color, modifier: Modifier, o
     }
 }
 
-/** 21 种封面形状，7 列 × 3 行；格子里是 58% 大小的剪影。 */
+/** 21 种Cover shape，7 列 × 3 行；格子里是 58% 大小的剪影。 */
 @Composable
 private fun ShapeGrid(selected: ShareCardShape, modifier: Modifier, onSelect: (ShareCardShape) -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -912,16 +912,16 @@ private fun ShapeGrid(selected: ShareCardShape, modifier: Modifier, onSelect: (S
 
 private const val SHAPE_COLUMNS = 7
 
-/** 文字格式：点开下拉三项；这首没有平台链接时第三项禁用。 */
+/** Text format：点开下拉三项；这首没有平台链接时第三项禁用。 */
 @Composable
 private fun TextFormatRow(format: ShareTextFormat, hasLink: Boolean, index: Int, count: Int, onSelect: (ShareTextFormat) -> Unit) {
     var open by remember { mutableStateOf(false) }
     ListRow(
-        "文字格式",
+        "Text format",
         index,
         count,
         onClick = { open = true },
-        summary = "复制文字、分享时附带的文字：${format.label}",
+        summary = "Text to copy and attach when sharing: ${format.label}",
         trailing = {
             Box {
                 Icon(Icons.Filled.ArrowDropDown, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -929,7 +929,7 @@ private fun TextFormatRow(format: ShareTextFormat, hasLink: Boolean, index: Int,
                     ShareTextFormat.entries.forEach { option ->
                         val enabled = option != ShareTextFormat.WithLink || hasLink
                         DropdownMenuItem(
-                            text = { Text(if (enabled) option.label else "${option.label}（这首没有链接）") },
+                            text = { Text(if (enabled) option.label else "${option.label} (no link for this track)") },
                             onClick = {
                                 open = false
                                 onSelect(option)

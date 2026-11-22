@@ -111,7 +111,7 @@ internal fun LyricStage(
 ) {
     // 设备档位（模糊默认开不开）要在读任何模式设置之前定下来
     ResolveStageDevice()
-    // 换歌后头一两帧，解析器还拿着上一首的结果（新原文是空串，解析还没回来）：记下这份歌词是哪首歌时到的，对不上就是旧词。
+    // 换歌后头一两帧，解析器还拿着Previous的结果（新原文是空串，解析还没回来）：记下这份歌词是哪首歌时到的，对不上就是旧词。
     // 空歌词不算：两首都没词时解析结果不会换，按“没有歌词”走
     val lyricsSong = remember(lyrics) { song.key }
     val stale = lyricsSong != song.key && lyrics.raw.isNotBlank()
@@ -275,7 +275,7 @@ private fun StageHost(
     val window = LocalAppWindow.current
     val reduceMotion = LocalAppearance.current.reduceMotion || rememberSystemAnimationsOff()
     val tv = window.isTv
-    // 等歌词时不给句子：模式画空场，不会把上一首的词再演一遍
+    // 等歌词时不给句子：模式画空场，不会把Previous的词再演一遍
     val lines = remember(lyrics, waiting) { if (waiting) emptyList() else stageLines(lyrics) }
     val clock = remember { StageClock() }
     val lineIndex = remember { mutableIntStateOf(-1) }
@@ -518,7 +518,7 @@ private class StageAudioFeed(private val analyzer: RhythmAnalyzer, private val a
 
 /**
  * 读屏：舞台对外是一个文本节点，内容是当前整句加翻译，不逐字播报。
- * 全屏歌词页能分享时多一个自定义操作「选这一句分享」（当前句，句间按最近唱过的那句）。
+ * 全屏歌词页能分享时多一个自定义操作「Select this line to share」（当前句，句间按最近唱过的那句）。
  */
 @Composable
 private fun StageSemantics(ctx: LyricStageContext) {

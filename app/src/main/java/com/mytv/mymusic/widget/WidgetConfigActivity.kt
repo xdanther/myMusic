@@ -128,7 +128,7 @@ private fun WidgetConfigScreen(appWidgetId: Int, kind: WidgetKind, onDone: () ->
         WidgetUpdater.request(kind)
     }
     val gutter = LocalAppWindow.current.gutter
-    PageScaffold(title = kindName(kind), subtitle = "小组件设置") { padding ->
+    PageScaffold(title = kindName(kind), subtitle = "Widget settings") { padding ->
         Box(Modifier.fillMaxSize()) {
             LazyColumn(
                 Modifier.fillMaxSize(),
@@ -139,8 +139,8 @@ private fun WidgetConfigScreen(appWidgetId: Int, kind: WidgetKind, onDone: () ->
                 when (kind) {
                     WidgetKind.Lyrics -> item("translation") {
                         SwitchRow(
-                            title = "显示翻译",
-                            summary = "有翻译的歌，翻译显示在当前一句下面",
+                            title = "Show translations",
+                            summary = "For translated songs the translation shows under the current line",
                             checked = config.translation,
                             onCheckedChange = { save(config.copy(translation = it)) },
                             index = 0,
@@ -165,24 +165,24 @@ private fun WidgetConfigScreen(appWidgetId: Int, kind: WidgetKind, onDone: () ->
             Box(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(horizontal = gutter, vertical = 16.dp),
             ) {
-                Button(onClick = onDone, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("完成") }
+                Button(onClick = onDone, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("Done") }
             }
         }
     }
 }
 
 private fun kindName(kind: WidgetKind): String = when (kind) {
-    WidgetKind.Now -> "正在播放"
-    WidgetKind.Lyrics -> "歌词"
-    WidgetKind.Mode -> "听歌模式"
-    WidgetKind.Charts -> "榜单"
-    WidgetKind.List -> "歌单"
-    WidgetKind.Tools -> "快捷入口"
+    WidgetKind.Now -> "Now playing"
+    WidgetKind.Lyrics -> "Lyrics"
+    WidgetKind.Mode -> "Listening mode"
+    WidgetKind.Charts -> "Charts"
+    WidgetKind.List -> "Playlists"
+    WidgetKind.Tools -> "Shortcuts"
 }
 
 /** 背景：实色、半透明（72%）；透明只给歌词（白字加阴影）。 */
 private fun LazyListScope.backgroundSection(kind: WidgetKind, config: WidgetConfig, onChange: (WidgetBackground) -> Unit) {
-    item("bgLabel") { SectionLabel("背景") }
+    item("bgLabel") { SectionLabel("Background") }
     item("bg") {
         val options = if (kind == WidgetKind.Lyrics) WidgetBackground.entries else listOf(WidgetBackground.Solid, WidgetBackground.Glass)
         val selected = config.background.takeIf { it in options } ?: WidgetBackground.Glass
@@ -192,9 +192,9 @@ private fun LazyListScope.backgroundSection(kind: WidgetKind, config: WidgetConf
             onSelect = onChange,
             label = {
                 when (it) {
-                    WidgetBackground.Solid -> "实色"
-                    WidgetBackground.Glass -> "半透明"
-                    WidgetBackground.Clear -> "透明"
+                    WidgetBackground.Solid -> "Solid"
+                    WidgetBackground.Glass -> "Translucent"
+                    WidgetBackground.Clear -> "Transparent"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -202,22 +202,22 @@ private fun LazyListScope.backgroundSection(kind: WidgetKind, config: WidgetConf
     }
     item("bgNote") {
         val note = when {
-            kind == WidgetKind.Lyrics && config.background == WidgetBackground.Clear -> "透明时文字是白色加阴影，适合深色或照片壁纸。"
-            else -> "颜色和深浅跟 App 的外观设置走。"
+            kind == WidgetKind.Lyrics && config.background == WidgetBackground.Clear -> "Transparent uses white text with a shadow, good for dark or photo wallpapers."
+            else -> "Colors and shade follow the app's appearance settings."
         }
         ConfigNote(note)
     }
 }
 
-/** 歌单：我喜欢、最近播放和自建歌单。 */
+/** 歌单：我喜欢、Recently played和自建歌单。 */
 private fun LazyListScope.listSection(app: MyMusicApp, config: WidgetConfig, onChange: (WidgetListSource) -> Unit) {
-    item("listLabel") { SectionLabel("显示哪一张") }
+    item("listLabel") { SectionLabel("Which card") }
     item("lists") {
         val lists by WidgetData.get(app).localLists.collectAsState()
         val rows = listOf(
-            Triple<WidgetListSource, String, String>(WidgetListSource.Favorites, "我喜欢的歌曲", ""),
-            Triple(WidgetListSource.History, "最近播放", ""),
-        ) + lists.map { Triple(WidgetListSource.Local(it.id), it.name, "${it.count} 首") }
+            Triple<WidgetListSource, String, String>(WidgetListSource.Favorites, "My favorite songs", ""),
+            Triple(WidgetListSource.History, "Recently played", ""),
+        ) + lists.map { Triple(WidgetListSource.Local(it.id), it.name, "${it.count} tracks") }
         Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
             rows.forEachIndexed { i, (source, name, summary) ->
                 PickRow(
@@ -238,7 +238,7 @@ private fun LazyListScope.listSection(app: MyMusicApp, config: WidgetConfig, onC
     }
 }
 
-/** 榜单：先选平台，再选榜；“自动”用榜单页当前平台的第一张榜。 */
+/** 榜单：先选平台，再选榜；“自动”用The first chart of the current platform。 */
 @Composable
 private fun ChartPicker(app: MyMusicApp, config: WidgetConfig, onChange: (ChartTarget?) -> Unit) {
     var providers by remember { mutableStateOf<List<ProviderInfo>?>(null) }
@@ -261,10 +261,10 @@ private fun ChartPicker(app: MyMusicApp, config: WidgetConfig, onChange: (ChartT
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
-        SectionLabel("显示哪张榜")
+        SectionLabel("Which chart")
         PickRow(
-            title = "自动",
-            summary = "榜单页当前平台的第一张榜",
+            title = "Auto",
+            summary = "The first chart of the current platform",
             selected = config.chartId.isBlank(),
             index = 0,
             count = 1,
@@ -273,10 +273,10 @@ private fun ChartPicker(app: MyMusicApp, config: WidgetConfig, onChange: (ChartT
         )
         ProviderChips(providers, source) { source = it }
         when (val result = charts) {
-            null -> ConfigNote(if (providers?.isEmpty() == true) "没有支持榜单的平台。" else "正在获取榜单…")
+            null -> ConfigNote(if (providers?.isEmpty() == true) "No platform supports charts." else "Loading charts…")
             else -> result.fold(
                 onSuccess = { list ->
-                    if (list.isEmpty()) ConfigNote("这个平台暂时没有榜单。")
+                    if (list.isEmpty()) ConfigNote("This platform has no charts yet.")
                     list.forEachIndexed { i, chart ->
                         PickRow(
                             title = chart.name,
@@ -295,7 +295,7 @@ private fun ChartPicker(app: MyMusicApp, config: WidgetConfig, onChange: (ChartT
     }
 }
 
-/** 听歌模式：先选平台，再选模式；“自动”用第一个已登录平台的第一个模式。没登录时要登录的模式标出来。 */
+/** 听歌模式：先选平台，再选模式；“自动”用The first mode of the first signed-in platform。没登录时要登录的模式标出来。 */
 @Composable
 private fun ModePicker(app: MyMusicApp, config: WidgetConfig, onChange: (String, ListeningMode?) -> Unit) {
     val settings by WidgetData.get(app).settings.collectAsState()
@@ -325,10 +325,10 @@ private fun ModePicker(app: MyMusicApp, config: WidgetConfig, onChange: (String,
     }
     val cookie = settings?.cookies?.get(source).orEmpty()
     Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
-        SectionLabel("放哪个模式")
+        SectionLabel("Which mode")
         PickRow(
-            title = "自动",
-            summary = "第一个已登录平台的第一个模式",
+            title = "Auto",
+            summary = "The first mode of the first signed-in platform",
             selected = config.mode == null,
             index = 0,
             count = 1,
@@ -337,16 +337,16 @@ private fun ModePicker(app: MyMusicApp, config: WidgetConfig, onChange: (String,
         )
         ProviderChips(providers, source) { source = it }
         when (val result = modes) {
-            null -> ConfigNote(if (providers?.isEmpty() == true) "没有支持听歌模式的平台。" else "正在获取模式…")
+            null -> ConfigNote(if (providers?.isEmpty() == true) "No platform supports listening modes." else "Loading modes…")
             else -> result.fold(
                 onSuccess = { list ->
-                    if (list.isEmpty()) ConfigNote("这个平台暂时没有听歌模式。")
+                    if (list.isEmpty()) ConfigNote("This platform has no listening modes yet.")
                     list.forEachIndexed { i, mode ->
                         val login = ModeStore.needsLogin(mode, cookie)
                         PickRow(
                             title = mode.name,
                             // 有的平台分组名就是模式名（汽水的“推荐”），不重复写
-                            summary = listOf(mode.group.takeIf { it != mode.name }.orEmpty(), if (login) "需要登录" else "")
+                            summary = listOf(mode.group.takeIf { it != mode.name }.orEmpty(), if (login) "Sign-in required" else "")
                                 .filter { it.isNotBlank() }.joinToString(" · "),
                             selected = config.modeProvider == source && config.mode?.id == mode.id,
                             index = i,
@@ -408,12 +408,12 @@ private fun PickRow(
 @Composable
 private fun RetryRow(onRetry: () -> Unit) {
     ListRow(
-        title = "暂时连不上",
+        title = "Offline",
         index = 0,
         count = 1,
         onClick = onRetry,
         icon = Icons.Filled.CloudOff,
-        summary = "点这里重试",
+        summary = "Tap to retry",
         showChevron = false,
     )
 }

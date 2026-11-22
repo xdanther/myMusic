@@ -12,11 +12,11 @@ internal data class FloatingLyricsContent(
 
 internal fun floatingLyricsContent(snapshot: PlaybackSnapshot?, now: Long): FloatingLyricsContent {
     if (snapshot == null) {
-        return FloatingLyricsContent("myMusic 悬浮歌词", "还没有播放歌曲", playing = false, canControl = false)
+        return FloatingLyricsContent("myMusic floating lyrics", "No song playing", playing = false, canControl = false)
     }
     val window = WidgetLyrics.window(snapshot, now)
     val primary = window?.current?.takeIf { it.isNotBlank() }
-        ?: snapshot.song.title.ifBlank { "未命名歌曲" }
+        ?: snapshot.song.title.ifBlank { "Untitled song" }
     val secondary = when {
         window == null -> WidgetLyrics.placeholder(snapshot)
         window.translation.isNotBlank() -> window.translation

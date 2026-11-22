@@ -44,7 +44,7 @@ data class ModeView(
     val covers: List<String>,
 )
 
-/** 绑定一个平台的一个模式，点播放在后台开始漫游；漫游中显示当前歌曲和下一首按钮。未登录时换成“去登录”。 */
+/** 绑定一个平台的一个模式，点播放在后台开始漫游；漫游中显示当前歌曲和Next按钮。未登录时换成“Sign in”。 */
 class ModeWidget : MusicWidget(WidgetKind.Mode) {
     @Composable
     override fun Content(appWidgetId: Int, palette: WidgetPalette, config: WidgetConfig) {
@@ -78,7 +78,7 @@ class ModeWidget : MusicWidget(WidgetKind.Mode) {
 
     @Composable
     override fun Preview(palette: WidgetPalette) {
-        val view = ModeView(WidgetSamples.mode, "网易云", ModeState.Idle, playing = false, nowPlaying = "", covers = emptyList())
+        val view = ModeView(WidgetSamples.mode, "NetEase", ModeState.Idle, playing = false, nowPlaying = "", covers = emptyList())
         ModeLayout(view, palette, WidgetBackground.Solid, appWidgetId = 0, interactive = false)
     }
 }
@@ -98,22 +98,22 @@ fun ModeLayout(view: ModeView?, palette: WidgetPalette, background: WidgetBackgr
         val mode = view?.mode
         if (view == null || mode == null) {
             // 模式列表还没取到（或没有支持听歌模式的平台）：点开听歌模式页自己挑
-            Column(modifier = GlanceModifier.fillMaxSize().padding(14.dp).onClick(openMode).describe("听歌模式，打开听歌模式页"), verticalAlignment = Alignment.CenterVertically) {
-                WText("听歌模式", 16.sp, palette.color { onSurface }, weight = FontWeight.Bold)
-                WText("点这里挑一个模式", WType.meta, palette.color { onSurfaceVariant })
+            Column(modifier = GlanceModifier.fillMaxSize().padding(14.dp).onClick(openMode).describe("Listening modes, open the listening modes page"), verticalAlignment = Alignment.CenterVertically) {
+                WText("Listening mode", 16.sp, palette.color { onSurface }, weight = FontWeight.Bold)
+                WText("Tap to pick a mode", WType.meta, palette.color { onSurfaceVariant })
             }
             return@Box
         }
-        val headText = "${view.providerName} · ${mode.group.ifBlank { "听歌模式" }}"
+        val headText = "${view.providerName} · ${mode.group.ifBlank { "Listening mode" }}"
         when (bp) {
             ModeBp.Strip -> Row(
                 modifier = GlanceModifier.fillMaxSize().padding(start = 16.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = GlanceModifier.defaultWeight().onClick(openMode).describe("${mode.name}，打开听歌模式页")) {
+                Column(modifier = GlanceModifier.defaultWeight().onClick(openMode).describe("${mode.name}, open listening modes")) {
                     WText(mode.name, 16.sp, palette.color { onSurface }, weight = FontWeight.Bold)
                     when (view.state) {
-                        ModeState.Login -> WText("需要登录", WType.meta, palette.color { onSurfaceVariant })
+                        ModeState.Login -> WText("Sign-in required", WType.meta, palette.color { onSurfaceVariant })
                         ModeState.Roam -> RoamingLabel(palette)
                         ModeState.Idle -> WText(mode.group, WType.meta, palette.color { onSurfaceVariant })
                     }
@@ -121,9 +121,9 @@ fun ModeLayout(view: ModeView?, palette: WidgetPalette, background: WidgetBackgr
                 Spacer(GlanceModifier.width(10.dp))
                 val button = minOf(48.dp, LocalSize.current.height - 24.dp).coerceAtLeast(32.dp)
                 if (view.state == ModeState.Login) {
-                    WIconButton(R.drawable.ic_w_login, button, 22.dp, palette, login, "去登录")
+                    WIconButton(R.drawable.ic_w_login, button, 22.dp, palette, login, "Sign in")
                 } else {
-                    WPlayButton(view.playing, button, palette, play, description = if (view.playing) "暂停漫游" else "开始漫游 ${mode.name}")
+                    WPlayButton(view.playing, button, palette, play, description = if (view.playing) "Pause roaming" else "Start roaming ${mode.name}")
                 }
             }
             ModeBp.Square -> Column(modifier = GlanceModifier.fillMaxSize().padding(14.dp)) {
@@ -141,12 +141,12 @@ fun ModeLayout(view: ModeView?, palette: WidgetPalette, background: WidgetBackgr
                     }
                     Spacer(GlanceModifier.height(12.dp))
                 }
-                Column(modifier = GlanceModifier.fillMaxWidth().onClick(openMode).describe("${mode.name}，打开听歌模式页")) {
+                Column(modifier = GlanceModifier.fillMaxWidth().onClick(openMode).describe("${mode.name}, open listening modes")) {
                     WText(mode.name, 21.sp, palette.color { onSurface }, weight = FontWeight.Bold)
                     Spacer(GlanceModifier.height(2.dp))
                     val sub = when (view.state) {
                         ModeState.Roam -> view.nowPlaying
-                        ModeState.Login -> "登录${view.providerName}后才能漫游"
+                        ModeState.Login -> "Sign in to ${view.providerName} to roam"
                         ModeState.Idle -> mode.subtitle
                     }
                     if (short && view.state == ModeState.Roam) RoamingLabel(palette)
@@ -154,17 +154,17 @@ fun ModeLayout(view: ModeView?, palette: WidgetPalette, background: WidgetBackgr
                 }
                 Spacer(GlanceModifier.defaultWeight())
                 when (view.state) {
-                    ModeState.Login -> WPill(R.drawable.ic_w_login, "去登录", palette, login, GlanceModifier.fillMaxWidth())
+                    ModeState.Login -> WPill(R.drawable.ic_w_login, "Sign in", palette, login, GlanceModifier.fillMaxWidth())
                     ModeState.Roam -> Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Spacer(GlanceModifier.defaultWeight())
-                        WIconButton(R.drawable.ic_w_next, 44.dp, 22.dp, palette, if (interactive) WidgetActions.transport("next") else null, "下一首")
+                        WIconButton(R.drawable.ic_w_next, 44.dp, 22.dp, palette, if (interactive) WidgetActions.transport("next") else null, "Next")
                         Spacer(GlanceModifier.width(8.dp))
                         WPlayButton(view.playing, 48.dp, palette, play)
                     }
                     ModeState.Idle -> Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         CoverStack(view.covers.ifEmpty { listOf(mode.cover) }.filter { it.isNotBlank() }.take(2), palette)
                         Spacer(GlanceModifier.defaultWeight())
-                        WPlayButton(false, 48.dp, palette, play, description = "开始漫游 ${mode.name}")
+                        WPlayButton(false, 48.dp, palette, play, description = "Start roaming ${mode.name}")
                     }
                 }
             }
@@ -177,7 +177,7 @@ private fun RoamingLabel(palette: WidgetPalette) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         WIcon(R.drawable.ic_w_bars, 14.dp, palette.color { primary })
         Spacer(GlanceModifier.width(4.dp))
-        WText("漫游中", WType.meta, palette.color { primary })
+        WText("Roaming", WType.meta, palette.color { primary })
     }
 }
 

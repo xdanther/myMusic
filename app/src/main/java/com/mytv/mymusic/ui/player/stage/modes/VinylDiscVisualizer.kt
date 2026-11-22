@@ -83,31 +83,31 @@ import android.graphics.Path as NativePath
  * 黑胶唱片（vinyl-disc 1.7.10，作者 pomepii，MIT）：仿 QQ 音乐、网易云的黑胶播放页。数值、配色照原模组。
  *
  * - 唱片：深灰径向渐变的盘面、每 4dp 一道 1dp 的细纹、碟心是封面（占直径 60%，外圈一道黑边一道淡白边），
- *   盘面上一道固定不转的光泽（从 205° 起的锥形渐变，46°、214° 两处亮），背后一圈封面主色（或主题色）的弥散光晕和一片落地阴影。
- *   播放时碟心按“转一圈”的秒数匀速转；暂停时停在当前角度。
- * - 唱臂：右上角的支点、细长的白色臂杆、圆角弯头和玻璃质感的唱头，带一层投影；播放时落在碟心外的纹路上，暂停时转开 50° 抬起。
- * - 歌词排在唱片旁：前 2 句、当前句、后 4 句（“显示后面几句”关掉时没有后 4 句），离当前句越远越淡；
+ *   盘面上一道固定不转的光泽（从 205° 起的锥形渐变，46°、214° 两处亮），背后一圈封面主色（或Theme color）的弥散光晕和一片落地阴影。
+ *   播放时碟心按“Full rotation”的秒数匀速转；暂停时停在当前角度。
+ * - Tonearm：右上角的支点、细长的白色臂杆、圆角弯头和玻璃质感的唱头，带一层投影；播放时落在碟心外的纹路上，暂停时转开 50° 抬起。
+ * - 歌词排在唱片旁：前 2 句、当前句、后 4 句（“Show the next lines”关掉时没有后 4 句），离当前句越远越淡；
  *   当前句加粗，有逐字时间时每个词唱到时从左往右扫成封面主色，正在唱的词放大 6%；每句下面跟着自己的翻译。
  *   横屏顶上还有歌名、歌手。换句时当前句从下面 0.35em 处淡入。句间、空行保持上一句；“歌名 - 歌手”这种元数据行跳过。
  *
  * 移植取舍：
- * - 横屏照原模组左右排：唱片直径取安全区高度 × 唱片大小（最多宽度的 42%、最少 64dp），两边各留 15% 宽、中间隔 3%；
- *   唱片在左时把唱臂抬起后伸出的那一截加进间隔，免得压到歌词。竖屏改成唱片在上、歌词在下（唱片大小按宽度算，最多宽 80%、高 46%），
- *   省掉歌名行（顶栏已经有），前后句放不下就从最远的开始省。唱片、唱臂、歌词都在安全区里，光晕和阴影是背景可以出界。
- * - 盘面和纹路在缓存块里画进一张位图，唱臂（含投影）用软件画布画进另一张位图，投影是 extractAlpha + BlurMaskFilter，
- *   和原模组的 feDropShadow 一样；每帧只改碟心那一层的旋转角（图层属性，不重画），唱臂只在抬落的弹簧动画期间重画。
+ * - 横屏照原模组左右排：唱片直径取安全区高度 × Record size（最多宽度的 42%、最少 64dp），两边各留 15% 宽、中间隔 3%；
+ *   唱片在左时把Tonearm抬起后伸出的那一截加进间隔，免得压到歌词。竖屏改成唱片在上、歌词在下（Record size按宽度算，最多宽 80%、高 46%），
+ *   省掉歌名行（顶栏已经有），前后句放不下就从最远的开始省。唱片、Tonearm、歌词都在安全区里，光晕和阴影是背景可以出界。
+ * - 盘面和纹路在缓存块里画进一张位图，Tonearm（含投影）用软件画布画进另一张位图，投影是 extractAlpha + BlurMaskFilter，
+ *   和原模组的 feDropShadow 一样；每帧只改碟心那一层的旋转角（图层属性，不重画），Tonearm只在抬落的弹簧动画期间重画。
  * - 原模组盘面的白色描边（rim）用的是 farthest-corner 尺寸的径向渐变，落在唱片外面被裁掉了，实际看不见，这里不画；
  *   光晕的 blur(9%) 和落地阴影的 60px 模糊按原模组的尺寸预先算成径向渐变的色标，不做实时模糊。
- * - 唱臂抬落原模组是 0.9 秒带回弹的 cubic-bezier 过渡，这里用 Material 的慢速空间弹簧。
+ * - Tonearm抬落原模组是 0.9 秒带回弹的 cubic-bezier 过渡，这里用 Material 的慢速空间弹簧。
  * - 逐字填色照原模组只给有逐字时间（多于一个词）的句子；整句时间的歌只加粗不填色。
  * - 原模组隐藏的 3 项保持默认：碟心占比 60%、不画中心孔、歌词左对齐。
  * - 碟心封面用 Coil 加载；没有封面或加载失败时画原模组的“没有封面”碟心：深棕色细条纹（每 14° 换一色）上居中写歌名、歌手，
  *   跟着唱片一起转。加载中是一块纯深棕色。
- * - 减少动态效果：唱片不转、唱臂落着、当前句整句填满色，不播入场。
+ * - 减少动态效果：唱片不转、Tonearm落着、当前句整句填满色，不播入场。
  */
 object VinylDiscVisualizer : LyricVisualizer {
     override val id = "vinyl"
-    override val label = "黑胶唱片"
+    override val label = "Vinyl disc"
     override val origin = ModOrigin("vinyl-disc", "1.7.10", "pomepii", "MIT")
     override val order = 50
     override val hostBackground = true
@@ -117,14 +117,14 @@ object VinylDiscVisualizer : LyricVisualizer {
     override val hiddenSettings = 3
 
     override val settings: List<LyricSetting> = listOf(
-        LyricSetting.Choice("discSide", "唱片位置", listOf("left" to "左", "right" to "右"), "right", summary = "竖屏固定上下排"),
-        LyricSetting.Number("discSize", "唱片大小", 0.3f, 1f, 0.02f, 0.62f, ::formatPercent),
-        LyricSetting.Number("spinSeconds", "转一圈", 6f, 60f, 2f, 20f, ::formatSeconds),
-        LyricSetting.Choice("halo", "光晕", listOf("off" to "关", "cover" to "封面色", "theme" to "主题色"), "cover"),
-        LyricSetting.Toggle("showArm", "唱臂", true),
-        LyricSetting.Toggle("sheen", "唱片光泽", true),
-        LyricSetting.Toggle("showNext", "显示后面几句", true),
-        LyricSetting.Number("textScale", "字号", 0.6f, 1.8f, 0.05f, 1.25f),
+        LyricSetting.Choice("discSide", "Record position", listOf("left" to "Left", "right" to "Right"), "right", summary = "Fixed top and bottom rows in portrait"),
+        LyricSetting.Number("discSize", "Record size", 0.3f, 1f, 0.02f, 0.62f, ::formatPercent),
+        LyricSetting.Number("spinSeconds", "Full rotation", 6f, 60f, 2f, 20f, ::formatSeconds),
+        LyricSetting.Choice("halo", "Glow", listOf("off" to "Off", "cover" to "Cover color", "theme" to "Theme color"), "cover"),
+        LyricSetting.Toggle("showArm", "Tonearm", true),
+        LyricSetting.Toggle("sheen", "Record sheen", true),
+        LyricSetting.Toggle("showNext", "Show the next lines", true),
+        LyricSetting.Number("textScale", "Size", 0.6f, 1.8f, 0.05f, 1.25f),
     )
 
     @Composable
@@ -132,9 +132,9 @@ object VinylDiscVisualizer : LyricVisualizer {
         val config = remember(ctx.settings) { VinylConfig(ctx.settings) }
         val still = ctx.display.reduceMotion
         val spec: AnimationSpec<Float> = if (still) snap() else MaterialTheme.motionScheme.slowSpatialSpec()
-        // 唱臂：播放时落下（0°），暂停时绕支点逆时针转开 50°；减少动态效果时一直落着
+        // Tonearm：播放时落下（0°），暂停时绕支点逆时针转开 50°；减少动态效果时一直落着
         val arm = animateFloatAsState(if (!still && ctx.paused.value) ARM_LIFT_DEG else 0f, spec, label = "vinylArm")
-        // 填色用的封面主色：没有封面时原模组退到主题色
+        // 填色用的封面主色：没有封面时原模组退到Theme color
         val sung = if (ctx.song.cover.isNotBlank()) WaveVinylKit.dominant(ctx.colors.cover[0]) else ctx.colors.accent
         val halo = when (config.halo) {
             "cover" -> sung
@@ -341,7 +341,7 @@ private fun DiscLabel(ctx: LyricStageContext, config: VinylConfig) {
     }
 }
 
-/** 光泽和唱臂：光泽不动；唱臂只在抬落动画期间重画（绘制阶段读 [arm]）。 */
+/** 光泽和Tonearm：光泽不动；Tonearm只在抬落动画期间重画（绘制阶段读 [arm]）。 */
 @Composable
 private fun DiscTop(ctx: LyricStageContext, config: VinylConfig, arm: State<Float>) {
     val bake = remember { ArmBake() }
@@ -364,7 +364,7 @@ private fun DiscTop(ctx: LyricStageContext, config: VinylConfig, arm: State<Floa
     )
 }
 
-/** 唱臂位图（落下时的姿态，含投影），按唱片大小缓存。 */
+/** Tonearm位图（落下时的姿态，含投影），按Record size缓存。 */
 private class ArmBake {
     private var unit = -1f
     private var image: ImageBitmap? = null
@@ -379,7 +379,7 @@ private class ArmBake {
 }
 
 /**
- * 照原模组的 SVG 画唱臂：坐标是唱片的 0–100（[unit] px 一格），支点在 (90, −8)。
+ * 照原模组的 SVG 画Tonearm：坐标是唱片的 0–100（[unit] px 一格），支点在 (90, −8)。
  * 软件画布先画臂，再用 extractAlpha + BlurMaskFilter 取出模糊的轮廓当投影（feDropShadow：下移 2.5、标准差 2.2、黑 40%）垫在下面。
  */
 private fun bakeArm(unit: Float): ImageBitmap {
@@ -447,7 +447,7 @@ private fun bakeArm(unit: Float): ImageBitmap {
     return out.asImageBitmap()
 }
 
-/** 唱片转到的角度（度，0..360）：转一圈 [spinSeconds] 秒，动画时钟只在播放时走，暂停时自然停住。 */
+/** 唱片转到的角度（度，0..360）：Full rotation [spinSeconds] 秒，动画时钟只在播放时走，暂停时自然停住。 */
 internal fun vinylAngle(seconds: Float, spinSeconds: Float): Float {
     if (spinSeconds <= 0f) return 0f
     val turns = seconds / spinSeconds
@@ -463,8 +463,8 @@ internal class VinylGeometry(val disc: Rect, val text: Rect, val header: Boolean
 
 /**
  * 唱片和歌词区，都在安全区 [safe] 里。
- * - 横屏：直径 = 高 × [discSize]，最多宽的 42%、最少 [minDisc]，唱臂支点（直径的 12.5%）露在唱片上面也不出安全区；
- *   两边各留 15% 宽，唱片和歌词隔 3% 宽，唱片在左时再让出唱臂抬起后伸出的那一截；唱片竖向居中。
+ * - 横屏：直径 = 高 × [discSize]，最多宽的 42%、最少 [minDisc]，Tonearm支点（直径的 12.5%）露在唱片上面也不出安全区；
+ *   两边各留 15% 宽，唱片和歌词隔 3% 宽，唱片在左时再让出Tonearm抬起后伸出的那一截；唱片竖向居中。
  * - 竖屏：直径 = 宽 × [discSize]，最多宽 80%、高 46%；唱片水平居中贴顶，歌词区在下面，左右各留 8%。
  */
 internal fun vinylGeometry(safe: Rect, wide: Boolean, discLeft: Boolean, discSize: Float, showArm: Boolean, minDisc: Float): VinylGeometry {
@@ -655,7 +655,7 @@ private fun VinylLyrics(ctx: LyricStageContext, config: VinylConfig, sung: Color
     )
 }
 
-/** 逐字填色：每个词先画一层原色，再按唱到的比例从左裁出一层封面色；正在唱的词放大 6%。 */
+/** 逐字填色：每个词先画一层原色，再按唱到的比例从左裁出一层Cover color；正在唱的词放大 6%。 */
 private fun DrawScope.drawKaraoke(pieces: List<VinylPiece>, ctx: LyricStageContext, text: Color, sung: Color, alpha: Float) {
     val still = ctx.display.reduceMotion
     val ms = if (still) 0L else ctx.clock.ms
@@ -864,16 +864,16 @@ private const val SQRT2 = 1.4142135f
 private val GROOVE_SPACING = 4.dp
 private val GROOVE_LINE = 1.dp
 
-/** 唱臂支点圆的顶端在唱片上方直径的 12.3% 处（支点 y = −8、半径 4.3），按 12.5% 留。 */
+/** Tonearm支点圆的顶端在唱片上方直径的 12.3% 处（支点 y = −8、半径 4.3），按 12.5% 留。 */
 private const val ARM_REACH_TOP = 0.125f
 
-/** 唱臂抬起后唱头伸出唱片右边的长度（直径的比例）。 */
+/** Tonearm抬起后唱头伸出唱片右边的长度（直径的比例）。 */
 private const val ARM_OVERHANG = 0.12f
 private const val ARM_LIFT_DEG = -50f
 private const val ARM_PIVOT_X = 90f
 private const val ARM_PIVOT_Y = -8f
 
-// 唱臂位图覆盖的范围（唱片 0–100 坐标），含投影外溢
+// Tonearm位图覆盖的范围（唱片 0–100 坐标），含投影外溢
 private const val ARM_BOX_LEFT = 62f
 private const val ARM_BOX_TOP = -20f
 private const val ARM_BOX_WIDTH = 40f

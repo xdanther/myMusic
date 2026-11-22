@@ -50,7 +50,7 @@ internal object WallReflowTable {
     }
 
     fun decode(packed: String): List<UnitRect> {
-        require(packed.length == SLOTS * 4) { "重排串应为 ${SLOTS * 4} 位：$packed" }
+        require(packed.length == SLOTS * 4) { "The shuffled string should be ${SLOTS * 4} characters: $packed" }
         val v = IntArray(packed.length) { packed[it].digitToInt(RADIX) }
         return List(SLOTS) { i -> UnitRect(v[i * 4], v[i * 4 + 1], v[i * 4 + 2], v[i * 4 + 3]) }
     }
@@ -76,7 +76,7 @@ internal object WallReflowTable {
             if (placeCost >= solver.bestCost) continue
             solver.search(px, py, placeCost)
         }
-        val rest = checkNotNull(solver.best) { "重排无解：${key(template, mirror, slot)}" }
+        val rest = checkNotNull(solver.best) { "No layout for: ${key(template, mirror, slot)}" }
         var j = 0
         return List(SLOTS) { i -> if (i == slot) UnitRect(solver.bestX, solver.bestY, GROW, GROW) else rest[j++] }
     }

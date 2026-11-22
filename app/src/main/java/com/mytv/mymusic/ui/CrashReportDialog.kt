@@ -70,12 +70,12 @@ fun CrashReportDialog(
         modifier = Modifier.widthIn(max = 560.dp),
         title = {
             DialogAvoidsFold()
-            Text(if (onDelete == null) "上次异常退出" else "崩溃报告")
+            Text(if (onDelete == null) "Last unexpected exit" else "Crash report")
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "报告记录 Java/Kotlin 未捕获异常，只保存在本机，不会自动上传；native 崩溃不经过此处理器。",
+                    "The report records uncaught Java/Kotlin exceptions, stays on this device and is never uploaded automatically; native crashes don't pass through this handler.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -99,7 +99,7 @@ fun CrashReportDialog(
                     }
                 }
                 Text(
-                    "GitHub 链接只预填简短设备/版本摘要。请先复制完整报告，打开 Issues 后再粘贴到正文；发送前请检查个人信息。",
+                    "The GitHub link only pre-fills a short device/version summary. Copy the full report first, open Issues and paste it into the body; check for personal information before sending.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -110,26 +110,26 @@ fun CrashReportDialog(
                     Button(
                         onClick = {
                             scope.launch {
-                                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("myMusic 崩溃报告", report.text)))
-                                snackbar.showSnackbar("完整崩溃报告已复制")
+                                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("myMusic crash report", report.text)))
+                                snackbar.showSnackbar("Full crash report copied")
                             }
                         },
                         modifier = Modifier.focusRequester(copyFocus).tvFocusRing(buttonShape),
                     ) {
-                        Text("复制完整报告")
+                        Text("Copy full report")
                     }
                     TextButton(
                         onClick = {
                             runCatching { uriHandler.openUri(CrashReporter.issueUrl(context, report.summary)) }
-                                .onFailure { scope.launch { snackbar.showSnackbar("这台设备没有可以打开链接的应用") } }
+                                .onFailure { scope.launch { snackbar.showSnackbar("No app on this device can open links") } }
                         },
                         modifier = Modifier.tvFocusRing(buttonShape),
                     ) {
-                        Text("打开 GitHub Issues")
+                        Text("Open GitHub Issues")
                     }
                     if (onDelete != null) {
                         TextButton(onClick = onDelete, modifier = Modifier.tvFocusRing(buttonShape)) {
-                            Text("删除报告", color = MaterialTheme.colorScheme.error)
+                            Text("Delete report", color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
@@ -137,7 +137,7 @@ fun CrashReportDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss, modifier = Modifier.tvFocusRing(buttonShape)) {
-                Text("关闭")
+                Text("Close")
             }
         },
     )

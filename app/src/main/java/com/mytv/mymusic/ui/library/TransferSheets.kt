@@ -131,10 +131,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// ======================= 导出歌单（设计稿 06 节 ⑪ ⑫） =======================
+// ======================= Export playlist（设计稿 06 节 ⑪ ⑫） =======================
 
 /**
- * 导出歌单面板。[ids] 为 null 时先选歌单（同步页「导出歌单…」多选，可以勾上我的收藏），选好再到确认这一步；
+ * Export playlist面板。[ids] 为 null 时先选歌单（同步页「Export playlist…」多选，可以勾上我的收藏），选好再到确认这一步；
  * 从歌单 ⋮ 进来直接是确认这一步。只出 myMusic 歌单文件一种格式，没有格式选择。
  */
 @Composable
@@ -148,22 +148,22 @@ internal fun ExportSheet(ids: List<String>?, actions: MusicActions, onDismiss: (
         if (current != null) value = actions.exportPreview(current)
     }
     val loaded = preview?.takeIf { current != null }
-    // 「保存到文件」没有系统文件选择器（电视）：同一个面板换成扫码下载
+    // 「Save to file」没有系统文件选择器（电视）：同一个面板换成扫码下载
     var download by remember { mutableStateOf<ExportFile?>(null) }
     val tv = LocalAppWindow.current.isTv
     AdaptiveSheet(
         onDismiss = onDismiss,
         title = when {
-            download != null -> "导出到手机"
-            current == null -> "导出歌单"
-            loaded == null -> "导出歌单"
-            loaded.lists.size == 1 -> "导出「${loaded.title}」"
-            else -> "导出 ${loaded.lists.size} 个歌单"
+            download != null -> "Export to phone"
+            current == null -> "Export playlist"
+            loaded == null -> "Export playlist"
+            loaded.lists.size == 1 -> "Export '${loaded.title}'"
+            else -> "Export ${loaded.lists.size} playlists"
         },
         subtitle = when {
-            download != null -> if (tv) "这台电视没有系统文件选择器" else "这台设备没有系统文件选择器"
-            current == null -> "挑几个歌单导出成一个文件，可以发给别人"
-            else -> "myMusic 歌单文件 · 不包含平台账号和 Cookie"
+            download != null -> if (tv) "This TV has no system file picker" else "This device has no system file picker"
+            current == null -> "Export selected playlists into one file you can share"
+            else -> "myMusic playlist file · no platform accounts or cookies"
         },
     ) {
         val file = download
@@ -213,7 +213,7 @@ private fun ColumnScope.ExportPickStep(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            "已选 ${chosen.size} 个",
+            "${chosen.size} selected",
             Modifier.weight(1f),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -222,7 +222,7 @@ private fun ColumnScope.ExportPickStep(
         TextButton(
             onClick = { onSelection(if (all) emptyList() else allIds) },
             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-        ) { Text(if (all) "全不选" else "全选") }
+        ) { Text(if (all) "Select none" else "Select all") }
     }
     LazyColumn(
         Modifier.fillMaxWidth().weight(1f, fill = false).padding(horizontal = 16.dp),
@@ -244,8 +244,8 @@ private fun ColumnScope.ExportPickStep(
                     },
                 icon = if (row.favorite) Icons.Filled.Favorite else Icons.AutoMirrored.Filled.QueueMusic,
                 summary = listOfNotNull(
-                    "${row.count} 首",
-                    row.linkProvider.takeIf { it.isNotBlank() }?.let { "绑定${shortPlatform(it)}" },
+                    "${row.count} tracks",
+                    row.linkProvider.takeIf { it.isNotBlank() }?.let { "Link ${shortPlatform(it)}" },
                 ).joinToString(" · "),
                 showChevron = false,
                 trailing = {
@@ -264,12 +264,12 @@ private fun ColumnScope.ExportPickStep(
             .padding(start = 24.dp, end = 24.dp, top = 16.dp)
             .heightIn(min = 52.dp)
             .tvFocusRing(RoundedCornerShape(26.dp)),
-    ) { Text(if (chosen.isEmpty()) "下一步" else "下一步 · 已选 ${chosen.size} 个") }
+    ) { Text(if (chosen.isEmpty()) "Next" else "Next · ${chosen.size} selected") }
 }
 
 private data class PickRow(val id: String, val name: String, val count: Int, val linkProvider: String, val favorite: Boolean = false)
 
-/** 第 2 步：照稿子 renderK——说明、会导出几首、各平台多少首、分享 / 保存到文件、文件名。 */
+/** 第 2 步：照稿子 renderK——说明、Exports几首、各平台多少首、分享 / Save to file、文件名。 */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColumnScope.ExportConfirmStep(
@@ -294,7 +294,7 @@ private fun ColumnScope.ExportConfirmStep(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                exportError = "导出失败：${error.message.orEmpty()}"
+                exportError = "Export failed: ${error.message.orEmpty()}"
             }
         }
     }
@@ -319,22 +319,22 @@ private fun ColumnScope.ExportConfirmStep(
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("重新选择歌单")
+                Text("Choose playlists again")
             }
         }
         if (preview == null) {
-            AppLoading(text = "正在读取歌单…")
+            AppLoading(text = "Reading playlists…")
             return@Column
         }
         val counts = preview.counts
         val empty = counts.kept == 0
         Text(
-            if (empty) "歌单里还没有歌" else "发给另一台装了 myMusic 的设备，用「我的 › 新建 › 从文件导入」打开，所有平台都能完整还原。",
+            if (empty) "The playlist is empty" else "Send it to another device with myMusic and open it via Library › New › Import from file; tracks from every platform are restored.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SectionLabel("会导出", trailing = {
-            Text("${counts.kept} 首", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SectionLabel("Exports", trailing = {
+            Text("${counts.kept} tracks", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         })
         if (!empty) {
             val ordered = counts.byProvider.entries.sortedByDescending { it.value }
@@ -343,7 +343,7 @@ private fun ColumnScope.ExportConfirmStep(
                     .fillMaxWidth()
                     // 读屏把整组读成一句
                     .clearAndSetSemantics {
-                        contentDescription = ordered.joinToString("，") { (provider, n) -> "${platformLabel(provider)} $n 首" }
+                        contentDescription = ordered.joinToString("，") { (provider, n) -> "${platformLabel(provider)} $n tracks" }
                     },
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -353,7 +353,7 @@ private fun ColumnScope.ExportConfirmStep(
         }
         if (counts.local > 0) {
             Text(
-                "本地 ${counts.local} 首按歌名歌手对，对方设备上有同一首才能放。",
+                "${counts.local} local tracks are matched by title and artist and play only if the other device has the same track.",
                 Modifier.padding(top = 12.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -361,7 +361,7 @@ private fun ColumnScope.ExportConfirmStep(
         }
         if (counts.total > counts.kept) {
             Text(
-                "${counts.total - counts.kept} 首重复或存档坏了，不写进文件。",
+                "${counts.total - counts.kept} duplicates or broken entries are left out.",
                 Modifier.padding(top = 8.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -379,7 +379,7 @@ private fun ColumnScope.ExportConfirmStep(
                 ) {
                     Icon(Icons.Filled.Share, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("分享")
+                    Text("Share")
                 }
             }
             Button(
@@ -399,7 +399,7 @@ private fun ColumnScope.ExportConfirmStep(
             ) {
                 Icon(Icons.Filled.SaveAlt, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("保存到文件")
+                Text("Save to file")
             }
         }
         if (exportError.isNotBlank()) {
@@ -411,7 +411,7 @@ private fun ColumnScope.ExportConfirmStep(
             )
         }
         Text(
-            "文件名：${preview.fileName}",
+            "File name: ${preview.fileName}",
             Modifier.fillMaxWidth().padding(top = 12.dp),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -420,7 +420,7 @@ private fun ColumnScope.ExportConfirmStep(
     }
 }
 
-// ======================= 从文件导入：预览（设计稿 06 节 ⑬） =======================
+// ======================= Import from file：预览（设计稿 06 节 ⑬） =======================
 
 /**
  * 导入预览：外壳按 [transfer] 挂，从哪一页导入都盖在上面（电视扫码收到的文件也直接弹）。
@@ -436,22 +436,22 @@ internal fun ImportPreviewSheet(transfer: TransferUi, actions: MusicActions) {
     val reading = transfer as? TransferUi.Reading
     val subtitle = when {
         plan != null -> listOf(
-            (if (plan.fromPhone) "手机传来 " else "") + plan.fileName,
+            (if (plan.fromPhone) "Received from phone " else "") + plan.fileName,
             plan.sourceLabel,
-            "${plan.lists.size} 个歌单",
+            "${plan.lists.size} playlists",
         ).joinToString(" · ")
-        reading != null -> (if (reading.fromPhone) "手机传来 " else "") + reading.fileName
+        reading != null -> (if (reading.fromPhone) "Received from phone " else "") + reading.fileName
         else -> ""
     }
-    AdaptiveSheet(onDismiss = actions::dismissImport, title = "从文件导入", subtitle = subtitle) {
+    AdaptiveSheet(onDismiss = actions::dismissImport, title = "Import from file", subtitle = subtitle) {
         if (plan == null) {
             val tv = LocalAppWindow.current.isTv
             Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                AppLoading(text = reading?.step ?: "正在读取…")
+                AppLoading(text = reading?.step ?: "Reading…")
                 TextButton(
                     onClick = actions::dismissImport,
                     modifier = Modifier.sheetDefaultFocus(tv).tvFocusRing(RoundedCornerShape(20.dp)),
-                ) { Text("取消") }
+                ) { Text("Cancel") }
             }
         } else {
             ImportPreviewBody(plan, applying = transfer is TransferUi.Applying, actions = actions)
@@ -478,10 +478,10 @@ private fun ColumnScope.ImportPreviewBody(plan: ImportPlan, applying: Boolean, a
             .padding(horizontal = 16.dp),
     ) {
         val note = buildString {
-            append(if (plan.lx) "认出是洛雪导出的歌单文件。" else "认出是 myMusic 歌单文件。")
-            append("勾选要导入的；导入后是普通自建歌单，会跟着同步。")
-            if (plan.legacy) append("旧版格式，已按洛雪的规则转换。")
-            if (plan.newerVersion) append("文件来自更新的版本，部分信息可能丢失。")
+            append(if (plan.lx) "Recognized as an LX Music playlist file." else "Recognized as a myMusic playlist file.")
+            append("Tick what to import; imported playlists are ordinary local playlists and sync from then on.")
+            if (plan.legacy) append("Older format, converted using LX Music rules.")
+            if (plan.newerVersion) append("The file comes from a newer version; some information may be lost.")
         }
         Text(
             note,
@@ -510,7 +510,7 @@ private fun ColumnScope.ImportPreviewBody(plan: ImportPlan, applying: Boolean, a
             }
         }
         if (hasSameName) {
-            SectionLabel("同名歌单")
+            SectionLabel("Playlist with the same name")
             ConnectedToggleGroup(
                 options = listOf(true, false),
                 selected = merge,
@@ -518,13 +518,13 @@ private fun ColumnScope.ImportPreviewBody(plan: ImportPlan, applying: Boolean, a
                     merge = value
                     choices = applySameNameToggle(plan, choices, overridden, value)
                 },
-                label = { if (it) "合并" else "另建一个" },
+                label = { if (it) "Merge" else "Create another" },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
             )
         }
         val skippedText = importSkippedText(plan)
         if (skippedText.isNotBlank()) {
-            SectionLabel(if (importLosesSomething(plan)) "导不了的" else "说明")
+            SectionLabel(if (importLosesSomething(plan)) "Can't import" else "Details")
             Text(
                 skippedText,
                 Modifier.padding(horizontal = 8.dp),
@@ -537,7 +537,7 @@ private fun ColumnScope.ImportPreviewBody(plan: ImportPlan, applying: Boolean, a
                 onClick = actions::recheckImport,
                 enabled = !applying,
                 modifier = Modifier.padding(top = 4.dp).tvFocusRing(RoundedCornerShape(20.dp)),
-            ) { Text("重新换取咪咕歌曲") }
+            ) { Text("Fetch the Migu tracks again") }
         }
         Spacer(Modifier.size(8.dp))
     }
@@ -553,9 +553,9 @@ private fun ColumnScope.ImportPreviewBody(plan: ImportPlan, applying: Boolean, a
     ) {
         Text(
             when {
-                applying -> "正在导入…"
-                listCount == 0 -> "没有勾选歌单"
-                else -> "导入 $listCount 个歌单 · $songCount 首"
+                applying -> "Importing…"
+                listCount == 0 -> "No playlists selected"
+                else -> "Import $listCount playlists · $songCount tracks"
             },
             style = MaterialTheme.typography.titleSmall,
         )
@@ -619,10 +619,10 @@ private fun ImportListRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.width(6.dp))
-                Text("${list.shown} 首", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${list.shown} tracks", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (!usable) {
-                Text("没有能导入的歌", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("No importable songs", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 TargetPicker(plan, list, choice.target, enabled = enabled && checked, focus = pickerFocus, back = rowFocus, onTarget = onTarget)
             }
@@ -635,7 +635,7 @@ private fun ImportListRow(
                         .padding(top = 6.dp)
                         .clearAndSetSemantics {
                             contentDescription = chips.joinToString("，") { (p, n, skipped) ->
-                                "${platformLabel(p)} $n 首" + if (skipped) "导不了" else ""
+                                "${platformLabel(p)} $n tracks" + if (skipped) "Can't import" else ""
                             }
                         },
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -677,7 +677,7 @@ private fun TargetPicker(
                 }
                 .tvFocusRing(RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp))
-                .clickable(enabled = enabled, onClickLabel = "改导入方式") { open = true }
+                .clickable(enabled = enabled, onClickLabel = "Change import mode") { open = true }
                 .padding(vertical = 4.dp, horizontal = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -709,7 +709,7 @@ private sealed interface FileTransferSession {
 }
 
 /**
- * 没有系统文件选择器时「从文件导入」：出二维码，手机扫码在网页里选文件传过来。
+ * 没有系统文件选择器时「Import from file」：出二维码，手机扫码在网页里选文件传过来。
  * 文件到了扫码面板收起、导入预览接着弹；服务留到导入完成或放弃，网页那边能看到结果，再过几秒关掉。
  */
 @Composable
@@ -736,12 +736,12 @@ internal fun TvFileUploadHost(actions: MusicActions, onDismiss: () -> Unit) {
         val start = receivedAt ?: return@LaunchedEffect
         val transfer = currentActions.transfer
         transfer.first { it !is TransferUi.Idle }
-        server?.setStatus(TransferPhase.Received, "在电视上勾选要导入的歌单，再按「导入」")
+        server?.setStatus(TransferPhase.Received, "Tick the playlists to import on the TV, then tap Import")
         transfer.first { it is TransferUi.Idle }
         val imported = currentActions.importDone.value > start
         server?.setStatus(
             if (imported) TransferPhase.Done else TransferPhase.Error,
-            if (imported) "歌单已经加到电视上了" else "电视上取消了，或者文件读不出来（电视上有提示）",
+            if (imported) "Playlists added to the TV" else "Cancelled on the TV, or the file couldn't be read (the TV shows a message)",
         )
         // 网页每 2 秒问一次，留够时间让它看到结果
         delay(6_000)
@@ -751,14 +751,14 @@ internal fun TvFileUploadHost(actions: MusicActions, onDismiss: () -> Unit) {
     val tv = LocalAppWindow.current.isTv
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "从文件导入",
-        subtitle = if (tv) "这台电视没有系统文件选择器" else "这台设备没有系统文件选择器",
+        title = "Import from file",
+        subtitle = if (tv) "This TV has no system file picker" else "This device has no system file picker",
     ) {
         FileTransferBody(TransferMode.Upload, session, onRegenerate = { generation++ })
     }
 }
 
-/** 导出面板里「保存到文件」没有选择器时换成这一页：手机扫码下载。下载完电视不自动关（不知道手机存好没有）。 */
+/** 导出面板里「Save to file」没有选择器时换成这一页：手机扫码下载。下载完电视不自动关（不知道手机存好没有）。 */
 @Composable
 private fun ColumnScope.FileDownloadBody(file: ExportFile) {
     var generation by remember { mutableIntStateOf(0) }
@@ -794,14 +794,14 @@ private fun ColumnScope.FileTransferBody(mode: TransferMode, session: FileTransf
                     is FileTransferSession.Ready -> QrCodeImage(
                         text = session.url,
                         modifier = Modifier.fillMaxSize().padding(12.dp),
-                        description = if (upload) "扫描后在手机上选歌单文件发给电视" else "扫描后在手机上下载歌单文件",
+                        description = if (upload) "Scan to pick a playlist file on your phone and send it to the TV" else "Scan to download the playlist file on your phone",
                     )
                     is FileTransferSession.Error, FileTransferSession.Expired -> Column(
                         Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            if (session is FileTransferSession.Error) session.message else "已过期",
+                            if (session is FileTransferSession.Error) session.message else "Expired",
                             style = if (session is FileTransferSession.Error) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleLarge,
                             fontWeight = if (session is FileTransferSession.Error) null else FontWeight.Bold,
                             color = if (session is FileTransferSession.Error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
@@ -813,15 +813,15 @@ private fun ColumnScope.FileTransferBody(mode: TransferMode, session: FileTransf
                                 .padding(top = 14.dp)
                                 .sheetDefaultFocus(tv, session)
                                 .tvFocusRing(RoundedCornerShape(24.dp)),
-                        ) { Text("重新生成") }
+                        ) { Text("Regenerate") }
                     }
                 }
             }
             Text(
                 if (upload) {
-                    "用手机扫码，在打开的网页里选文件\nmyMusic 歌单（.mymusic.json）或洛雪（.lxmc）"
+                    "Scan with your phone and pick the file on the page that opens\nmyMusic playlist (.mymusic.json) or LX Music (.lxmc)"
                 } else {
-                    "用手机扫码，在打开的网页里下载\n${(mode as TransferMode.Download).file.fileName}"
+                    "Scan with your phone and download from the page that opens\n${(mode as TransferMode.Download).file.fileName}"
                 },
                 Modifier.fillMaxWidth().padding(top = 14.dp),
                 style = MaterialTheme.typography.bodyMedium,
@@ -829,13 +829,13 @@ private fun ColumnScope.FileTransferBody(mode: TransferMode, session: FileTransf
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
             ListRow(
-                title = "手机和电视连同一个网络",
+                title = "Phone and TV on the same network",
                 index = 0,
                 count = 1,
                 onClick = null,
                 modifier = Modifier.padding(top = 12.dp),
                 icon = Icons.Filled.PhoneAndroid,
-                summary = "网页只在这一页开着时可用，10 分钟后失效",
+                summary = "The page works only while open and expires after 10 minutes",
             )
             LocalNetworkHint(Modifier.padding(top = 12.dp))
             Button(
@@ -846,7 +846,7 @@ private fun ColumnScope.FileTransferBody(mode: TransferMode, session: FileTransf
                     .heightIn(min = 48.dp)
                     .sheetDefaultFocus(tv && session !is FileTransferSession.Expired && session !is FileTransferSession.Error, session is FileTransferSession.Ready)
                     .tvFocusRing(RoundedCornerShape(24.dp)),
-            ) { Text("关闭") }
+            ) { Text("Close") }
         }
     }
 }
@@ -909,7 +909,7 @@ private fun rememberFileTransferSession(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            value = FileTransferSession.Error(error.message ?: "无法开启局域网传输，请检查网络后重试")
+            value = FileTransferSession.Error(error.message ?: "Couldn't start the local transfer; check your network and try again")
         } finally {
             server?.stop()
         }
@@ -974,17 +974,17 @@ internal fun PlatformChip(provider: String, count: Int, skipped: Boolean = false
 
 /** 平台全称（读屏、说明里用）。 */
 internal fun platformLabel(provider: String): String = when (provider) {
-    "local" -> "本地"
+    "local" -> "Local"
     else -> providerName(com.mytv.mymusic.data.native.NativeProviders.infos(), provider)
 }
 
 /** 小块上的短名，照稿子：网易云、QQ、酷狗、酷我、咪咕、本地。 */
 internal fun shortPlatform(provider: String): String = when (provider) {
-    "netease" -> "网易云"
+    "netease" -> "NetEase"
     "qq" -> "QQ"
-    "kugou" -> "酷狗"
-    "kuwo" -> "酷我"
-    "migu" -> "咪咕"
-    "local" -> "本地"
+    "kugou" -> "Kugou"
+    "kuwo" -> "Kuwo"
+    "migu" -> "Migu"
+    "local" -> "Local"
     else -> platformLabel(provider)
 }

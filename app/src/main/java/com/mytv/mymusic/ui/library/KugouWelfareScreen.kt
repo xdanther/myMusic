@@ -67,7 +67,7 @@ fun KugouWelfareScreen(
     val claimFocus = remember { FocusRequester() }
     TvDefaultFocus(claimFocus)
     PageScaffold(
-        title = "酷狗概念版听歌领会员",
+        title = "Kugou Concept listening membership",
         subtitle = kugouWelfareHeadline(kugou),
         onBack = onBack,
         actions = {
@@ -76,7 +76,7 @@ fun KugouWelfareScreen(
                 enabled = !kugou.loading,
                 modifier = Modifier.tvFocusRing(CircleShape),
             ) {
-                Icon(Icons.Filled.Refresh, "刷新")
+                Icon(Icons.Filled.Refresh, "Refresh")
             }
         },
     ) { padding ->
@@ -97,20 +97,20 @@ fun KugouWelfareScreen(
                         KugouWelfareVipCard(kugou, claimFocus, onClaim)
                     }
                     item(key = "autoHead", contentType = "section") {
-                        SectionLabel("自动领取")
+                        SectionLabel("Automatic claim")
                     }
                     item(key = "auto", contentType = "card") { KugouWelfareAutoCard(autoClaim, onAutoClaimChange) }
                     item(key = "note", contentType = "note") {
                         SettingsNote(
-                            "领取和升级都打到酷狗概念版的官方活动接口上，会员直接发在当前登录的酷狗账号上，" +
-                                "在酷狗概念版客户端里就能用。接口可能变更或限流，领不到时可以到官方客户端里手动领。",
+                            "Claims and upgrades call Kugou Concept's official campaign API, and membership goes to the signed-in Kugou account," +
+                                "Use it in the Kugou Concept client. The API may change or throttle; if claiming fails, claim manually in the official client.",
                         )
                     }
                 }
             }
             if (kugou.error.isNotBlank()) {
                 item(key = "error", contentType = "note") {
-                    SettingsNote("获取失败：${kugou.error}，点右上角刷新重试。")
+                    SettingsNote("Couldn't load: ${kugou.error}. Tap Refresh in the top-right to retry.")
                 }
             }
         }
@@ -119,7 +119,7 @@ fun KugouWelfareScreen(
     LaunchedEffect(kugou.loggedIn) { if (kugou.loggedIn) onRefresh() }
 }
 
-/** 「我的」页入口：酷狗概念版听歌领会员的状态摘要。 */
+/** 「我的」页入口：Kugou Concept listening membership的状态摘要。 */
 @Composable
 internal fun KugouWelfareEntryCard(
     kugou: KugouWelfareUi,
@@ -130,7 +130,7 @@ internal fun KugouWelfareEntryCard(
 ) {
     val scheme = MaterialTheme.colorScheme
     ListRow(
-        title = "酷狗概念版听歌领会员",
+        title = "Kugou Concept listening membership",
         index = index,
         count = count,
         onClick = onOpen,
@@ -145,7 +145,7 @@ internal fun KugouWelfareEntryCard(
         trailing = when {
             !kugou.loggedIn -> null
             kugou.info.vipActive -> {
-                { Tag("VIP 中", scheme.primaryContainer, scheme.onPrimaryContainer, Icons.Filled.Check) }
+                { Tag("VIP active", scheme.primaryContainer, scheme.onPrimaryContainer, Icons.Filled.Check) }
             }
             else -> null
         },
@@ -190,21 +190,21 @@ private fun KugouWelfareVipCard(
                 Column(Modifier.weight(1f)) {
                     Text(info.vipLabel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
                     Text(
-                        if (active) "有效期至 ${formatVipDate(info.vipExpireAt)}" else "今天还没有免费 VIP",
+                        if (active) "Valid until ${formatVipDate(info.vipExpireAt)}" else "No free VIP today yet",
                         style = MaterialTheme.typography.bodyMedium,
                         color = dim,
                     )
                 }
                 if (active) {
-                    Tag("生效中", scheme.onPrimaryContainer.copy(alpha = 0.12f), scheme.onPrimaryContainer, Icons.Filled.Check)
+                    Tag("Active", scheme.onPrimaryContainer.copy(alpha = 0.12f), scheme.onPrimaryContainer, Icons.Filled.Check)
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     when {
-                        kugou.todayClaimed -> "今天已经领过了，明天再来"
-                        info.ok -> "今天这一份还没领"
-                        else -> "暂时不能领取"
+                        kugou.todayClaimed -> "Already claimed today; come back tomorrow"
+                        info.ok -> "Today's free VIP is unclaimed"
+                        else -> "Can't claim right now"
                     },
                     Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyLarge,
@@ -218,21 +218,21 @@ private fun KugouWelfareVipCard(
                     if (kugou.claiming) {
                         CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = scheme.onPrimary)
                     } else {
-                        Text(if (kugou.todayClaimed) "已领取" else "领取")
+                        Text(if (kugou.todayClaimed) "Claimed" else "Claim")
                     }
                 }
             }
             // 本月领取天数只有服务端给了可解析的记录才显示，不猜
             if (info.monthClaimedDays >= 0) {
                 Text(
-                    "本月已领 ${info.monthClaimedDays} 天",
+                    "${info.monthClaimedDays} days claimed this month",
                     style = MaterialTheme.typography.bodySmall,
                     color = dim,
                 )
             }
             if (!info.ok && info.loggedIn) {
                 Text(
-                    "没读到概念版的会员状态，可能是登录态过期或接口变更，点右上角刷新重试。",
+                    "Couldn't read Kugou Concept membership; the session may have expired or the API changed. Tap Refresh in the top-right to retry.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = dim,
                 )
@@ -252,9 +252,9 @@ private fun KugouWelfareAutoCard(autoClaim: Boolean, onAutoClaimChange: (Boolean
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Column(Modifier.weight(1f)) {
-                Text("启动时自动领取", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text("Claim automatically on launch", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
                 Text(
-                    "每天第一次打开 App 时领一次，同一天不重复请求。",
+                    "Claims once on the first launch each day; no repeat requests that day.",
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant,
                 )
@@ -282,16 +282,16 @@ private fun KugouWelfareLoginCard(onLogin: () -> Unit) {
                     Icon(Icons.Filled.QrCode2, null, Modifier.size(26.dp), tint = scheme.onPrimaryContainer)
                 }
                 Column(Modifier.weight(1f)) {
-                    Text("先登录酷狗音乐", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("Sign in to Kugou Music first", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
-                        "领到的畅听 VIP 发在酷狗账号上，扫码登录后即可查看和领取。",
+                        "Claimed unlimited-listening VIP goes to your Kugou account; scan to sign in and claim it.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = scheme.onSurfaceVariant,
                     )
                 }
             }
             Button(onClick = onLogin, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Text("去扫码登录")
+                Text("Sign in by QR code")
             }
         }
     }
@@ -307,7 +307,7 @@ private fun KugouWelfareLoadingCard() {
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp)
-            Text("正在读取酷狗概念版的会员状态…", style = MaterialTheme.typography.bodyLarge)
+            Text("Reading Kugou Concept membership status…", style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
@@ -322,11 +322,11 @@ private fun tvCardFocus(shape: Shape): Modifier =
 internal fun kugouWelfareHeadline(kugou: KugouWelfareUi): String {
     val info = kugou.info
     return when {
-        !kugou.loggedIn -> "扫码登录酷狗音乐后即可参与"
-        kugou.loading && info.status < 0 -> "正在读取会员状态…"
-        info.vipActive -> "${info.vipLabel}有效期至 ${formatVipDate(info.vipExpireAt)}"
-        kugou.todayClaimed -> "今天已领取，明天再来"
-        info.ok -> "今天这一份还没领"
-        else -> "获取失败，点此重试"
+        !kugou.loggedIn -> "Scan to sign in to Kugou Music to take part"
+        kugou.loading && info.status < 0 -> "Reading membership status…"
+        info.vipActive -> "${info.vipLabel} valid until ${formatVipDate(info.vipExpireAt)}"
+        kugou.todayClaimed -> "Claimed today; come back tomorrow"
+        info.ok -> "Today's free VIP is unclaimed"
+        else -> "Couldn't load; tap to retry"
     }
 }

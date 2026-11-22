@@ -98,9 +98,9 @@ private fun VolumeNormalizationCard(enabled: Boolean, onToggle: (Boolean) -> Uni
         Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text("音量均衡", style = MaterialTheme.typography.titleMedium)
+            Text("Loudness leveling", style = MaterialTheme.typography.titleMedium)
             Text(
-                "有平台响度数据时按数据调整；没有数据的歌曲用实时压缩和峰值限幅兜底。",
+                "Uses platform loudness data where available; for other tracks it falls back to live compression and peak limiting.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -121,13 +121,13 @@ fun EqualizerScreen(
     val window = LocalAppWindow.current
     val supported = equalizer.availability != EqualizerAvailability.Unsupported
     val buttonsFocus = remember { FocusRequester() }
-    val presets: List<EqPreset> = EqPresets.all + EqPreset("custom", "自定义")
+    val presets: List<EqPreset> = EqPresets.all + EqPreset("custom", "Custom")
     SettingsPage(SettingsSection.Equalizer, embedded, onBack) {
         item(key = "status", contentType = "eqStatus") { EqualizerStatusCard(equalizer) { actions.setEqEnabled(it) } }
         item(key = "normalization", contentType = "eqStatus") {
             VolumeNormalizationCard(state.volumeNormalization) { actions.setVolumeNormalization(it) }
         }
-        item(key = "presetHead", contentType = "sectionHeader") { SectionLabel("预设") }
+        item(key = "presetHead", contentType = "sectionHeader") { SectionLabel("Presets") }
         item(key = "presets", contentType = "chips") {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 presets.forEach { preset ->
@@ -136,7 +136,7 @@ fun EqualizerScreen(
             }
         }
         item(key = "bandsHead", contentType = "sectionHeader") {
-            SectionLabel("频段") {
+            SectionLabel("Bands") {
                 Text(rangeLabel(equalizer), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -151,25 +151,25 @@ fun EqualizerScreen(
         }
         item(key = "buttons", contentType = "actions") {
             Row(Modifier.widthIn(max = 560.dp).fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = actions::resetEq, modifier = Modifier.focusRequester(buttonsFocus).tvFocusRing()) { Text("恢复平直") }
+                TextButton(onClick = actions::resetEq, modifier = Modifier.focusRequester(buttonsFocus).tvFocusRing()) { Text("Reset to flat") }
                 Spacer(Modifier.weight(1f))
-                FilledTonalButton(onClick = actions::saveEqCustom, modifier = Modifier.tvFocusRing()) { Text("保存为自定义") }
+                FilledTonalButton(onClick = actions::saveEqCustom, modifier = Modifier.tvFocusRing()) { Text("Save as custom") }
             }
         }
-        if (window.isTv) item(key = "tvTip", contentType = "note") { SettingsNote("左右键选择频段，上下键调整增益；在最右侧频段再按右键，移到下方按钮。") }
+        if (window.isTv) item(key = "tvTip", contentType = "note") { SettingsNote("Left and right pick a band, up and down adjust gain; right again on the last band moves to the buttons below.") }
         item(key = "note", contentType = "note") {
-            SettingsNote("只作用于这台设备的播放输出，不修改音频文件，也不同步。切换歌曲或音源后保持当前设置。")
+            SettingsNote("Only affects playback output on this device; audio files are unchanged and nothing syncs. Settings persist when tracks or sources change.")
         }
         item(key = "warn", contentType = "infoNote") {
             Box(Modifier.padding(top = 8.dp)) {
-                InfoNote("部分蓝牙耳机、USB 声卡或系统省电模式可能不支持第三方音效。此时会保留设置，但提示“当前输出未生效”。", "amber")
+                InfoNote("Some Bluetooth headphones, USB sound cards and battery-saver modes don't support third-party effects. Settings are kept but the app notes that the current output is unaffected.", "amber")
             }
         }
         state.current?.let { song ->
             item(key = "playing", contentType = "infoNote") {
                 Box(Modifier.padding(top = 8.dp)) {
                     InfoNote(
-                        "正在播放：${song.title} · ${state.currentSource?.providerName ?: song.source}" +
+                        "Playing: ${song.title} · ${state.currentSource?.providerName ?: song.source}" +
                             (state.currentSource?.qualityLabel?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
                         "green",
                     )
@@ -186,10 +186,10 @@ private fun EqualizerStatusCard(equalizer: EqualizerUiState, onEnabled: (Boolean
     val supported = equalizer.availability != EqualizerAvailability.Unsupported
     val shape = RoundedCornerShape(28.dp)
     val status = when {
-        equalizer.enabled && equalizer.effective -> "已开启 · 实时生效"
-        equalizer.enabled && equalizer.availability == EqualizerAvailability.NoSession -> "已开启 · 播放后生效"
-        equalizer.enabled -> "已开启 · 当前输出未生效"
-        else -> "已关闭"
+        equalizer.enabled && equalizer.effective -> "On · active now"
+        equalizer.enabled && equalizer.availability == EqualizerAvailability.NoSession -> "On · applies once playback starts"
+        equalizer.enabled -> "On · not active on this output"
+        else -> "Off"
     }
     Row(
         Modifier
@@ -206,7 +206,7 @@ private fun EqualizerStatusCard(equalizer: EqualizerUiState, onEnabled: (Boolean
     ) {
         val content = if (equalizer.enabled) scheme.onPrimaryContainer else scheme.onSurface
         // 可见标题是状态文字，读屏需要一个名字；状态改由开关的 stateDescription 读，避免“已关闭”读两遍
-        Icon(Icons.Filled.Headphones, "均衡器", tint = content)
+        Icon(Icons.Filled.Headphones, "Equalizer", tint = content)
         Column(Modifier.weight(1f)) {
             Text(
                 status,
@@ -217,9 +217,9 @@ private fun EqualizerStatusCard(equalizer: EqualizerUiState, onEnabled: (Boolean
             )
             Text(
                 when (equalizer.availability) {
-                    EqualizerAvailability.Available -> "当前输出：${equalizer.outputLabel}"
-                    EqualizerAvailability.NoSession -> "当前输出：${equalizer.outputLabel} · 开始播放后生效"
-                    EqualizerAvailability.Unsupported -> "当前输出：${equalizer.outputLabel} · 不支持第三方音效"
+                    EqualizerAvailability.Available -> "Output: ${equalizer.outputLabel}"
+                    EqualizerAvailability.NoSession -> "Output: ${equalizer.outputLabel} · applies once playback starts"
+                    EqualizerAvailability.Unsupported -> "Output: ${equalizer.outputLabel} · third-party effects unsupported"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = content.copy(alpha = 0.8f),
@@ -253,7 +253,7 @@ private fun BandsPanel(
     ) {
         if (bands.isEmpty()) {
             Text(
-                "开始播放后显示当前输出可调的频段",
+                "Bands available on the current output appear once playback starts",
                 Modifier.fillMaxWidth().padding(vertical = 24.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -313,7 +313,7 @@ private fun BandSlider(
                 .onFocusChanged { focused = it.isFocused }
                 .semantics {
                     contentDescription = formatFreq(band.freqHz)
-                    stateDescription = "${formatDb(band.levelDb)} 分贝"
+                    stateDescription = "${formatDb(band.levelDb)} dB"
                     progressBarRangeInfo = ProgressBarRangeInfo(current = band.levelDb, range = band.minDb..band.maxDb)
                     if (enabled) {
                         setProgress { value ->
@@ -403,6 +403,6 @@ private fun formatFreq(freq: Int): String =
     else "$freq Hz"
 
 private fun rangeLabel(equalizer: EqualizerUiState): String {
-    val band = equalizer.bands.firstOrNull() ?: return "-10 至 +10 dB"
-    return "${formatDb(band.minDb)} 至 ${formatDb(band.maxDb)} dB"
+    val band = equalizer.bands.firstOrNull() ?: return "-10 to +10 dB"
+    return "${formatDb(band.minDb)} to ${formatDb(band.maxDb)} dB"
 }

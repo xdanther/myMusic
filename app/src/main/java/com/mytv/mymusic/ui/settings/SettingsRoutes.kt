@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.mytv.mymusic.ui.AppNav
 import com.mytv.mymusic.ui.components.LocalAppWindow
 import com.mytv.mymusic.ui.library.SyncCenterScreen
+import com.mytv.mymusic.ui.text.appVersion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -135,17 +136,13 @@ private fun SectionContent(
         SettingsSection.Storage -> StorageContent(app, onBack, embedded, onCacheCleared)
         SettingsSection.About -> {
             val state by app.model.state.collectAsState()
-            val update by app.model.updateDetails.collectAsState()
-            val progress = app.model.updateState.collectAsState()
             AboutScreen(
                 state = state,
-                update = update,
                 actions = actions,
                 onBack = onBack,
                 onLicenses = { onOpen(SettingsSection.Licenses) },
                 onPrivacy = { onOpen(SettingsSection.Privacy) },
                 embedded = embedded,
-                progress = { progress.value.progress },
             )
         }
         SettingsSection.Licenses -> LicensesScreen(onBack, embedded)
@@ -196,7 +193,6 @@ private fun StorageContent(app: AppNav, onBack: () -> Unit, embedded: Boolean, o
 private fun rememberSettingsOverview(app: AppNav, cacheTick: Int): SettingsOverview {
     val state by app.model.state.collectAsState()
     val sync by app.model.syncState.collectAsState()
-    val update by app.model.updateDetails.collectAsState()
     val equalizer by app.model.equalizerState.collectAsState()
     val downloads by app.model.downloads.collectAsState()
     val downloadsBytes = rememberDownloadBytes(downloads)
@@ -205,9 +201,11 @@ private fun rememberSettingsOverview(app: AppNav, cacheTick: Int): SettingsOverv
     }
     val localMusic = rememberLocalSettingsSummary()
     val rtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
-    val resources = LocalContext.current.resources
-    return remember(resources, state, sync, update, equalizer, cacheBytes, downloadsBytes, localMusic, rtl) {
-        settingsOverview(resources, state, sync, update, equalizer, cacheBytes, downloadsBytes, localMusic, rtl)
+    val context = LocalContext.current
+    val resources = context.resources
+    val (versionName, versionCode) = remember(context) { appVersion(context) }
+    return remember(resources, state, sync, versionName, versionCode, equalizer, cacheBytes, downloadsBytes, localMusic, rtl) {
+        settingsOverview(resources, state, sync, versionName, versionCode, equalizer, cacheBytes, downloadsBytes, localMusic, rtl)
     }
 }
 

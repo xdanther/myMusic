@@ -68,15 +68,15 @@ import com.mytv.mymusic.ui.components.tvFocusRing
 internal fun LxSourcesSettingsEntry(onClick: () -> Unit) {
     val records by LxSources.records.collectAsState()
     ListRow(
-        title = "自定义音源",
+        title = "Custom sources",
         index = 0,
         count = 1,
         onClick = onClick,
         icon = Icons.Filled.Code,
         summary = if (records.isEmpty()) {
-            "落雪脚本 · 在线或本地导入"
+            "LX scripts · import online or locally"
         } else {
-            "${records.count { it.enabled }} 个已启用 · 共 ${records.size} 个"
+            "${records.count { it.enabled }} enabled · ${records.size} total"
         },
     )
 }
@@ -109,29 +109,29 @@ internal fun LxSourcesSettingsScreen(
     SettingsPage(SettingsSection.LxSources, embedded, onBack) {
         item(key = "add", contentType = "settingRow") {
             ListRow(
-                title = "添加自定义音源",
+                title = "Add custom source",
                 index = 0,
                 count = 1,
                 onClick = if (records.size < MAX_LX_SOURCES) ({ importOpen = true }) else null,
                 icon = Icons.Filled.Add,
                 iconTone = IconTone.Primary,
                 summary = when {
-                    records.size >= MAX_LX_SOURCES -> "最多保存 $MAX_LX_SOURCES 个音源"
-                    records.isEmpty() -> "在线地址或本地文件，可添加多个"
-                    else -> "在线地址或本地文件 · 已添加 ${records.size} 个"
+                    records.size >= MAX_LX_SOURCES -> "At most $MAX_LX_SOURCES sources"
+                    records.isEmpty() -> "Online URL or local file; you can add several"
+                    else -> "Online URL or local file · ${records.size} added"
                 },
                 showChevron = records.size < MAX_LX_SOURCES,
             )
         }
         if (records.isEmpty()) {
             item(key = "empty", contentType = "note") {
-                SettingsNote("还没有自定义音源。可以添加多个落雪脚本，为已有平台增加取流通道，不改变搜索和榜单来源。")
+                SettingsNote("No custom sources yet. Add LX scripts to give existing platforms another streaming path without changing search or chart sources.")
             }
         } else {
             item(key = "sourcesHead", contentType = "sectionHeader") {
-                SectionLabel("我的音源") {
+                SectionLabel("My sources") {
                     Text(
-                        "${records.count { it.enabled }} / ${records.size} 已启用",
+                        "${records.count { it.enabled }} / ${records.size} enabled",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -153,7 +153,7 @@ internal fun LxSourcesSettingsScreen(
                                     checked = record.enabled,
                                     onCheckedChange = { model.setEnabled(record, !record.enabled) },
                                     modifier = Modifier.semantics {
-                                        contentDescription = "${if (record.enabled) "关闭" else "启用"}${record.name}"
+                                        contentDescription = "${if (record.enabled) "Off" else "Enable"}${record.name}"
                                     },
                                 )
                             },
@@ -162,7 +162,7 @@ internal fun LxSourcesSettingsScreen(
                 }
             }
             item(key = "sourcesNote", contentType = "note") {
-                SettingsNote("这里只调整统一「洛雪」内部的脚本顺序。全部脚本失败后，按播放与换源设置继续回退；点按音源可测试、更新、排序或删除。")
+                SettingsNote("This order only applies to scripts inside the single LX Music source. If every script fails, fallback continues per playback and source settings; tap a source to test, update, reorder or delete it.")
             }
         }
         operations.message.takeIf { it.isNotBlank() }?.let { message ->
@@ -172,7 +172,7 @@ internal fun LxSourcesSettingsScreen(
                     index = 0,
                     count = 1,
                     onClick = model::clearMessage,
-                    summary = "点按关闭提示",
+                    summary = "Tap to dismiss",
                     showChevron = false,
                 )
             }
@@ -220,35 +220,35 @@ internal fun LxSourcesSettingsScreen(
     deleteFor?.let { record ->
         AlertDialog(
             onDismissRequest = { deleteFor = null },
-            title = { Text("删除 ${record.name}？") },
-            text = { Text("会删除本机保存的脚本；已有歌曲和歌单不会删除，之后取流回退到内置接口。") },
+            title = { Text("Delete ${record.name}?") },
+            text = { Text("Deletes the script stored on this device; existing songs and playlists stay, and streaming falls back to built-in interfaces.") },
             confirmButton = {
                 TextButton(onClick = {
                     model.delete(record)
                     selectedId = null
                     deleteFor = null
-                }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { deleteFor = null }) { Text("取消") } },
+            dismissButton = { TextButton(onClick = { deleteFor = null }) { Text("Cancel") } },
         )
     }
     notice?.let { update ->
         AlertDialog(
             onDismissRequest = model::dismissNotice,
-            title = { Text("${update.name} 有更新提示") },
+            title = { Text("${update.name} has an update") },
             text = { Text(update.log, Modifier.verticalScroll(rememberScrollState())) },
             confirmButton = {
                 if (update.updateUrl.startsWith("http://") || update.updateUrl.startsWith("https://")) {
                     TextButton(onClick = {
                         openUri(update.updateUrl)
                         model.dismissNotice()
-                    }) { Text("查看更新") }
+                    }) { Text("View update") }
                 } else {
-                    TextButton(onClick = model::dismissNotice) { Text("知道了") }
+                    TextButton(onClick = model::dismissNotice) { Text("Got it") }
                 }
             },
             dismissButton = if (update.updateUrl.isNotBlank()) {
-                { TextButton(onClick = model::dismissNotice) { Text("关闭") } }
+                { TextButton(onClick = model::dismissNotice) { Text("Off") } }
             } else null,
         )
     }
@@ -275,14 +275,14 @@ private fun LxSourceDetailSheet(
         Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp)) {
             if (record.desktop) {
                 SettingsNote(
-                    "桌面版插件：只用来取流，脚本自己按歌名 / id 去它指定的地方要链接。" +
-                        "运行必需的 axios、he 从官方 CDN 下载并逐个校验 sha256 后缓存在本机；" +
-                        "脚本本身仍是可执行代码，能访问任意 HTTP 地址，只导入你信任的来源。",
+                    "Desktop plugin: used only to fetch streams; the script asks its own endpoint for a URL by title / id." +
+                        "The required axios and he runtimes are downloaded from the official CDN, verified with sha256 and cached on this device;" +
+                        "A script is still executable code that can reach any HTTP address; import only trusted sources.",
                 )
             }
             if (record.sourceUrl.isBlank()) {
-                SettingsNote("本地导入的脚本没有下载地址：会连脚本内容一起同步到你连接的 Gist / Gitee / WebDAV；" +
-                    "没连同步时它只存在这台设备上，卸载或清数据就没了，需要重新导入。")
+                SettingsNote("Locally imported scripts have no download URL, so their contents sync with the rest to your Gist / Gitee / WebDAV;" +
+                    "Without sync it exists only on this device; uninstalling or clearing data removes it and you must import it again.")
             }
             if (record.description.isNotBlank()) {
                 Text(
@@ -294,7 +294,7 @@ private fun LxSourceDetailSheet(
             }
             SegmentedGroup {
                 ListRow(
-                    title = "支持平台与音质",
+                    title = "Supported platforms and qualities",
                     index = 0,
                     count = if (record.homepage.isBlank()) 1 else 2,
                     onClick = null,
@@ -304,7 +304,7 @@ private fun LxSourceDetailSheet(
                 )
                 if (record.homepage.isNotBlank()) {
                     ListRow(
-                        title = "脚本主页",
+                        title = "Script home page",
                         index = 1,
                         count = 2,
                         onClick = onOpenHomepage,
@@ -316,55 +316,55 @@ private fun LxSourceDetailSheet(
             Spacer(Modifier.height(12.dp))
             SegmentedGroup {
                 ListRow(
-                    title = "测试取流",
+                    title = "Test streaming",
                     index = 0,
                     count = 4,
                     onClick = if (testing) null else onTest,
                     icon = Icons.Filled.PlayArrow,
                     iconTone = IconTone.Primary,
-                    summary = if (testing) "正在执行脚本并读取媒体…" else "检查脚本和真实媒体响应",
+                    summary = if (testing) "Running the script and reading media…" else "Checks the script and a real media response",
                     showChevron = false,
                     trailing = if (testing) {
                         { LoadingIndicator(Modifier.size(24.dp)) }
                     } else null,
                 )
                 ListRow(
-                    title = if (record.sourceUrl.isBlank()) "替换脚本" else "更新脚本",
+                    title = if (record.sourceUrl.isBlank()) "Replace script" else "Update script",
                     index = 1,
                     count = 4,
                     onClick = if (updating) null else if (record.sourceUrl.isBlank()) onReplace else onUpdate,
                     icon = if (record.sourceUrl.isBlank()) Icons.Filled.FileOpen else Icons.Filled.Refresh,
-                    summary = if (updating) "正在下载并验证…" else if (record.sourceUrl.isBlank()) "选择新的本地文件" else "从原地址下载最新版本",
+                    summary = if (updating) "Downloading and verifying…" else if (record.sourceUrl.isBlank()) "Choose a new local file" else "Download the latest version from the original URL",
                     showChevron = false,
                     trailing = if (updating) {
                         { LoadingIndicator(Modifier.size(24.dp)) }
                     } else null,
                 )
                 ListRow(
-                    title = "调整顺序",
+                    title = "Reorder",
                     index = 2,
                     count = 4,
                     onClick = null,
                     icon = Icons.Filled.SwapVert,
-                    summary = "第 ${index + 1} 位，共 $count 个音源",
+                    summary = "Position ${index + 1} of $count sources",
                     showChevron = false,
                     trailing = {
                         IconButton(onClick = { onMove(-1) }, enabled = index > 0) {
-                            Icon(Icons.Filled.KeyboardArrowUp, "上移${record.name}")
+                            Icon(Icons.Filled.KeyboardArrowUp, "Move ${record.name} up")
                         }
                         IconButton(onClick = { onMove(1) }, enabled = index < count - 1) {
-                            Icon(Icons.Filled.KeyboardArrowDown, "下移${record.name}")
+                            Icon(Icons.Filled.KeyboardArrowDown, "Move ${record.name} down")
                         }
                     },
                 )
                 ListRow(
-                    title = "删除音源",
+                    title = "Delete source",
                     index = 3,
                     count = 4,
                     onClick = onDelete,
                     icon = Icons.Filled.DeleteOutline,
                     iconTone = IconTone.Error,
-                    summary = "只删除本机脚本，不影响歌曲和歌单",
+                    summary = "Removes the local script only; songs and playlists are unaffected",
                     danger = true,
                     showChevron = false,
                 )
@@ -401,13 +401,13 @@ private fun LxImportSheet(
     var mode by rememberSaveable { mutableStateOf("online") }
     var url by rememberSaveable { mutableStateOf("") }
     val clipboard = LocalClipboardManager.current
-    AdaptiveSheet(onDismiss = onDismiss, title = "添加自定义音源", subtitle = "兼容落雪音乐移动端 JavaScript 脚本") {
+    AdaptiveSheet(onDismiss = onDismiss, title = "Add custom source", subtitle = "Runs LX Music mobile JavaScript scripts") {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
             ConnectedToggleGroup(
                 options = listOf("online", "local"),
                 selected = mode,
                 onSelect = { mode = it },
-                label = { if (it == "online") "在线地址" else "本地文件" },
+                label = { if (it == "online") "Online URL" else "Local file" },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(16.dp))
@@ -416,18 +416,18 @@ private fun LxImportSheet(
                     value = url,
                     onValueChange = { url = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("脚本地址") },
+                    label = { Text("Script URL") },
                     placeholder = { Text("https://…/latest.js") },
                     singleLine = true,
                     enabled = !busy,
                     trailingIcon = {
                         IconButton(onClick = { clipboard.getText()?.text?.let { url = it } }, enabled = !busy) {
-                            Icon(Icons.Filled.ContentPaste, "粘贴脚本地址")
+                            Icon(Icons.Filled.ContentPaste, "Paste the script URL")
                         }
                     },
                 )
                 TextButton(onClick = onOpenCatalog, enabled = !busy, modifier = Modifier.align(Alignment.End)) {
-                    Text("打开 pdone 音源合集")
+                    Text("Open the pdone source collection")
                     Spacer(Modifier.width(4.dp))
                     Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(16.dp))
                 }
@@ -437,16 +437,16 @@ private fun LxImportSheet(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).tvFocusRing(),
                 ) {
                     if (busy) LoadingIndicator(Modifier.size(20.dp))
-                    Text(if (busy) "下载并验证中…" else "下载并导入", Modifier.padding(start = 8.dp))
+                    Text(if (busy) "Downloading and verifying…" else "Download and import", Modifier.padding(start = 8.dp))
                 }
             } else {
                 ListRow(
-                    title = if (busy) "正在读取并验证…" else "选择 .js 脚本",
+                    title = if (busy) "Reading and verifying…" else "Choose a .js script",
                     index = 0,
                     count = 1,
                     onClick = if (busy) null else onFile,
                     icon = Icons.Filled.FileOpen,
-                    summary = "UTF-8 编码 · 最大 2 MB",
+                    summary = "UTF-8 · up to 2 MB",
                     showChevron = !busy,
                     trailing = if (busy) {
                         { LoadingIndicator(Modifier.size(24.dp)) }
@@ -462,9 +462,9 @@ private fun LxImportSheet(
                 )
             }
             SettingsNote(
-                "只导入信任的脚本。脚本可以访问网络，但不会获得 myMusic 保存的平台 Cookie。验证失败不会保存。" +
-                    "移动版脚本直接运行；桌面版（Electron）插件需要的 " + LxDesktopLibraries.summary() +
-                    " 会从官方 CDN 下载、逐个校验 sha256 后缓存在本机。",
+                "Import only scripts you trust. Scripts can reach the network but never receive platform cookies stored by myMusic. A failed verification saves nothing." +
+                    "Mobile scripts run directly; desktop (Electron) plugins need " + LxDesktopLibraries.summary() +
+                    " are downloaded from the official CDN, verified one by one with sha256 and cached on this device.",
             )
         }
     }
@@ -473,7 +473,7 @@ private fun LxImportSheet(
 private fun sourceSubtitle(record: LxSourceRecord): String = listOf(
     record.version.takeIf { it.isNotBlank() }?.let { "v$it" }.orEmpty(),
     record.author,
-    if (record.desktop) "桌面版插件" else if (record.sourceUrl.isBlank()) "本地脚本" else "在线脚本",
+    if (record.desktop) "Desktop plugin" else if (record.sourceUrl.isBlank()) "Local script" else "Online script",
 ).filter { it.isNotBlank() }.joinToString(" · ")
 
 private fun sourceSummary(record: LxSourceRecord): String = listOf(
@@ -485,7 +485,7 @@ private fun sourceCapabilities(record: LxSourceRecord): String {
     val qualities = record.capabilities.values.flatMap { it.qualities }.distinct()
     return listOf(
         sourcePlatforms(record),
-        qualities.takeIf { it.isNotEmpty() }?.joinToString(" · ", prefix = "音质：") { qualityLabel(it) }.orEmpty(),
+        qualities.takeIf { it.isNotEmpty() }?.joinToString(" · ", prefix = "Quality: ") { qualityLabel(it) }.orEmpty(),
     ).filter { it.isNotBlank() }.joinToString("\n")
 }
 
@@ -498,9 +498,9 @@ private fun qualityLabel(quality: String): String = when (quality) {
     "flac" -> "FLAC"
     "flac24bit" -> "24bit"
     "hires" -> "Hi-Res"
-    "atmos" -> "全景声"
-    "atmos_plus" -> "全景声+"
-    "master" -> "母带"
-    "sq" -> "无损"
+    "atmos" -> "Atmos"
+    "atmos_plus" -> "Atmos+"
+    "master" -> "Master"
+    "sq" -> "Lossless"
     else -> quality
 }

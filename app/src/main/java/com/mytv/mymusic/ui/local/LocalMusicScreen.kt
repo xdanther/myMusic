@@ -113,15 +113,15 @@ import com.mytv.mymusic.ui.library.TwoColumns
 import com.mytv.mymusic.ui.library.withGutter
 import kotlinx.coroutines.launch
 
-/** 本地音乐页的筛选：全部、没匹配、没上传（哪个云端都还没有能播的一份）、按文件夹分组。 */
-internal enum class LocalFilter(val label: String) { All("全部"), Unmatched("没匹配"), NotUploaded("没上传"), Folders("文件夹") }
+/** Local music页的筛选：全部、Not matched、Not uploaded（哪个云端都还没有能播的一份）、按文件夹分组。 */
+internal enum class LocalFilter(val label: String) { All("All"), Unmatched("Not matched"), NotUploaded("Not uploaded"), Folders("Folders") }
 
 /**
- * 本地音乐页，「本机 / 云端」两个视图用连接按钮组切换（设计稿第 ②③ 张）。
+ * Local music页，「本机 / 云端」两个视图用连接按钮组切换（设计稿第 ②③ 张）。
  *
- * 本机视图结构照「下载」页：顶上一张占用卡片（分段条：已上传 / 已匹配 / 没匹配），再往下是播放全部、
- * “上传…”、筛选、正在上传的那一段和歌曲列表。第一次进来没有权限也没有文件夹时是空状态，
- * 主按钮“允许读取音乐”，拒绝后换成“改为选择文件夹”（系统文件夹选择器，不要权限）。
+ * 本机视图结构照「下载」页：顶上一张占用卡片（分段条：Uploaded / Matched / Not matched），再往下是播放全部、
+ * “Upload…”、筛选、正在上传的那一段和歌曲列表。第一次进来没有权限也没有文件夹时是空状态，
+ * 主按钮“Allow reading music”，拒绝后换成“Choose folders instead”（系统文件夹选择器，不要权限）。
  *
  * 云端视图：网易云盘卡片（容量、这台手机上没有文件的几首），WebDAV 和 QQ 云盘各一行，下面是
  * “网易云盘里，本机没有的”。
@@ -169,7 +169,7 @@ fun LocalMusicScreen(
     val shown = remember(index, filter, query) { filterItems(index, filter, query) }
     val songs = remember(shown) { shown.map { it.song } }
     val playable = remember(shown) { shown.filter { it.onDevice }.map { it.song } }
-    // “上传…”：这一屏里这台设备上有文件、哪个云端都还没有能播的一份的
+    // “Upload…”：这一屏里这台设备上有文件、哪个云端都还没有能播的一份的
     val uploadable = remember(shown) {
         shown.filter { it.onDevice && !LocalUploadRules.hasAnyReadyCopy(index.remotes[it.localId].orEmpty()) }.map { it.localId }
     }
@@ -241,7 +241,7 @@ fun LocalMusicScreen(
                         val picked = shown.filter { it.song.key in selection.selected }
                         val ids = picked.filter { it.onDevice }.map { it.localId }
                         if (ids.isEmpty()) {
-                            scope.launch { snackbar.showSnackbar("选中的歌这台设备上都没有文件，传不了") }
+                            scope.launch { snackbar.showSnackbar("None of the selected songs have files on this device, so they can't be uploaded") }
                         } else {
                             uploads.openSheet(ids)
                             selection.exit()
@@ -262,17 +262,17 @@ fun LocalMusicScreen(
                             list.firstOrNull()?.let { actions.play(it, list) }
                         },
                     )
-                    // 设计稿第 ② 张：播放全部旁边的“上传…”，传这一屏里还没上传的
+                    // 设计稿第 ② 张：播放全部旁边的“Upload…”，传这一屏里还Not uploaded的
                     if (uploadable.isNotEmpty()) {
                         TextButton(
                             onClick = { uploads.openSheet(uploadable) },
                             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text("上传…") }
+                        ) { Text("Upload…") }
                     }
                     Spacer(Modifier.weight(1f))
                     if (songs.isNotEmpty()) {
                         IconButton(onClick = { selection.start() }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Filled.Checklist, "多选")
+                            Icon(Icons.Filled.Checklist, "Select multiple")
                         }
                     }
                 }
@@ -292,10 +292,10 @@ fun LocalMusicScreen(
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).focusRequester(field),
                     singleLine = true,
-                    label = { Text("搜索本地音乐") },
+                    label = { Text("Search local music") },
                     leadingIcon = { Icon(Icons.Filled.Search, null) },
                     trailingIcon = {
-                        IconButton(onClick = { query = ""; searching = false }) { Icon(Icons.Filled.Close, "关闭搜索") }
+                        IconButton(onClick = { query = ""; searching = false }) { Icon(Icons.Filled.Close, "Close search") }
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     // 边输边筛，回车只收起键盘
@@ -310,10 +310,10 @@ fun LocalMusicScreen(
             item(key = "none", contentType = "empty") {
                 Text(
                     when {
-                        query.isNotBlank() -> "没有找到“$query”。"
-                        filter == LocalFilter.Unmatched -> "所有歌都匹配上了。"
-                        filter == LocalFilter.NotUploaded -> "所有歌都上传过了。"
-                        else -> "还没有扫到歌。"
+                        query.isNotBlank() -> "Nothing found for '$query'."
+                        filter == LocalFilter.Unmatched -> "Every song is matched."
+                        filter == LocalFilter.NotUploaded -> "Every song is uploaded."
+                        else -> "No songs scanned yet."
                     },
                     Modifier.padding(start = 4.dp, top = 8.dp),
                     style = MaterialTheme.typography.bodyMedium,
@@ -322,13 +322,13 @@ fun LocalMusicScreen(
             }
         }
         val groups = if (filter == LocalFilter.Folders) {
-            shown.groupBy { it.row.relativePath.ifBlank { "其他位置" } }.toSortedMap().toList()
+            shown.groupBy { it.row.relativePath.ifBlank { "Other locations" } }.toSortedMap().toList()
         } else {
             listOf("" to shown)
         }
         groups.forEach { (folder, items) ->
             if (folder.isNotEmpty()) {
-                item(key = "folder:$folder", contentType = "header") { DayLabel("${folder.trimEnd('/')} · ${items.size} 首") }
+                item(key = "folder:$folder", contentType = "header") { DayLabel("${folder.trimEnd('/')} · ${items.size} tracks") }
             }
             itemsIndexed(items, key = { _, item -> "song:${folder}:${item.localId}" }, contentType = { _, _ -> "song" }) { position, item ->
                 LocalSongRow(
@@ -354,13 +354,13 @@ fun LocalMusicScreen(
     }
 
     PageScaffold(
-        title = "本地音乐",
+        title = "Local music",
         subtitle = localPageSubtitle(index, scan, prefs.lastScanAt),
         onBack = onBack,
         actions = {
             if (!empty) {
                 IconButton(onClick = { searching = !searching }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                    Icon(Icons.Filled.Search, "搜索本地音乐")
+                    Icon(Icons.Filled.Search, "Search local music")
                 }
             }
             if (sourcesReady) {
@@ -368,11 +368,11 @@ fun LocalMusicScreen(
                     onClick = { if (scan.running) library.cancelScan() else library.scan(retryFailed = true) },
                     modifier = Modifier.tvFocusRing(CircleShape),
                 ) {
-                    Icon(if (scan.running) Icons.Filled.Close else Icons.Filled.Refresh, if (scan.running) "停止扫描" else "重新扫描")
+                    Icon(if (scan.running) Icons.Filled.Close else Icons.Filled.Refresh, if (scan.running) "Stop scanning" else "Rescan")
                 }
             }
             IconButton(onClick = onOpenSettings, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.Settings, "本地音乐设置")
+                Icon(Icons.Filled.Settings, "Local music settings")
             }
         },
     ) { padding ->
@@ -398,9 +398,9 @@ fun LocalMusicScreen(
             empty && !scan.running && scan.error.isEmpty() && prefs.lastScanAt > 0 -> emptyWithToggle {
                 EmptyState(
                     icon = Icons.Filled.AudioFile,
-                    title = "没有找到音乐",
-                    message = if (access.canPickFolder) "媒体库里没有歌，或者歌不在扫描范围里。可以把放歌的文件夹加进来。" else "媒体库里没有歌。",
-                    actionLabel = if (access.canPickFolder) "添加文件夹" else "重新扫描",
+                    title = "No music found",
+                    message = if (access.canPickFolder) "No songs in the media library, or none in the scanned range. Add the folder holding your music." else "No songs in the media library.",
+                    actionLabel = if (access.canPickFolder) "Add folder" else "Rescan",
                     onAction = if (access.canPickFolder) access.pickFolder else ({ library.scan(retryFailed = true) }),
                 )
             }
@@ -451,8 +451,8 @@ fun LocalMusicScreen(
     }
     LocalUnplayableSheets(
         host = unplayable,
-        removeLabel = "从本地音乐移除",
-        removeSummary = "只清这台设备上的记录，歌单里的这首不受影响",
+        removeLabel = "Remove from local music",
+        removeSummary = "Only clears the record on this device; the track stays in your playlists",
         onRemove = { song -> library.launch { forget(song.id) } },
     )
     rematchFor?.let { id ->
@@ -541,14 +541,14 @@ private fun LocalSongRow(
                     .sortedBy { LocalCopyRules.CLOUD_ORDER.indexOf(it) }
                     .forEach { provider -> PlatformBadge(provider.label, Availability.Playable) }
             }
-            if (unmatched) Tag("没匹配", scheme.surfaceContainerHighest, scheme.onSurfaceVariant)
+            if (unmatched) Tag("Not matched", scheme.surfaceContainerHighest, scheme.onSurfaceVariant)
         },
         trailing = when {
             picking -> {
                 {
                     Icon(
                         if (selected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                        contentDescription = if (selected) "取消选择“${song.title}”" else "选择“${song.title}”",
+                        contentDescription = if (selected) "Deselect '${song.title}'" else "Select '${song.title}'",
                         tint = scheme.primary,
                     )
                 }
@@ -566,8 +566,8 @@ private fun LocalSongRow(
 }
 
 /**
- * 顶上的占用卡片：总数和大小，分段条按已上传 / 已匹配（只匹配没上传）/ 没匹配 / 等待匹配分（设计稿第 ② 张）；
- * 扫描时换成进度。有“文件不在了”的歌时给一个清理入口——只清本地音乐里的记录，歌单不受影响。
+ * 顶上的占用卡片：总数和大小，分段条按Uploaded / Matched（只匹配Not uploaded）/ Not matched / Waiting to match分（设计稿第 ② 张）；
+ * 扫描时换成进度。有“文件不在了”的歌时给一个清理入口——只清Local music里的记录，歌单不受影响。
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -585,10 +585,10 @@ private fun LocalStorageCard(
     val unmatched = rest.count { index.isUnmatched(it) }
     val pending = (rest.size - matched - unmatched).coerceAtLeast(0)
     val segments = listOf(
-        Triple("已上传", uploaded.size, scheme.primary),
-        Triple("已匹配", matched, scheme.tertiary),
-        Triple("没匹配", unmatched, scheme.surfaceContainerHighest),
-        Triple(if (matching.running) "正在匹配" else "等待匹配", pending, scheme.secondary),
+        Triple("Uploaded", uploaded.size, scheme.primary),
+        Triple("Matched", matched, scheme.tertiary),
+        Triple("Not matched", unmatched, scheme.surfaceContainerHighest),
+        Triple(if (matching.running) "Matching" else "Waiting to match", pending, scheme.secondary),
     ).filter { it.second > 0 }
     val total = segments.sumOf { it.second }.coerceAtLeast(1)
     Surface(
@@ -598,12 +598,12 @@ private fun LocalStorageCard(
     ) {
         Column(Modifier.padding(18.dp)) {
             Text(
-                "${index.items.size} 首 · ${formatBytes(index.totalBytes)}",
+                "${index.items.size} tracks · ${formatBytes(index.totalBytes)}",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
             )
             Text(
-                if (scan.running) scanProgressLabel(scan) else "封面和歌词自动匹配，原文件不改。",
+                if (scan.running) scanProgressLabel(scan) else "Covers and lyrics match automatically; original files are unchanged.",
                 Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant,
@@ -626,7 +626,7 @@ private fun LocalStorageCard(
                         .padding(top = 14.dp)
                         .fillMaxWidth()
                         .height(14.dp)
-                        .semantics { contentDescription = segments.joinToString("，") { "${it.first} ${it.second} 首" } },
+                        .semantics { contentDescription = segments.joinToString("，") { "${it.first} ${it.second} tracks" } },
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     segments.forEachIndexed { at, (_, value, color) ->
@@ -661,7 +661,7 @@ private fun LocalStorageCard(
             }
             if (scan.error.isNotBlank() && !scan.running) {
                 Text(
-                    "上次扫描出错：${scan.error}",
+                    "Last scan failed: ${scan.error}",
                     Modifier.padding(top = 8.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.error,
@@ -672,7 +672,7 @@ private fun LocalStorageCard(
                     onClick = onCleanMissing,
                     modifier = Modifier.padding(top = 4.dp).tvFocusRing(RoundedCornerShape(20.dp)),
                 ) {
-                    Text("清理 ${index.missingCount} 首不在了的文件")
+                    Text("Clean up ${index.missingCount} missing files")
                 }
             }
         }
@@ -698,7 +698,7 @@ internal fun rememberLocalAccess(library: LocalLibrary, prefs: LocalMusicSetting
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         val changed = ok != granted
         granted = ok
-        // 拒绝也要记下来（空状态换成“改为选择文件夹”）；允许时回到前台那次检查可能已经处理过，别重复扫描
+        // 拒绝也要记下来（空状态换成“Choose folders instead”）；允许时回到前台那次检查可能已经处理过，别重复扫描
         if (changed || !ok) library.onPermissionChanged(ok)
     }
     // 权限状态不能只记在界面里：用户可能从应用设置里打开或收回，回到前台时重新查一次
@@ -712,7 +712,7 @@ internal fun rememberLocalAccess(library: LocalLibrary, prefs: LocalMusicSetting
     val folderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) {
             scope.launch {
-                if (!library.addFolder(uri)) snackbar.showSnackbar("这个文件夹读不了，换一个试试")
+                if (!library.addFolder(uri)) snackbar.showSnackbar("This folder can't be read; try another")
             }
         }
     }
@@ -730,7 +730,7 @@ internal fun rememberLocalAccess(library: LocalLibrary, prefs: LocalMusicSetting
         },
         pickFolder = {
             runCatching { folderLauncher.launch(null) }
-                .onFailure { scope.launch { snackbar.showSnackbar("这台设备没有文件夹选择器") } }
+                .onFailure { scope.launch { snackbar.showSnackbar("This device has no folder picker") } }
         },
     )
 }
@@ -741,34 +741,34 @@ private fun LocalAccessEmpty(access: LocalAccess) {
         when {
             !access.denied -> EmptyState(
                 icon = Icons.Filled.AudioFile,
-                title = "扫描手机里的歌",
-                message = "只读取音乐文件的信息和标签，不改文件，也不会自己上传。封面和歌词会自动补上。",
-                actionLabel = "允许读取音乐",
+                title = "Scan songs on this phone",
+                message = "Only reads audio file information and tags, never modifies files and never uploads on its own. Covers and lyrics are filled in automatically.",
+                actionLabel = "Allow reading music",
                 onAction = access.requestPermission,
             )
             access.canPickFolder -> EmptyState(
                 icon = Icons.Filled.Folder,
-                title = "改为选择文件夹",
-                message = "没有读取音乐的权限也能用：选一个放歌的文件夹，只读这个文件夹里的歌。",
-                actionLabel = "改为选择文件夹",
+                title = "Choose folders instead",
+                message = "Works without the music permission too: pick a folder and only its songs are read.",
+                actionLabel = "Choose folders instead",
                 onAction = access.pickFolder,
             )
             else -> EmptyState(
                 icon = Icons.Filled.AudioFile,
-                title = "需要读取音乐的权限",
-                message = "这台设备没有文件夹选择器，只能读系统媒体库。请允许读取音乐和音频。",
-                actionLabel = "允许读取音乐",
+                title = "Music permission needed",
+                message = "This device has no folder picker and can only read the system media library. Allow reading music and audio.",
+                actionLabel = "Allow reading music",
                 onAction = access.requestPermission,
             )
         }
         // 两条路都给：拒绝后仍能回头允许权限；没拒绝时也能只选文件夹
         if (access.denied) {
             TextButton(onClick = access.requestPermission, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Text("仍然允许读取整个媒体库")
+                Text("Allow reading the whole media library")
             }
         } else if (access.canPickFolder) {
             TextButton(onClick = access.pickFolder, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) {
-                Text("只选择文件夹")
+                Text("Choose folders only")
             }
         }
     }

@@ -56,7 +56,6 @@ import com.mytv.mymusic.aggregate.PlaybackMode
 import com.mytv.mymusic.data.SwipeAction
 import com.mytv.mymusic.data.SwipePrefs
 import com.mytv.mymusic.data.sync.SyncUiState
-import com.mytv.mymusic.data.update.UpdateUiState
 import com.mytv.mymusic.playback.EqualizerUiState
 import com.mytv.mymusic.ui.MusicUiState
 import com.mytv.mymusic.ui.adaptive.FoldRow
@@ -73,18 +72,18 @@ import com.mytv.mymusic.ui.theme.FontScale
 import com.mytv.mymusic.ui.theme.LayoutMode
 import kotlin.coroutines.cancellation.CancellationException
 
-/** 设置列表每项下方显示的当前值，以及“关于”上的新版本标记。 */
+/** Current value shown under each settings row. */
 @Immutable
 internal data class SettingsOverview(
     val values: Map<SettingsSection, String>,
-    val updateAvailable: Boolean,
 )
 
 internal fun settingsOverview(
     resources: Resources,
     state: MusicUiState,
     sync: SyncUiState,
-    update: UpdateUiState,
+    versionName: String,
+    versionCode: Long,
     equalizer: EqualizerUiState,
     cacheBytes: Long,
     downloadsBytes: Long,
@@ -97,12 +96,10 @@ internal fun settingsOverview(
     val separator = resources.getString(R.string.settings_join_separator)
     val logged = state.providers.filter { !state.cookies[it.id].isNullOrBlank() }
     val account = sync.account
-    val info = update.info
-    val updateAvailable = info != null
     val version = resources.getString(
         R.string.settings_summary_version,
-        update.currentVersionName.ifBlank { "1.0" },
-        update.currentVersionCode,
+        versionName.ifBlank { "1.0" },
+        versionCode,
     )
     return SettingsOverview(
         values = mapOf(
@@ -186,18 +183,8 @@ internal fun settingsOverview(
                 formatBytes(cacheBytes),
                 formatBytes(downloadsBytes),
             ),
-            SettingsSection.About to if (updateAvailable) {
-                resources.getString(
-                    R.string.settings_summary_update,
-                    version,
-                    info?.versionName.orEmpty(),
-                    info?.versionCode ?: 0,
-                )
-            } else {
-                version
-            },
+            SettingsSection.About to version,
         ),
-        updateAvailable = updateAvailable,
     )
 }
 
@@ -466,7 +453,6 @@ private fun SettingsGroups(
         SettingsSection.groupsFor(LocalAppWindow.current.isTv).forEach { group ->
             SegmentedGroup {
                 group.forEachIndexed { index, section ->
-                    val badge = section == SettingsSection.About && overview.updateAvailable
                     ListRow(
                         title = stringResource(section.titleRes),
                         index = index,
@@ -478,14 +464,6 @@ private fun SettingsGroups(
                         summary = overview.values[section].orEmpty(),
                         selected = section == selected,
                         showChevron = !twoPane,
-                        trailing = if (badge) {
-                            {
-                                NewBadge()
-                                if (!twoPane) Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        } else {
-                            null
-                        },
                     )
                 }
             }

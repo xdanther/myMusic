@@ -1,5 +1,6 @@
 package com.mytv.mymusic.ui.text
 
+import android.content.Context
 import android.content.res.Resources
 import com.mytv.mymusic.R
 import java.time.LocalDate
@@ -13,6 +14,17 @@ import java.util.Locale
  */
 
 private val English = Locale.ENGLISH
+
+/** 当前安装包的 versionName / versionCode；读不到时给空串和 0。 */
+fun appVersion(context: Context): Pair<String, Long> = runCatching {
+    val info = context.packageManager.getPackageInfo(context.packageName, 0)
+    val code = if (android.os.Build.VERSION.SDK_INT >= 28) {
+        info.longVersionCode
+    } else {
+        @Suppress("DEPRECATION") info.versionCode.toLong()
+    }
+    info.versionName.orEmpty() to code
+}.getOrDefault("" to 0L)
 
 /** 未知时长（<= 0 秒）返回空串。 */
 fun formatDurationSeconds(seconds: Int, locale: Locale = English): String =

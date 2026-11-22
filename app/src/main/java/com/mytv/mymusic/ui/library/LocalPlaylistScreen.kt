@@ -159,8 +159,8 @@ private class Loaded(val detail: LocalPlaylistDetail?)
 /**
  * 自建歌单详情 + 编辑。编辑是同一页的模式，不另开页面：
  * 手机是单栏；≥840dp 平板和电视左栏放拼贴和操作、右栏放曲目；embedded 时嵌在“我的”的右侧详情窗格里。
- * collection_view 选了海报时显示海报视图（CollectionPosterView）；编辑（排序、移除、添加）只在列表视图里，
- * 海报视图里点“编辑”就进列表的编辑模式，点“完成”回到海报。
+ * collection_view 选了海报时显示Poster view（CollectionPosterView）；编辑（排序、移除、添加）只在列表视图里，
+ * Poster view里点“编辑”就进列表的编辑模式，点“完成”回到海报。
  */
 @Composable
 fun LocalPlaylistScreen(
@@ -224,9 +224,9 @@ fun LocalPlaylistScreen(
     var exportOpen by remember { mutableStateOf(false) }
     var addOpen by remember { mutableStateOf(false) }
     var actionEntry by remember { mutableStateOf<Pair<Song, PlaylistEntryEntity>?>(null) }
-    // 电视海报视图里长按 / 菜单键打开时接在单曲操作下面的整页操作；列表视图里为 null
+    // 电视Poster view里长按 / 菜单键打开时接在单曲操作下面的整页操作；列表视图里为 null
     var actionPage by remember { mutableStateOf<WallPageActions?>(null) }
-    // 海报视图的设置面板由这里持有：电视上墙外不放按钮，它从单曲面板里的整页操作打开
+    // Poster view的设置面板由这里持有：电视上墙外不放按钮，它从单曲面板里的整页操作打开
     var posterSettingsOpen by remember { mutableStateOf(false) }
     val selection = remember { SelectionState() }
     LaunchedEffect(searchQuery) { selection.exit() }
@@ -262,7 +262,7 @@ fun LocalPlaylistScreen(
             editingBack = 0f
         }
     }
-    // 编辑中总是列表：海报视图里点“编辑”只打开编辑模式，不改记住的视图
+    // 编辑中总是列表：Poster view里点“编辑”只打开编辑模式，不改记住的视图
     val posterView = state.collectionView == CollectionView.Poster && !editing
     val showPoster: () -> Unit = remember(actions, selection) {
         {
@@ -270,19 +270,19 @@ fun LocalPlaylistScreen(
             actions.setCollectionView(CollectionView.Poster)
         }
     }
-    // 电视：普通模式焦点在“播放全部”，编辑模式在第一行的“下移”（不默认落在移除上）；海报视图自己管焦点，切回列表时重新落一次
+    // 电视：普通模式焦点在“Play all”，编辑模式在第一行的“下移”（不默认落在移除上）；Poster view自己管焦点，切回列表时重新落一次
     TvDefaultFocus(if (editing) editFocus else playFocus, Triple(playlist?.id, editing, posterView))
 
     val remove: (PlaylistEntryEntity, Song) -> Unit = { entry, song ->
         actions.removeEntry(playlistId, entry.position)
-        undo.show("已移除“${song.title}”") { actions.restoreEntry(entry) }
+        undo.show("Removed '${song.title}'") { actions.restoreEntry(entry) }
     }
     // 多选：移除一次重排，撤销按原位置逐条插回
     val removeSelected: () -> Unit = {
         val doomed = entries.filter { it.songKey in selection.selected }
         if (doomed.isNotEmpty()) {
             actions.removeEntries(playlistId, doomed.map { it.position })
-            undo.show("已移除 ${doomed.size} 首") {
+            undo.show("Removed ${doomed.size} tracks") {
                 doomed.sortedBy { it.position }.forEach { actions.restoreEntry(it) }
             }
             selection.exit()
@@ -356,7 +356,7 @@ fun LocalPlaylistScreen(
                     {
                         Icon(
                             if (isSelected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                            contentDescription = if (isSelected) "取消选择“${song.title}”" else "选择“${song.title}”",
+                            contentDescription = if (isSelected) "Deselect '${song.title}'" else "Select '${song.title}'",
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -392,11 +392,11 @@ fun LocalPlaylistScreen(
                     trailing = selectTrailing ?: durationTrailing,
                     onMore = rowMore,
                     onLongClick = rowLongPress,
-                    // 「删除」= 从歌单移出（绑定歌单照写回规则同步到平台，撤销按原位置插回）；收藏来的只读歌单没有
+                    // 「删除」= Remove from playlist（绑定歌单照写回规则同步到平台，撤销按原位置插回）；收藏来的只读歌单没有
                     swipe = rememberRowSwipe(
                         song,
                         shownSongs,
-                        delete = if (readOnly) null else SwipeDelete("移出", "从歌单移出") { remove(entry, song) },
+                        delete = if (readOnly) null else SwipeDelete("Remove", "Remove from playlist") { remove(entry, song) },
                         enabled = !picking,
                     ),
                 )
@@ -406,8 +406,8 @@ fun LocalPlaylistScreen(
             item(key = "searchEmpty", contentType = "empty") {
                 EmptyState(
                     icon = Icons.Filled.SearchOff,
-                    title = "没有找到匹配歌曲",
-                    message = "换个歌名、歌手或专辑关键词试试。",
+                    title = "No matching tracks found",
+                    message = "Try another title, artist or album keyword.",
                 )
             }
         }
@@ -415,9 +415,9 @@ fun LocalPlaylistScreen(
             item(key = "empty", contentType = "empty") {
                 EmptyState(
                     icon = Icons.Filled.Search,
-                    title = "歌单还是空的",
-                    message = if (readOnly) "这个歌单是空的。" else "点“添加”搜索歌曲，或在任意歌曲的菜单里选择“加到歌单”。",
-                    actionLabel = if (readOnly) null else "添加歌曲",
+                    title = "This playlist is empty",
+                    message = if (readOnly) "This playlist is empty." else "Tap Add to search for tracks, or choose Add to playlist from any track's menu.",
+                    actionLabel = if (readOnly) null else "Add tracks",
                     onAction = if (readOnly) null else ({ addOpen = true }),
                 )
             }
@@ -432,7 +432,7 @@ fun LocalPlaylistScreen(
         if (readOnly && !editing) {
             item(key = "readonly", contentType = "note") {
                 Box(Modifier.padding(bottom = 8.dp)) {
-                    InfoNote("这个歌单不能修改。仍可播放、下载，或解除绑定后存成本机歌单。", "red")
+                    InfoNote("This playlist can't be edited. You can still play and download it, or unlink it and keep it as a local playlist.", "red")
                 }
             }
         }
@@ -444,13 +444,13 @@ fun LocalPlaylistScreen(
         if (conflict) {
             item(key = "conflict", contentType = "card") {
                 ListRow(
-                    title = "这个歌单有同步冲突",
+                    title = "This playlist has a sync conflict",
                     index = 0,
                     count = 1,
                     onClick = onOpenSync,
                     icon = Icons.Filled.SyncProblem,
                     iconTone = IconTone.Error,
-                    summary = "本机和云端都改过，处理前不会上传",
+                    summary = "Changed here and in the cloud; nothing uploads until resolved",
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
@@ -461,17 +461,17 @@ fun LocalPlaylistScreen(
                     buildString {
                         if (canReorder) {
                             append(
-                                if (window.isTv) "用行尾的上移、下移按钮调整顺序，左侧按钮移除。"
-                                else "用上下箭头调整顺序（键盘 Alt + ↑↓），点左侧按钮移除。"
+                                if (window.isTv) "Use the up and down buttons at the end of a row to reorder and the left button to remove."
+                                else "Use the arrows to reorder (Alt + ↑↓ on a keyboard) and the left button to remove."
                             )
                         } else {
-                            append("点左侧按钮移除歌曲。")
+                            append("Use the button on the left to remove a track.")
                         }
                         if (bound) {
-                            append("修改会同步到${providerName(state.providers, playlist?.linkProvider.orEmpty())}歌单。")
-                            if (!canReorder) append("这个平台不支持在 App 内调整歌单顺序。")
+                            append("Changes sync to the ${providerName(state.providers, playlist?.linkProvider.orEmpty())} playlist.")
+                            if (!canReorder) append("This platform doesn't support reordering playlists in the app.")
                         } else {
-                            append("修改自动保存到本机。")
+                            append("Changes save to this device automatically.")
                         }
                     },
                     Modifier.padding(start = 4.dp, top = 4.dp, bottom = 8.dp),
@@ -485,7 +485,7 @@ fun LocalPlaylistScreen(
         OutlinedTextField(
             value = nameDraft,
             onValueChange = { nameDraft = it },
-            label = { Text("歌单名称") },
+            label = { Text("Playlist name") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = {
@@ -502,7 +502,7 @@ fun LocalPlaylistScreen(
         ) {
             Icon(Icons.Filled.Delete, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.error)
             Spacer(Modifier.width(8.dp))
-            Text("删除歌单", color = MaterialTheme.colorScheme.error)
+            Text("Delete playlist", color = MaterialTheme.colorScheme.error)
         }
     }
     // showEdit：编辑和“更多”放在操作行（嵌在“我的”时没有顶栏）
@@ -615,7 +615,7 @@ fun LocalPlaylistScreen(
                         if (editing) {
                             Column(Modifier.padding(bottom = 8.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("编辑歌单", Modifier.weight(1f), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                                    Text("Edit playlist", Modifier.weight(1f), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
                                     DoneButton(finishEdit)
                                 }
                                 Spacer(Modifier.size(12.dp))
@@ -638,7 +638,7 @@ fun LocalPlaylistScreen(
                 }
             }
             window.twoPane -> PageScaffold(
-                title = if (editing) "编辑歌单" else playlist.name,
+                title = if (editing) "Edit playlist" else playlist.name,
                 subtitle = if (editing) "" else meta,
                 onBack = if (editing) finishEdit else onBack,
                 actions = {
@@ -646,12 +646,12 @@ fun LocalPlaylistScreen(
                         DoneButton(finishEdit)
                     } else {
                         IconButton(onClick = showPoster, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Filled.GridView, "海报视图")
+                            Icon(Icons.Filled.GridView, "Poster view")
                         }
                         // 左栏操作行放不下编辑和“更多”，和手机一样放顶栏
                         if (!readOnly) {
                             IconButton(onClick = { editing = true }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                                Icon(Icons.Filled.Edit, "编辑歌单")
+                                Icon(Icons.Filled.Edit, "Edit playlist")
                             }
                         }
                         PlaylistMoreMenu(menu.copy(onEdit = null))
@@ -667,7 +667,7 @@ fun LocalPlaylistScreen(
                                 if (editing) {
                                     nameField()
                                     Text(
-                                        "名称在这里修改，曲目在右栏调整。",
+                                        "Rename here; edit tracks in the right pane.",
                                         Modifier.padding(start = 4.dp, top = 8.dp),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -681,7 +681,7 @@ fun LocalPlaylistScreen(
                                         PlaylistSyncTag(playlist.dirty, sync, conflict, long = true)
                                     }
                                     Text(
-                                        "${relativeTime(playlist.updatedAt).ifBlank { "刚刚" }}编辑",
+                                        "${relativeTime(playlist.updatedAt).ifBlank { "Just now" }}编辑",
                                         Modifier.padding(top = 8.dp, bottom = 16.dp),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -699,7 +699,7 @@ fun LocalPlaylistScreen(
                 )
             }
             else -> PageScaffold(
-                title = if (editing) "编辑歌单" else playlist.name,
+                title = if (editing) "Edit playlist" else playlist.name,
                 subtitle = if (editing) "" else meta,
                 onBack = if (editing) finishEdit else onBack,
                 actions = {
@@ -707,11 +707,11 @@ fun LocalPlaylistScreen(
                         DoneButton(finishEdit, Modifier.padding(end = 8.dp))
                     } else {
                         IconButton(onClick = showPoster, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Filled.GridView, "海报视图")
+                            Icon(Icons.Filled.GridView, "Poster view")
                         }
                         if (!readOnly) {
                             IconButton(onClick = { editing = true }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                                Icon(Icons.Filled.Edit, "编辑歌单")
+                                Icon(Icons.Filled.Edit, "Edit playlist")
                             }
                         }
                         PlaylistMoreMenu(menu.copy(onEdit = null))
@@ -748,8 +748,8 @@ fun LocalPlaylistScreen(
 
     LocalUnplayableSheets(
         host = unplayable,
-        removeLabel = "从歌单移除",
-        removeSummary = "所有设备上都会移除",
+        removeLabel = "Remove from playlist",
+        removeSummary = "Removed on every device",
         onRemove = if (readOnly) null else ({
             song -> entries.firstOrNull { it.songKey == song.key }?.let { entry -> remove(entry, song) }
         }),
@@ -808,10 +808,10 @@ fun LocalPlaylistScreen(
     }
     if (renameOpen && playlist != null) {
         InputDialog(
-            title = "重命名歌单",
-            label = "歌单名称",
+            title = "Rename playlist",
+            label = "Playlist name",
             initial = playlist.name,
-            confirmLabel = "保存",
+            confirmLabel = "Save",
             onConfirm = { name -> actions.renamePlaylist(playlistId, name) },
             onDismiss = { renameOpen = false },
         )
@@ -821,9 +821,9 @@ fun LocalPlaylistScreen(
     }
     if (deleteOpen && playlist != null) {
         ConfirmDialog(
-            title = "删除“${playlist.name}”？",
-            message = "歌单和其中的 ${entries.size} 首歌会从本机移除。已连接同步时，下一次同步会把删除带到云端。",
-            confirmLabel = "删除",
+            title = "Delete '${playlist.name}'?",
+            message = "The playlist and its ${entries.size} tracks are removed from this device. With sync connected, the next sync carries the deletion to the cloud.",
+            confirmLabel = "Delete",
             danger = true,
             onConfirm = {
                 editing = false
@@ -847,8 +847,8 @@ private data class PlaylistMenu(
 )
 
 /**
- * 自建歌单的海报视图（[detail] 为 null 时是读取中，墙上是骨架格）。工具栏第三格是“编辑”：进列表的编辑模式。
- * 播放都不弹出播放页；长按格子、大卡的“更多”打开和列表同一个 TrackActionsSheet（带“从歌单移除”）。
+ * 自建歌单的Poster view（[detail] 为 null 时是读取中，墙上是骨架格）。工具栏第三格是“编辑”：进列表的编辑模式。
+ * 播放都不弹出播放页；长按格子、大卡的“更多”打开和列表同一个 TrackActionsSheet（带“Remove from playlist”）。
  */
 @Composable
 private fun LocalPlaylistPoster(
@@ -892,12 +892,12 @@ private fun LocalPlaylistPoster(
         )
     }
     val edit = remember(onEdit, readOnly) {
-        if (readOnly) null else PosterExtraAction(Icons.Filled.Edit, "编辑歌单", onEdit)
+        if (readOnly) null else PosterExtraAction(Icons.Filled.Edit, "Edit playlist", onEdit)
     }
     val providers = state.providers
     val sourceName: (Song) -> String = remember(providers) { { song -> providerName(providers, song.source) } }
-    // 空歌单沿用列表的提示；“添加歌曲”是搜索面板，不用切回列表。
-    // 电视上墙上没有格子可长按，整页操作够不到：旁边再给一个“切回列表视图”（只读的空歌单只有它）
+    // 空歌单沿用列表的提示；“Add tracks”是搜索面板，不用切回列表。
+    // 电视上墙上没有格子可长按，整页操作够不到：旁边再给一个“Back to list view”（只读的空歌单只有它）
     val tv = LocalAppWindow.current.isTv
     val toList: (() -> Unit)? = if (tv) ({ actions.setCollectionView(CollectionView.List) }) else null
     val message: (@Composable () -> Unit)? = when {
@@ -905,20 +905,20 @@ private fun LocalPlaylistPoster(
         !readOnly -> ({
             EmptyState(
                 icon = Icons.Filled.Search,
-                title = "歌单还是空的",
-                message = "点“添加歌曲”搜索歌曲，或在任意歌曲的菜单里选择“加到歌单”。",
-                actionLabel = "添加歌曲",
+                title = "This playlist is empty",
+                message = "Tap Add tracks to search, or choose Add to playlist from any track's menu.",
+                actionLabel = "Add tracks",
                 onAction = onAddTracks,
-                secondaryLabel = toList?.let { "切回列表视图" },
+                secondaryLabel = toList?.let { "Back to list view" },
                 onSecondary = toList,
             )
         })
         toList != null -> ({
             EmptyState(
                 icon = Icons.Filled.Search,
-                title = "歌单还是空的",
-                message = "这个歌单是空的。",
-                secondaryLabel = "切回列表视图",
+                title = "This playlist is empty",
+                message = "This playlist is empty.",
+                secondaryLabel = "Back to list view",
                 onSecondary = toList,
             )
         })
@@ -933,7 +933,7 @@ private fun LocalPlaylistPoster(
         cover = cover,
         songs = songs,
         loading = detail == null,
-        playLabel = "播放全部",
+        playLabel = "Play all",
         ops = ops,
         sourceName = sourceName,
         extra = edit,
@@ -985,16 +985,16 @@ private fun PlaylistHeader(
 @Composable
 private fun BoundPlaylistTag(providerId: String, syncedAt: Long, providers: List<ProviderInfo>) {
     val scheme = MaterialTheme.colorScheme
-    val synced = relativeTime(syncedAt).ifBlank { "刚刚" }
-    Tag("已绑定${providerName(providers, providerId)} · ${synced}同步", scheme.primaryContainer, scheme.onPrimaryContainer, Icons.Filled.Link)
+    val synced = relativeTime(syncedAt).ifBlank { "Just now" }
+    Tag("Linked to ${providerName(providers, providerId)} · synced ${synced}", scheme.primaryContainer, scheme.onPrimaryContainer, Icons.Filled.Link)
 }
 
 /**
- * 播放全部（Split button，展开随机播放）+ 添加 + 多选；嵌在“我的”里再加海报视图、编辑和更多。
+ * Play all（Split button，展开随机播放）+ 添加 + 多选；嵌在“我的”里再加Poster view、编辑和更多。
  *
  * 按实际宽度排：双栏左栏只有 296～316dp、折叠屏展开后“我的”右栏不到 280dp，全摆出来后面的按钮会被挤没
- * （“更多”里的重命名、导出、删除就进不去了）。先保证播放全部和“更多”，再依次摆添加、多选、海报视图，
- * 还有地方才把“添加”写全、摆编辑；放不下的进“更多”。没有“更多”（入口在顶栏）时多选和海报视图照摆，
+ * （“更多”里的Rename、导出、删除就进不去了）。先保证Play all和“更多”，再依次摆添加、多选、Poster view，
+ * 还有地方才把“添加”写全、摆编辑；放不下的进“更多”。没有“更多”（入口在顶栏）时多选和Poster view照摆，
  * 只把“添加”收成图标。
  */
 @Composable
@@ -1009,7 +1009,7 @@ private fun PlaylistActionRow(
     onPosterView: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
-    // 播放全部量出来的宽度；第一次摆之前按字号估
+    // Play all量出来的宽度；第一次摆之前按字号估
     var playWidth by remember { mutableStateOf(Dp.Unspecified) }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val add = onAdd.takeIf { enabled }
@@ -1037,7 +1037,7 @@ private fun PlaylistActionRow(
                         Button(onClick = onAdd, modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp))) {
                             Icon(Icons.Filled.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("添加歌曲")
+                            Text("Add tracks")
                         }
                     }
                 }
@@ -1046,22 +1046,22 @@ private fun PlaylistActionRow(
                         FilledTonalButton(onClick = add, modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp))) {
                             Icon(Icons.Filled.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("添加")
+                            Text("Add")
                         }
                     } else {
                         FilledTonalIconButton(onClick = add, modifier = Modifier.tvFocusRing(CircleShape)) {
-                            Icon(Icons.Filled.Add, contentDescription = "添加歌曲")
+                            Icon(Icons.Filled.Add, contentDescription = "Add tracks")
                         }
                     }
                 }
                 if (multi != null && fit.multi) {
                     FilledTonalIconButton(onClick = multi, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Icon(Icons.Filled.DoneAll, contentDescription = "批量选择歌曲")
+                        Icon(Icons.Filled.DoneAll, contentDescription = "Select multiple tracks")
                     }
                 }
                 if (onPosterView != null && fit.poster) {
                     FilledTonalIconButton(onClick = onPosterView, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Icon(Icons.Filled.GridView, contentDescription = "海报视图")
+                        Icon(Icons.Filled.GridView, contentDescription = "Poster view")
                     }
                 }
             }
@@ -1069,7 +1069,7 @@ private fun PlaylistActionRow(
                 Spacer(Modifier.weight(1f))
                 val edit = menu.onEdit
                 if (edit != null && fit.edit) {
-                    IconButton(onClick = edit, modifier = Modifier.tvFocusRing(CircleShape)) { Icon(Icons.Filled.Edit, "编辑歌单") }
+                    IconButton(onClick = edit, modifier = Modifier.tvFocusRing(CircleShape)) { Icon(Icons.Filled.Edit, "Edit playlist") }
                 }
                 PlaylistMoreMenu(
                     menu.copy(onEdit = edit.takeUnless { fit.edit }),
@@ -1095,8 +1095,8 @@ internal data class ActionRowFit(
 )
 
 /**
- * 从 [width] 里先扣掉播放全部和“更多”，再按添加（图标）→ 多选 → 海报视图 → “添加”写全 → 编辑的顺序往里放。
- * 没有“更多”时添加、多选、海报视图没地方收，照摆。
+ * 从 [width] 里先扣掉Play all和“更多”，再按添加（图标）→ 多选 → Poster view → “添加”写全 → 编辑的顺序往里放。
+ * 没有“更多”时添加、多选、Poster view没地方收，照摆。
  */
 internal fun fitActionRow(
     width: Dp,
@@ -1134,64 +1134,64 @@ private fun PlaylistMoreMenu(
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }, modifier = Modifier.tvFocusRing(CircleShape)) {
-            Icon(Icons.Filled.MoreVert, "歌单更多操作")
+            Icon(Icons.Filled.MoreVert, "More playlist actions")
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }, shape = RoundedCornerShape(20.dp)) {
             // 操作行放不下、收进来的
             onAdd?.let { add ->
                 DropdownMenuItem(
-                    text = { Text("添加歌曲") },
+                    text = { Text("Add tracks") },
                     leadingIcon = { Icon(Icons.Filled.Add, null) },
                     onClick = { open = false; add() },
                 )
             }
             onMultiSelect?.let { multi ->
                 DropdownMenuItem(
-                    text = { Text("批量选择") },
+                    text = { Text("Select multiple") },
                     leadingIcon = { Icon(Icons.Filled.DoneAll, null) },
                     onClick = { open = false; multi() },
                 )
             }
             onPosterView?.let { poster ->
                 DropdownMenuItem(
-                    text = { Text("海报视图") },
+                    text = { Text("Poster view") },
                     leadingIcon = { Icon(Icons.Filled.GridView, null) },
                     onClick = { open = false; poster() },
                 )
             }
             menu.onEdit?.let { edit ->
                 DropdownMenuItem(
-                    text = { Text("编辑歌单") },
+                    text = { Text("Edit playlist") },
                     leadingIcon = { Icon(Icons.Filled.Edit, null) },
                     onClick = { open = false; edit() },
                 )
             }
             menu.onSync?.let { sync ->
                 DropdownMenuItem(
-                    text = { Text("同步平台歌单") },
+                    text = { Text("Sync platform playlist") },
                     leadingIcon = { Icon(Icons.Filled.Sync, null) },
                     onClick = { open = false; sync() },
                 )
             }
             menu.onUnbind?.let { unbind ->
                 DropdownMenuItem(
-                    text = { Text("解除绑定") },
+                    text = { Text("Unlink") },
                     leadingIcon = { Icon(Icons.Filled.LinkOff, null) },
                     onClick = { open = false; unbind() },
                 )
             }
             DropdownMenuItem(
-                text = { Text("重命名") },
+                text = { Text("Rename") },
                 leadingIcon = { Icon(Icons.Filled.Edit, null) },
                 onClick = { open = false; menu.onRename() },
             )
             DropdownMenuItem(
-                text = { Text("导出歌单…") },
+                text = { Text("Export playlist…") },
                 leadingIcon = { Icon(Icons.Filled.SaveAlt, null) },
                 onClick = { open = false; menu.onExport() },
             )
             DropdownMenuItem(
-                text = { Text("删除歌单", color = MaterialTheme.colorScheme.error) },
+                text = { Text("Delete playlist", color = MaterialTheme.colorScheme.error) },
                 leadingIcon = { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) },
                 onClick = { open = false; menu.onDelete() },
             )
@@ -1204,7 +1204,7 @@ private fun DoneButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(onClick = onClick, modifier = modifier.heightIn(min = 40.dp).tvFocusRing(RoundedCornerShape(20.dp))) {
         Icon(Icons.Filled.Check, null, Modifier.size(18.dp))
         Spacer(Modifier.width(6.dp))
-        Text("完成")
+        Text("Done")
     }
 }
 
@@ -1243,7 +1243,7 @@ private fun EditTrackRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onRemove, modifier = Modifier.tvFocusRing(CircleShape)) {
-            Icon(Icons.Filled.RemoveCircleOutline, "移除“${song.title}”", tint = MaterialTheme.colorScheme.error)
+            Icon(Icons.Filled.RemoveCircleOutline, "Remove '${song.title}'", tint = MaterialTheme.colorScheme.error)
         }
         Cover(song.cover, song.title, 48.dp, corner = 12.dp)
         Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
@@ -1252,20 +1252,20 @@ private fun EditTrackRow(
         }
         if (canMove) {
             IconButton(onClick = onUp, enabled = index > 0, modifier = Modifier.tvFocusRing(CircleShape)) {
-                Icon(Icons.Filled.ArrowUpward, "上移“${song.title}”")
+                Icon(Icons.Filled.ArrowUpward, "Move '${song.title}' up")
             }
             IconButton(
                 onClick = onDown,
                 enabled = index < count - 1,
                 modifier = (if (moveFocus != null) Modifier.focusRequester(moveFocus) else Modifier).tvFocusRing(CircleShape),
             ) {
-                Icon(Icons.Filled.ArrowDownward, "下移“${song.title}”")
+                Icon(Icons.Filled.ArrowDownward, "Move '${song.title}' down")
             }
         }
     }
 }
 
-/** 添加歌曲：在默认浏览来源（绑定歌单则在绑定平台）中搜索。手机是底部面板，平板 / 电视是侧边面板。 */
+/** Add tracks：在默认浏览来源（绑定歌单则在绑定平台）中搜索。手机是底部面板，平板 / 电视是侧边面板。 */
 @Composable
 internal fun AddTracksSheet(
     search: LibrarySearchUiState,
@@ -1282,8 +1282,8 @@ internal fun AddTracksSheet(
     TvDefaultFocus(field)
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = "添加歌曲",
-        subtitle = if (sourceName.isNullOrBlank()) "在默认浏览来源中搜索" else "在${sourceName}中搜索",
+        title = "Add tracks",
+        subtitle = if (sourceName.isNullOrBlank()) "Search the default browse source" else "Search ${sourceName}",
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             OutlinedTextField(
@@ -1291,10 +1291,10 @@ internal fun AddTracksSheet(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth().focusRequester(field),
                 singleLine = true,
-                placeholder = { Text("歌曲名或歌手") },
+                placeholder = { Text("Track title or artist") },
                 leadingIcon = { Icon(Icons.Filled.Search, null) },
                 trailingIcon = {
-                    TextButton(onClick = { onSearch(query) }, enabled = query.isNotBlank()) { Text("搜索") }
+                    TextButton(onClick = { onSearch(query) }, enabled = query.isNotBlank()) { Text("Search") }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
@@ -1311,7 +1311,7 @@ internal fun AddTracksSheet(
                 when {
                     search.loading -> item(key = "loading", contentType = "loading") {
                         Column(verticalArrangement = Arrangement.spacedBy(SegmentGap)) {
-                            AppLoading(text = "正在搜索…")
+                            AppLoading(text = "Searching…")
                             SkeletonRows(3)
                         }
                     }
@@ -1321,8 +1321,8 @@ internal fun AddTracksSheet(
                     search.query.isNotBlank() && search.results.isEmpty() -> item(key = "empty", contentType = "empty") {
                         EmptyState(
                             icon = Icons.Filled.SearchOff,
-                            title = "没有找到",
-                            message = "试试歌曲名加歌手。",
+                            title = "Nothing found",
+                            message = "Try the title plus the artist.",
                         )
                     }
                 }
@@ -1343,12 +1343,12 @@ internal fun AddTracksSheet(
                             if (added) {
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 4.dp)) {
                                     Icon(Icons.Filled.Check, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-                                    Text("已添加", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                                    Text("Added", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                                 }
                             } else {
                                 Icon(
                                     Icons.AutoMirrored.Filled.PlaylistAdd,
-                                    "添加“${song.title}”",
+                                    "Add '${song.title}'",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.padding(end = 4.dp),
                                 )
@@ -1379,9 +1379,9 @@ private fun MissingPlaylist(onBack: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         EmptyState(
             icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-            title = "找不到这个歌单",
-            message = "它可能已被删除，或者在同步时被云端版本替换。",
-            actionLabel = "返回",
+            title = "Couldn't find this playlist",
+            message = "It may have been deleted or replaced by the cloud version during sync.",
+            actionLabel = "Back",
             onAction = onBack,
         )
     }
@@ -1393,8 +1393,8 @@ private fun playlistMeta(songs: List<Song>): String {
     val minutes = (seconds % 3600) / 60
     val length = when {
         seconds <= 0 -> ""
-        hours > 0 -> "$hours 小时 $minutes 分"
-        else -> "$minutes 分钟"
+        hours > 0 -> "$hours h $minutes min"
+        else -> "$minutes min"
     }
-    return listOf("${songs.size} 首", length).filter { it.isNotBlank() }.joinToString(" · ")
+    return listOf("${songs.size} tracks", length).filter { it.isNotBlank() }.joinToString(" · ")
 }

@@ -18,10 +18,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import com.mytv.mymusic.data.update.UpdateInfo
-import com.mytv.mymusic.data.update.UpdatePhase
-import com.mytv.mymusic.data.update.UpdateUiState
-import com.mytv.mymusic.ui.settings.AboutScreen
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -330,25 +326,6 @@ class ComposePerformanceBehaviorTest {
         compose.onNodeWithText("latest lyric").assertIsDisplayed()
         assertTrue("非空歌词解析期间不能发布假空态", seen.none { it.first.isEmpty() && !it.second })
         assertEquals("[00:02.00]latest lyric", seen.last().first)
-    }
-
-    @Test
-    fun updateProgressProviderRefreshesLabelWithoutChangingReleaseDetails() {
-        val actions = testActions()
-        val progress = mutableFloatStateOf(0.125f)
-        val update = UpdateUiState(
-            currentVersionName = "1.0", currentVersionCode = 1,
-            phase = UpdatePhase.Downloading,
-            info = UpdateInfo(2, "1.1", "v1.1", "2026-10-25T00:00:00Z", 1_048_576L, "https://example.test/app.apk", "test", listOf("测试更新说明")),
-        )
-        compose.setContent {
-            TestTheme { AboutScreen(MusicUiState(), update, actions, {}, {}, {}, progress = { progress.floatValue }) }
-        }
-        compose.onNodeWithText("正在下载 12%", substring = true).performScrollTo().assertIsDisplayed()
-        compose.runOnIdle { progress.floatValue = 0.57f }
-        compose.onNodeWithText("正在下载 57%", substring = true).assertIsDisplayed()
-        compose.onNodeWithText("测试更新说明", substring = true).assertExists()
-        compose.onNodeWithText("发现新版本 1.1（构建 2）").assertExists()
     }
 
     @Test

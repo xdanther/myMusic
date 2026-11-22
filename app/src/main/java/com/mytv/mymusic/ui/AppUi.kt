@@ -113,7 +113,6 @@ import com.mytv.mymusic.data.SearchKind
 import com.mytv.mymusic.data.Song
 import com.mytv.mymusic.data.TopList
 import com.mytv.mymusic.data.sync.SyncStrategy
-import com.mytv.mymusic.data.update.InstallResult
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -197,7 +196,7 @@ class MusicActions(private val model: MusicViewModel) {
     fun closePlayer() = model.openPlayer(false)
     fun openPosterWall() = model.openPosterWall()
     fun closePosterWall() = model.closePosterWall()
-    /** 迷你播放器等“正在播放”入口的点按：按设置打开播放页或海报墙。写着“打开播放页 / 全屏播放”的按钮仍用 [openPlayer]。 */
+    /** 迷你播放器等“正在播放”入口的点按：按设置Open player或海报墙。写着“Open player / 全屏播放”的按钮仍用 [openPlayer]。 */
     fun openNowPlaying() = model.openNowPlaying()
     fun openPlaybackOrigin() = model.openPlaybackOrigin()
     fun consumePlaybackLocate() = model.consumePlaybackLocate()
@@ -230,11 +229,11 @@ class MusicActions(private val model: MusicViewModel) {
     fun addSongsToPlaylist(id: String, songs: List<Song>) = model.addSongsToPlaylist(id, songs)
     fun addSongsToNewPlaylist(name: String, songs: List<Song>) = model.addSongsToNewPlaylist(name, songs)
 
-    /** 自建歌单列表（「加到歌单」面板自己取，播放页不用为它多传一层参数）。 */
+    /** 自建歌单列表（「Add to playlist」面板自己取，播放页不用为它多传一层参数）。 */
     val localPlaylists: kotlinx.coroutines.flow.StateFlow<List<LocalPlaylistSummary>> get() = model.localPlaylists
     /** 这首（含同一首的其他平台版本）在哪些自建歌单里，按歌单 id。 */
     fun playlistsContaining(song: Song): kotlinx.coroutines.flow.Flow<Set<String>> = model.playlistsContaining(song)
-    /** 「加到歌单」面板的加入 / 移出 / 新建并加入：提示交回面板显示（见 [PlaylistEditResult]）。 */
+    /** 「Add to playlist」面板的加入 / 移出 / 新建并加入：提示交回面板显示（见 [PlaylistEditResult]）。 */
     fun addSongToPlaylistQuietly(id: String, song: Song) = model.addSongToPlaylistQuietly(id, song)
     fun removeSongFromPlaylist(id: String, song: Song) = model.removeSongFromPlaylistQuietly(id, song)
     fun createPlaylistWithSong(name: String, song: Song) = model.createPlaylistWithSongQuietly(name, song)
@@ -391,15 +390,6 @@ class MusicActions(private val model: MusicViewModel) {
     val transfer: kotlinx.coroutines.flow.StateFlow<TransferUi> get() = model.transfer
     val importDone: kotlinx.coroutines.flow.StateFlow<Int> get() = model.importDone
 
-    fun checkUpdates() = model.checkForUpdates()
-    suspend fun checkUpdatesNow(): com.mytv.mymusic.data.update.UpdateUiState = model.checkForUpdatesNow()
-    fun downloadUpdate() = model.downloadUpdate()
-    fun installUpdate() = model.installUpdate()
-    fun openInstallPermission() = model.openInstallPermission()
-    fun openReleasePage() = model.openReleasePage()
-    fun clearUpdateError() = model.clearUpdateError()
-    fun dismissUpdate() = model.dismissUpdate()
-
     fun setEqEnabled(value: Boolean) = model.setEqualizerEnabled(value)
     fun selectEqPreset(id: String) = model.selectEqualizerPreset(id)
     fun setEqBand(index: Int, db: Float) = model.setEqualizerBand(index, db)
@@ -413,11 +403,11 @@ class MusicActions(private val model: MusicViewModel) {
 /** “正在播放”入口点按后去哪，读屏和 onClickLabel 用。 */
 val MiniPlayerTarget.openLabel: String
     get() = when (this) {
-        MiniPlayerTarget.Player -> "打开播放页"
-        MiniPlayerTarget.PosterWall -> "打开海报墙"
+        MiniPlayerTarget.Player -> "Open player"
+        MiniPlayerTarget.PosterWall -> "Open poster wall"
     }
 
-fun coverInitial(title: String): String = title.trim().firstOrNull()?.toString().orEmpty().ifBlank { "音" }
+fun coverInitial(title: String): String = title.trim().firstOrNull()?.toString().orEmpty().ifBlank { "♪" }
 
 /**
  * 封面。加载前和没有封面时显示取色容器上的首字，不再用固定的大地色。
@@ -616,7 +606,7 @@ fun ErrorBlock(message: String, onRetry: (() -> Unit)? = null) {
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError,
                     ),
-                ) { Text("重试") }
+                ) { Text("Retry") }
             }
         }
     }
@@ -627,7 +617,7 @@ fun InputDialog(
     title: String,
     label: String,
     initial: String = "",
-    confirmLabel: String = "确定",
+    confirmLabel: String = "OK",
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -653,7 +643,7 @@ fun InputDialog(
                 enabled = value.isNotBlank(),
             ) { Text(confirmLabel) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
@@ -661,7 +651,7 @@ fun InputDialog(
 fun ConfirmDialog(
     title: String,
     message: String,
-    confirmLabel: String = "确定",
+    confirmLabel: String = "OK",
     danger: Boolean = false,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
@@ -678,7 +668,7 @@ fun ConfirmDialog(
                 Text(confirmLabel, color = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
@@ -689,7 +679,7 @@ fun ConfirmDialog(
 @androidx.compose.runtime.Immutable
 class WallMenu(val title: String, val items: List<WallMenuItem>)
 
-/** 整页操作的一行；[summary] 是第二行（已收藏、已绑定这类状态），没有就空着。 */
+/** 整页操作的一行；[summary] 是第二行（Saved、已绑定这类状态），没有就空着。 */
 @androidx.compose.runtime.Immutable
 class WallMenuItem(val icon: ImageVector, val label: String, val onClick: () -> Unit, val summary: String = "")
 
@@ -720,7 +710,7 @@ fun TrackActionsSheet(
     onMerge: (() -> Unit)? = null,
     wallPage: WallPageActions? = null,
     /**
-     * 本地歌的「换一个匹配」。这台设备没有文件、正在用匹配到的平台版本播放时，这是唯一能改匹配的入口
+     * 本地歌的「Choose another match」。这台设备没有文件、正在用匹配到的平台版本播放时，这是唯一能改匹配的入口
      * （歌曲信息只在本地音乐页里），选好的匹配记进线索表并同步回有文件的设备。非本地歌为 null。
      */
     onRematch: (() -> Unit)? = null,
@@ -736,7 +726,7 @@ fun TrackActionsSheet(
     hideArtist: String = "",
     /** 已经在这张专辑的页面里：不给“查看专辑”。 */
     hideAlbum: String = "",
-    /** 最近播放里的“从最近播放删除”（红色，排在最后，和“从歌单移除”同一种行）；别的列表为 null。 */
+    /** 最近播放里的“Remove from recently played”（红色，排在最后，和“Remove from playlist”同一种行）；别的列表为 null。 */
     onRemoveFromHistory: (() -> Unit)? = null,
 ) {
     var showPlaylists by remember { mutableStateOf(false) }
@@ -744,7 +734,7 @@ fun TrackActionsSheet(
     val page = remember(wallPage) { wallPage?.menu?.invoke()?.takeIf { it.items.isNotEmpty() } }
     com.mytv.mymusic.ui.components.AdaptiveSheet(
         onDismiss = onDismiss,
-        title = if (showPlaylists) "添加到歌单" else song.title,
+        title = if (showPlaylists) "Add to playlist" else song.title,
         subtitle = if (showPlaylists) song.title else song.subtitle,
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
@@ -753,11 +743,11 @@ fun TrackActionsSheet(
                 val scroll = rememberScrollState()
                 Column(Modifier.fillMaxWidth().verticalScroll(scroll).padding(vertical = 4.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QuickAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, if (favorite) "已收藏" else "收藏", favorite, Modifier.weight(1f)) {
+                    QuickAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, if (favorite) "Saved" else "Save", favorite, Modifier.weight(1f)) {
                         onToggleFavorite()
                     }
-                    QuickAction(Icons.Filled.Download, "下载", false, Modifier.weight(1f)) { onDownload(); onDismiss() }
-                    QuickAction(Icons.Filled.LibraryAdd, "加到歌单", false, Modifier.weight(1f), enabled = playlists.isNotEmpty()) { showPlaylists = true }
+                    QuickAction(Icons.Filled.Download, "Downloads", false, Modifier.weight(1f)) { onDownload(); onDismiss() }
+                    QuickAction(Icons.Filled.LibraryAdd, "Add to playlist", false, Modifier.weight(1f), enabled = playlists.isNotEmpty()) { showPlaylists = true }
                 }
                 Spacer(Modifier.height(12.dp))
                 // 直播（电台）没有歌手 / 专辑可看
@@ -769,21 +759,21 @@ fun TrackActionsSheet(
                     com.mytv.mymusic.ui.artist.splitArtistNames(song.artist)
                         .filter { hiddenArtist.isEmpty() || com.mytv.mymusic.aggregate.TrackNormalizer.keyOf(it) != hiddenArtist }
                         .take(3)
-                        .map { name -> SheetRow(Icons.Filled.Person, "查看歌手：$name", false, action = { onOpenArtist(name) }) }
+                        .map { name -> SheetRow(Icons.Filled.Person, "View artist: $name", false, action = { onOpenArtist(name) }) }
                 }
                 val albumRow = onOpenAlbum?.takeIf {
                     browsable && song.album.isNotBlank() &&
                         com.mytv.mymusic.aggregate.TrackNormalizer.keyOf(song.album) != com.mytv.mymusic.aggregate.TrackNormalizer.keyOf(hideAlbum)
-                }?.let { SheetRow(Icons.Filled.Album, "查看专辑：${song.album}", false, it) }
+                }?.let { SheetRow(Icons.Filled.Album, "View album: ${song.album}", false, it) }
                 val rows = artistRows + listOfNotNull(
                     albumRow,
-                    onCollect?.let { SheetRow(Icons.Filled.FavoriteBorder, "收藏到账号", false, it) },
-                    onRematch?.let { SheetRow(Icons.Filled.FindReplace, "换一个匹配", false, it) },
-                    onOpenSource?.let { SheetRow(Icons.Filled.SwapHoriz, "选择音源 / 查看其他版本", false, it) },
-                    onOpenComments?.let { SheetRow(Icons.AutoMirrored.Filled.Comment, "查看评论", false, keepOpen = true, action = it) },
-                    onMerge?.let { SheetRow(Icons.AutoMirrored.Filled.CallMerge, "合并到…", false, it) },
-                    onRemoveFromPlaylist?.let { SheetRow(Icons.Filled.Delete, "从歌单移除", true, it) },
-                    onRemoveFromHistory?.let { SheetRow(Icons.Filled.Delete, "从最近播放删除", true, it) },
+                    onCollect?.let { SheetRow(Icons.Filled.FavoriteBorder, "Save to account", false, it) },
+                    onRematch?.let { SheetRow(Icons.Filled.FindReplace, "Choose another match", false, it) },
+                    onOpenSource?.let { SheetRow(Icons.Filled.SwapHoriz, "Choose a source / see other versions", false, it) },
+                    onOpenComments?.let { SheetRow(Icons.AutoMirrored.Filled.Comment, "View comments", false, keepOpen = true, action = it) },
+                    onMerge?.let { SheetRow(Icons.AutoMirrored.Filled.CallMerge, "Merge into…", false, it) },
+                    onRemoveFromPlaylist?.let { SheetRow(Icons.Filled.Delete, "Remove from playlist", true, it) },
+                    onRemoveFromHistory?.let { SheetRow(Icons.Filled.Delete, "Remove from recently played", true, it) },
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     rows.forEachIndexed { index, row ->
@@ -803,7 +793,7 @@ fun TrackActionsSheet(
                 }
             } else {
                 if (playlists.isEmpty()) {
-                    Text("还没有自建歌单，请先在“我的”中新建。", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("You have no playlists yet; create one under Library first.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     itemsIndexed(playlists, key = { _, playlist -> playlist.id }, contentType = { _, _ -> "playlistChoice" }) { index, playlist ->
@@ -813,12 +803,12 @@ fun TrackActionsSheet(
                             count = playlists.size,
                             onClick = { onAddToPlaylist(playlist.id); onDismiss() },
                             icon = Icons.Filled.LibraryAdd,
-                            value = "${playlist.trackCount} 首",
+                            value = "${playlist.trackCount} tracks",
                             showChevron = false,
                         )
                     }
                 }
-                TextButton(onClick = { showPlaylists = false }, modifier = Modifier.padding(top = 8.dp)) { Text("返回") }
+                TextButton(onClick = { showPlaylists = false }, modifier = Modifier.padding(top = 8.dp)) { Text("Back") }
             }
         }
     }
@@ -892,13 +882,13 @@ private fun WallPageGroup(menu: WallMenu, scroll: androidx.compose.foundation.Sc
 class PlaylistCheck(val checked: Boolean, val busy: Boolean = false, val note: String = "", val locked: Boolean = false)
 
 /**
- * 加入歌单：列出本地歌单，也可以新建一个并直接加入。
+ * Add to playlist：列出本地歌单，也可以新建一个并直接加入。
  * 默认是多选的批量加入：点一行就加入并关面板。常规单曲入口在 TrackActionsSheet 里。
  *
- * 传了 [checks] 是单曲勾选模式（播放页「加到歌单」，见 [AddToPlaylistSheet]）：每行右边是勾选框，已经有这首的勾上，
- * 点一下由 [onPick] 加入或移出；新建歌单后回到列表；面板不自动关，可以一次加到几个歌单。
+ * 传了 [checks] 是单曲勾选模式（播放页「Add to playlist」，见 [AddToPlaylistSheet]）：每行右边是勾选框，已经有这首的勾上，
+ * 点一下由 [onPick] 加入或移出；New playlist后回到列表；面板不自动关，可以一次加到几个歌单。
  * [snackbar] 是面板自己的提示条（撤销）：面板是单独的窗口，外壳的 Snackbar 被它盖着，看不见也点不到。
- * [focusId] 是电视上打开时焦点落的那一行（第一个还没加入的歌单），没有就落在「新建歌单」。
+ * [focusId] 是电视上打开时焦点落的那一行（第一个还没加入的歌单），没有就落在「New playlist」。
  */
 @Composable
 fun PlaylistPickerSheet(
@@ -906,8 +896,8 @@ fun PlaylistPickerSheet(
     onPick: (String) -> Unit,
     onCreate: (String) -> Unit,
     onDismiss: () -> Unit,
-    title: String = "加入歌单",
-    subtitle: String = "选中的歌曲会按原来的顺序加入",
+    title: String = "Add to playlist",
+    subtitle: String = "Selected tracks are added in their original order",
     checks: ((String) -> PlaylistCheck)? = null,
     note: String = "",
     snackbar: androidx.compose.material3.SnackbarHostState? = null,
@@ -931,7 +921,7 @@ fun PlaylistPickerSheet(
             name = ""
         }
     }
-    // 电视：打开时焦点落在第一个还没加入的歌单上（没有就落在「新建歌单」），确认键直接勾。
+    // 电视：打开时焦点落在第一个还没加入的歌单上（没有就落在「New playlist」），确认键直接勾。
     // 面板是滑进来的，内容晚几帧才摆好，没接住就下一帧再试；只在打开时落一次，之后焦点跟着用户走
     val target by androidx.compose.runtime.rememberUpdatedState(
         if (focusId == null) 0 else playlists.indexOfFirst { it.id == focusId } + 1,
@@ -939,7 +929,7 @@ fun PlaylistPickerSheet(
     val focusIndex = target
     com.mytv.mymusic.ui.components.AdaptiveSheet(
         onDismiss = onDismiss,
-        title = if (creating) "新建歌单" else title,
+        title = if (creating) "New playlist" else title,
         subtitle = if (creating) "" else subtitle,
     ) {
         // 新建完回到列表时再落一次：输入框没了，焦点不能丢
@@ -956,15 +946,15 @@ fun PlaylistPickerSheet(
         }
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             if (creating) {
-                // 点掉的「新建歌单」行已经不在了，焦点直接放进输入框（电视上不然会丢）。
-                // 电视遥控器的方向键在输入框里只挪光标，走不到旁边的「创建并加入」，所以键盘的完成键也能建
+                // 点掉的「New playlist」行已经不在了，焦点直接放进输入框（电视上不然会丢）。
+                // 电视遥控器的方向键在输入框里只挪光标，走不到旁边的「Create and add」，所以键盘的完成键也能建
                 androidx.compose.runtime.LaunchedEffect(Unit) { runCatching { focusField.requestFocus() } }
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     Modifier.fillMaxWidth().focusRequester(focusField).tvFocusRing(RoundedCornerShape(4.dp)),
                     singleLine = true,
-                    placeholder = { Text("歌单名称") },
+                    placeholder = { Text("Playlist name") },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         imeAction = androidx.compose.ui.text.input.ImeAction.Done,
                     ),
@@ -974,10 +964,10 @@ fun PlaylistPickerSheet(
                             onClick = ::submit,
                             enabled = name.isNotBlank(),
                             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                        ) { Text("创建并加入") }
+                        ) { Text("Create and add") }
                     },
                 )
-                TextButton(onClick = { creating = false }, modifier = Modifier.padding(top = 8.dp)) { Text("返回") }
+                TextButton(onClick = { creating = false }, modifier = Modifier.padding(top = 8.dp)) { Text("Back") }
             } else {
                 val rows = playlists.size + 1
                 LazyColumn(
@@ -987,7 +977,7 @@ fun PlaylistPickerSheet(
                 ) {
                     item(key = "new", contentType = "pickerNew") {
                         com.mytv.mymusic.ui.components.ListRow(
-                            title = "新建歌单",
+                            title = "New playlist",
                             index = 0,
                             count = rows,
                             onClick = { creating = true },
@@ -997,7 +987,7 @@ fun PlaylistPickerSheet(
                                 Modifier
                             },
                             icon = Icons.Filled.Add,
-                            summary = if (checks != null) "建好后直接把这首加进去" else "",
+                            summary = if (checks != null) "Add this track right after creating it" else "",
                             showChevron = false,
                         )
                     }
@@ -1009,7 +999,7 @@ fun PlaylistPickerSheet(
                                 count = rows,
                                 onClick = { onPick(playlist.id); onDismiss() },
                                 icon = Icons.AutoMirrored.Filled.QueueMusic,
-                                value = "${playlist.trackCount} 首",
+                                value = "${playlist.trackCount} tracks",
                                 showChevron = false,
                             )
                         } else {
@@ -1033,7 +1023,7 @@ fun PlaylistPickerSheet(
                                         toggleableState = androidx.compose.ui.state.ToggleableState(check.checked)
                                     },
                                 icon = Icons.AutoMirrored.Filled.QueueMusic,
-                                summary = listOf("${playlist.trackCount} 首", check.note).filter { it.isNotBlank() }.joinToString(" · "),
+                                summary = listOf("${playlist.trackCount} tracks", check.note).filter { it.isNotBlank() }.joinToString(" · "),
                                 showChevron = false,
                                 trailing = {
                                     Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
@@ -1098,7 +1088,7 @@ private fun QuickAction(
 }
 
 /**
- * 合并到…：单选列表 + 取消 / 合并。手机和平板都是居中对话框（平板 440dp），电视默认焦点在“合并”。
+ * Merge into…：单选列表 + 取消 / 合并。手机和平板都是居中对话框（平板 440dp），电视默认焦点在“合并”。
  */
 @Composable
 fun MergeDialog(track: CanonicalTrack, candidates: List<CanonicalTrack>, onMerge: (CanonicalTrack) -> Unit, onDismiss: () -> Unit) {
@@ -1111,17 +1101,17 @@ fun MergeDialog(track: CanonicalTrack, candidates: List<CanonicalTrack>, onMerge
         modifier = Modifier.widthIn(max = 440.dp),
         title = {
             DialogAvoidsFold()
-            Text("合并到…")
+            Text("Merge into…")
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "把「${track.title} · ${track.artistLabel}」并入另一条结果。只影响本机，可以在换源面板里拆分回来。",
+                    "Merge '${track.title} · ${track.artistLabel}' into another result. This only affects this device and can be split again in the source panel.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (candidates.isEmpty()) {
-                    Text("没有其他可合并的曲目", style = MaterialTheme.typography.bodyMedium)
+                    Text("No other track to merge with", style = MaterialTheme.typography.bodyMedium)
                 }
                 LazyColumn(
                     Modifier.width(360.dp).heightIn(max = 360.dp),
@@ -1139,7 +1129,7 @@ fun MergeDialog(track: CanonicalTrack, candidates: List<CanonicalTrack>, onMerge
                                 role = androidx.compose.ui.semantics.Role.RadioButton
                                 this.selected = on
                             },
-                            summary = "${target.subtitle} · ${target.sources.size} 个平台",
+                            summary = "${target.subtitle} · ${target.sources.size} platforms",
                             selected = on,
                             showChevron = false,
                             leading = { androidx.compose.material3.RadioButton(selected = on, onClick = null) },
@@ -1153,20 +1143,20 @@ fun MergeDialog(track: CanonicalTrack, candidates: List<CanonicalTrack>, onMerge
                 onClick = { candidates.find { it.id == selected }?.let(onMerge) },
                 enabled = selected != null,
                 modifier = Modifier.focusRequester(confirmFocus).tvFocusRing(RoundedCornerShape(20.dp)),
-            ) { Text("合并") }
+            ) { Text("Merge") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("取消") }
+            TextButton(onClick = onDismiss, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("Cancel") }
         },
     )
 }
 
 fun availabilityLabel(status: Availability): String = when (status) {
-    Availability.Playable -> "完整"
-    Availability.PreviewOnly -> "试听"
+    Availability.Playable -> "Full"
+    Availability.PreviewOnly -> "Preview"
     Availability.VipOnly -> "VIP"
-    Availability.Unavailable -> "无源"
-    Availability.Unknown -> "待检测"
+    Availability.Unavailable -> "No source"
+    Availability.Unknown -> "Unchecked"
 }
 
 /** 时长和文件大小的格式化统一在 `ui/text/Formats.kt`，这里保留原来的名字给已有调用方。 */
@@ -1180,10 +1170,10 @@ fun relativeTime(millis: Long): String {
     if (millis <= 0) return ""
     val delta = System.currentTimeMillis() - millis
     return when {
-        delta < 60_000 -> "刚刚"
-        delta < 3_600_000 -> "${delta / 60_000} 分钟前"
-        delta < 86_400_000 -> "${delta / 3_600_000} 小时前"
-        delta < 7L * 86_400_000 -> "${delta / 86_400_000} 天前"
+        delta < 60_000 -> "Just now"
+        delta < 3_600_000 -> "${delta / 60_000} min ago"
+        delta < 86_400_000 -> "${delta / 3_600_000} h ago"
+        delta < 7L * 86_400_000 -> "${delta / 86_400_000} d ago"
         else -> MonthDayFormat.format(Date(millis))
     }
 }
@@ -1191,15 +1181,15 @@ fun relativeTime(millis: Long): String {
 fun formatBytes(bytes: Long): String = com.mytv.mymusic.ui.text.formatByteSize(bytes)
 
 fun providerMark(name: String): String = when {
-    name.contains("网易") -> "网易"
+    name.contains("NetEase") -> "NetEase"
     name.contains("QQ") -> "QQ"
-    name.contains("酷狗") -> "酷狗"
-    name.contains("酷我") -> "酷我"
-    name.contains("咪咕") -> "咪咕"
-    name.contains("汽水") -> "汽水"
+    name.contains("Kugou") -> "Kugou"
+    name.contains("Kuwo") -> "Kuwo"
+    name.contains("Migu") -> "Migu"
+    name.contains("Soda") -> "Soda"
     name.contains("Apple") -> "Apple"
-    name.startsWith("Bili", ignoreCase = true) -> "B站"
-    name.contains("千千") -> "千千"
+    name.startsWith("Bili", ignoreCase = true) -> "Bilibili"
+    name.contains("Qianqian") -> "Qianqian"
     name.contains("5sing", ignoreCase = true) -> "5sing"
     name.contains("Jamendo", ignoreCase = true) -> "Jam"
     name.contains("JOOX", ignoreCase = true) -> "JOOX"
@@ -1208,18 +1198,18 @@ fun providerMark(name: String): String = when {
 
 fun providerName(providers: List<com.mytv.mymusic.data.ProviderInfo>, id: String): String =
     providers.find { it.id == id }?.name ?: when (id) {
-        "netease" -> "网易云音乐"
-        "qq" -> "QQ 音乐"
-        "kugou" -> "酷狗音乐"
-        "kuwo" -> "酷我音乐"
-        "migu" -> "咪咕音乐"
+        "netease" -> "NetEase Cloud Music"
+        "qq" -> "QQ Music"
+        "kugou" -> "Kugou Music"
+        "kuwo" -> "Kuwo Music"
+        "migu" -> "Migu Music"
         "apple" -> "Apple Music"
-        "soda" -> "汽水音乐"
+        "soda" -> "Soda Music"
         "bilibili" -> "Bilibili"
         "joox" -> "JOOX"
         "fivesing" -> "5sing"
-        "qianqian" -> "千千音乐"
-        "local" -> "本地"
-        "lx" -> "洛雪"
+        "qianqian" -> "Qianqian Music"
+        "local" -> "Local"
+        "lx" -> "LX Music"
         else -> id
     }

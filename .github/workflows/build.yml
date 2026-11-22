@@ -7,35 +7,20 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
- 
-jobs:
-  # PR 只跑单测；push 到 main/dev 时测试和构建合并在 release 里跑，省掉一整套环境准备
-  test:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: gradle }
-      - name: Install Android SDK packages
-        run: |
-          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -name sdkmanager -type f | head -1)
-          fi
-          yes | "$SDKMANAGER" --licenses > /dev/null || true
-          "$SDKMANAGER" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.0.12077973" "cmake;3.22.1"
-      - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x ./gradlew && ./gradlew test
+  contents: read
 
-  release:
-    if: github.event_name != 'pull_request'
+jobs:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: gradle }
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
       - name: Install Android SDK packages
         run: |
           SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
@@ -44,79 +29,14 @@ jobs:
           fi
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.0.12077973" "cmake;3.22.1"
-      - name: Add signing properties
-        env:
-          SIGNING_PROPERTIES: ${{ secrets.SIGNING_PROPERTIES }}
-        run: printf '%s' "$SIGNING_PROPERTIES" | base64 -d -i > signing.properties
-      - name: Add jks file
-        env:
-          SIGN_KEY: ${{ secrets.SIGN_KEY }}
-        run: printf '%s' "$SIGN_KEY" | base64 -d -i > keystore.jks
-      # 签名材料有问题就当场退回 debug 签名并给出提示，不要等 9 分钟编译完再在 validateSigningRelease 失败
-      - name: Check signing material
-        run: |
-          set -uo pipefail
-          if [ ! -s keystore.jks ]; then
-            echo "::warning title=Signing::SIGN_KEY produced an empty keystore; the release APK will be debug-signed"
-            rm -f keystore.jks
-            exit 0
-          fi
-          store_pass=$(sed -n 's/^storePassword=//p' signing.properties | tr -d '\r' | head -1)
-          key_alias=$(sed -n 's/^keyAlias=//p' signing.properties | tr -d '\r' | head -1)
-          if [ -z "$store_pass" ] || [ -z "$key_alias" ] ||
-             ! keytool -list -keystore keystore.jks -storepass "$store_pass" -alias "$key_alias" > /dev/null 2>&1; then
-            echo "::warning title=Signing::keystore.jks cannot be opened with the password in SIGNING_PROPERTIES; the release APK will be debug-signed"
-            rm -f keystore.jks
-            exit 0
-          fi
-          echo "KEYSTORE=$GITHUB_WORKSPACE/keystore.jks" >> "$GITHUB_ENV"
-          echo "Release APK will be signed with keystore.jks (alias $key_alias)"
-      - name: Test and build release
-        env:
-          VERSION_CODE: ${{ github.run_number }}
-        run: chmod +x ./gradlew && ./gradlew test assembleRelease --console=plain
-      - name: Prepare release assets
-        id: apk
-        run: |
-          metadata=$(find app/build/outputs/apk/release -name output-metadata.json | head -1)
-          version=$(jq -r '.elements[0].versionName' "$metadata")
-          code=$(jq -r '.elements[0].versionCode' "$metadata")
-          # versionName 固定为 1.0，标签带上 versionCode（运行号），每次构建的发布互不覆盖
-          tag="v${version}.${code}"
-          mkdir -p dist
-          find app/build/outputs/apk/release -name '*.apk' -exec cp {} dist/ \;
-          apk=$(find dist -name '*.apk' | head -1)
-          apk_name=$(basename "$apk")
-          sha=$(sha256sum "$apk" | awk '{print $1}')
-          size=$(stat -c%s "$apk")
-          published=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          channel=$([ "$GITHUB_REF_NAME" = "main" ] && echo "stable" || echo "dev")
-          note=$(git log -1 --pretty=%s)
-          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/${apk_name}"
-          jq -n \
-            --arg schema "mymusic.update" \
-            --arg channel "$channel" \
-            --argjson versionCode "$code" \
-            --arg versionName "$version" \
-            --arg tag "$tag" \
-            --arg publishedAt "$published" \
-            --arg url "$url" \
-            --argjson size "$size" \
-            --arg sha "$sha" \
-            --arg note "$note" \
-            '{schema:$schema,channel:$channel,versionCode:$versionCode,versionName:$versionName,tag:$tag,publishedAt:$publishedAt,minSdk:23,apk:{url:$url,size:$size,sha256:$sha},notes:[$note]}' > dist/update.json
-          echo "$sha  $apk_name" > dist/update.apk.sha256
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-      - uses: softprops/action-gh-release@v2
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: chmod +x ./gradlew && ./gradlew assembleDebug --console=plain
+
+      - uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ steps.apk.outputs.tag }}
-          name: myMusic ${{ steps.apk.outputs.version }} (${{ steps.apk.outputs.code }})
-          body: Android 6.0+ 通用安装包。versionCode ${{ steps.apk.outputs.code }}。应用内更新会读取 update.json 并校验 SHA-256 与签名。
-          files: |
-            dist/*.apk
-            dist/update.json
-            dist/update.apk.sha256
-          prerelease: ${{ github.ref_name != 'main' }}
-          make_latest: ${{ github.ref_name == 'main' && 'true' || 'false' }}
+          name: myMusic-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

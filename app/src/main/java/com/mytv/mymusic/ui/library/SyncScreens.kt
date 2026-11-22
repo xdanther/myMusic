@@ -115,7 +115,7 @@ import kotlin.coroutines.cancellation.CancellationException
 // ======================= 同步中心 =======================
 
 /**
- * 音乐库同步：状态卡片 + 冲突 + 自动同步开关 + 备份 + 断开。
+ * Library sync：状态卡片 + 冲突 + Automatic sync开关 + 备份 + 断开。
  * 手机单栏；≥840dp 平板和电视左栏是状态和冲突，右栏是开关和备份。
  * embedded = true 时不带顶栏，直接作为设置双栏的右栏内容（标题由设置页提供）。
  */
@@ -145,7 +145,7 @@ fun SyncCenterScreen(
                 SyncAccountCard(sync, actions, primaryFocus)
             }
         }
-        // 已连接卡片上“测试连接”的结果；只认本机保存的那个账号测出来的，表单里草稿的结果不算
+        // 已连接卡片上“Test connection”的结果；只认本机保存的那个账号测出来的，表单里草稿的结果不算
         val savedCheck = sync.webDavCheck.takeIf {
             sync.account?.provider == WebDavSyncProvider.ID && it.saved && !it.running && it.message.isNotBlank() &&
                 it.target.isNotEmpty() && it.target == savedWebDavKey(sync)
@@ -166,7 +166,7 @@ fun SyncCenterScreen(
                             },
                             enabled = sync.status != SyncStatus.Syncing,
                             modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-                        ) { Text(if (savedCheck.certificateChanged) "信任新证书并同步" else "信任这张证书并同步") }
+                        ) { Text(if (savedCheck.certificateChanged) "Trust the new certificate and sync" else "Trust this certificate and sync") }
                     }
                 }
             }
@@ -176,7 +176,7 @@ fun SyncCenterScreen(
                 Column(Modifier.padding(horizontal = 4.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     LinearWavyProgressIndicator(Modifier.fillMaxWidth())
                     Text(
-                        sync.phase.ifBlank { "正在同步…" },
+                        sync.phase.ifBlank { "Syncing…" },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -201,7 +201,7 @@ fun SyncCenterScreen(
             }
         }
         if (sync.conflicts.isNotEmpty()) {
-            item(key = "conflictHead", contentType = "header") { SectionLabel("待处理冲突", trailing = { CountTag("${sync.conflicts.size} 个") }) }
+            item(key = "conflictHead", contentType = "header") { SectionLabel("Pending conflicts", trailing = { CountTag("${sync.conflicts.size}") }) }
             items(sync.conflicts, key = { "conflict:${it.playlistId}" }, contentType = { "conflict" }) { conflict ->
                 SyncConflictCard(conflict, actions)
             }
@@ -210,65 +210,65 @@ fun SyncCenterScreen(
     val settings: LazyListScope.() -> Unit = {
         val account = sync.account
         if (account != null) {
-            item(key = "autoHead", contentType = "header") { SectionLabel("自动同步") }
+            item(key = "autoHead", contentType = "header") { SectionLabel("Automatic sync") }
             item(key = "auto", contentType = "switch") {
                 SwitchRow(
-                    title = "修改后自动同步",
+                    title = "Sync after changes",
                     checked = account.autoSync,
                     onCheckedChange = actions::setSyncAutoSync,
                     index = 0,
                     count = 2,
                     icon = Icons.Filled.Sync,
-                    summary = "歌单、收藏或 Cookie 修改后约 1 秒自动推送；进入相关页面或回到前台也会检查云端",
+                    summary = "Changes to playlists, favorites or cookies push about 1 second later; opening related pages or returning to the foreground also checks the cloud",
                 )
             }
             item(key = "wifi", contentType = "switch") {
                 SwitchRow(
-                    title = "仅在 Wi-Fi 下同步",
+                    title = "Sync on Wi-Fi only",
                     checked = account.wifiOnly,
                     onCheckedChange = actions::setSyncWifiOnly,
                     index = 1,
                     count = 2,
                     icon = Icons.Filled.Wifi,
-                    summary = "移动网络下先暂存，连上 Wi-Fi 再上传",
+                    summary = "Queues changes on mobile data and uploads once Wi-Fi is back",
                 )
             }
         }
-        item(key = "backupHead", contentType = "header") { SectionLabel("备份") }
+        item(key = "backupHead", contentType = "header") { SectionLabel("Backup") }
         item(key = "exportPlaylists", contentType = "row") {
             ListRow(
-                title = "导出歌单…",
+                title = "Export playlists…",
                 index = 0,
                 count = 3,
                 onClick = { exportPlaylistsOpen = true },
                 icon = Icons.Filled.IosShare,
                 iconTone = IconTone.Tertiary,
-                summary = "挑几个歌单导出成文件，可发给别人，不含 Cookie",
+                summary = "Export selected playlists to a file you can share; cookies excluded",
             )
         }
         item(key = "export", contentType = "row") {
             ListRow(
-                title = "导出整库备份",
+                title = "Export full library backup",
                 index = 1,
                 count = 3,
                 onClick = exportFile,
                 icon = Icons.Filled.SaveAlt,
                 iconTone = IconTone.Tertiary,
-                summary = "歌单、收藏和平台 Cookie 存成 JSON，含 Cookie，只给自己换机用",
+                summary = "Playlists, favorites and platform cookies as JSON, including cookies; for moving to your own device only",
             )
         }
         item(key = "import", contentType = "row") {
             ListRow(
-                title = "从文件导入",
+                title = "Import from file",
                 index = 2,
                 count = 3,
                 onClick = importFile,
                 icon = Icons.Filled.FileOpen,
                 iconTone = IconTone.Tertiary,
-                summary = "认得本应用歌单、整库备份和洛雪 .lxmc",
+                summary = "Reads app playlists, full library backups and LX Music .lxmc files",
             )
         }
-        item(key = "providerHead", contentType = "header") { SectionLabel("同步位置") }
+        item(key = "providerHead", contentType = "header") { SectionLabel("Sync location") }
         syncLocations.forEachIndexed { index, (id, label) ->
             item(key = "provider:$id", contentType = "row") {
                 val current = account != null && account.provider == id
@@ -282,11 +282,11 @@ fun SyncCenterScreen(
                     selected = current,
                     summary = when {
                         // WebDAV 写目录里的路径，换过目录的人能一眼看出文件在哪
-                        current && webDav -> "当前使用 · ${account.remoteId.ifBlank { account.fileName }}"
-                        current -> "当前使用 · ${account.fileName}"
-                        webDav -> "坚果云、Nextcloud、群晖或自己的服务器"
-                        account == null -> "需要输入令牌"
-                        else -> "改用这里，需要输入令牌"
+                        current && webDav -> "In use · ${account.remoteId.ifBlank { account.fileName }}"
+                        current -> "In use · ${account.fileName}"
+                        webDav -> "Nutstore, Nextcloud, Synology or your own server"
+                        account == null -> "Token required"
+                        else -> "Use this instead and enter a token"
                     },
                 )
             }
@@ -294,7 +294,7 @@ fun SyncCenterScreen(
         if (account != null) {
             item(key = "disconnect", contentType = "row") {
                 ListRow(
-                    title = "断开同步",
+                    title = "Disconnect sync",
                     index = 0,
                     count = 1,
                     onClick = { disconnectOpen = true },
@@ -303,9 +303,9 @@ fun SyncCenterScreen(
                     iconTone = IconTone.Error,
                     danger = true,
                     summary = if (account.provider == WebDavSyncProvider.ID) {
-                        "删除本机保存的 WebDAV 账号，云端数据保留"
+                        "Delete the WebDAV account on this device; cloud data stays"
                     } else {
-                        "删除本机保存的令牌，云端数据保留"
+                        "Delete the token on this device; cloud data stays"
                     },
                     showChevron = false,
                 )
@@ -313,7 +313,7 @@ fun SyncCenterScreen(
         }
         item(key = "note", contentType = "note") {
             Box(Modifier.padding(top = 16.dp)) {
-                InfoNote("同步自建歌单、收藏和平台账号 Cookie。Cookie 会以明文写入同步文件，请勿公开文件链接或共享 WebDAV 目录；最近播放、下载文件、播放地址不会进入云端。")
+                InfoNote("Syncs your playlists, favorites and platform cookies. Cookies are written in plain text into the sync file, so never share the file link or WebDAV directory; recently played, downloads and playback URLs never go to the cloud.")
             }
         }
     }
@@ -328,10 +328,10 @@ fun SyncCenterScreen(
             status()
             settings()
         }
-        window.twoPane -> PageScaffold(title = "音乐库同步", subtitle = syncHeadline(sync), onBack = onBack) { padding ->
+        window.twoPane -> PageScaffold(title = "Library sync", subtitle = syncHeadline(sync), onBack = onBack) { padding ->
             TwoColumns(padding, if (window.isTv) 420.dp else 400.dp, status, settings)
         }
-        else -> PageScaffold(title = "音乐库同步", subtitle = syncHeadline(sync), onBack = onBack) { padding ->
+        else -> PageScaffold(title = "Library sync", subtitle = syncHeadline(sync), onBack = onBack) { padding ->
             LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = padding.withGutter(window.gutter),
@@ -348,13 +348,13 @@ fun SyncCenterScreen(
     }
     if (disconnectOpen) {
         ConfirmDialog(
-            title = "断开同步",
+            title = "Disconnect sync",
             message = if (sync.account?.provider == WebDavSyncProvider.ID) {
-                "会删除本机保存的 WebDAV 账号、同步基线和冲突记录。本机歌单保留，WebDAV 上的同步文件不会删除。"
+                "Deletes the WebDAV account, sync baseline and conflict records stored on this device. Local playlists stay, and the sync file on WebDAV is not deleted."
             } else {
-                "会删除本机保存的令牌、同步基线和冲突记录。本机歌单保留，云端文件不会删除。"
+                "Deletes the token, sync baseline and conflict records stored on this device. Local playlists stay, and the cloud file is not deleted."
             },
-            confirmLabel = "断开",
+            confirmLabel = "Disconnect",
             danger = true,
             onConfirm = actions::disconnectSync,
             onDismiss = { disconnectOpen = false },
@@ -379,14 +379,14 @@ internal fun ShapeIcon(icon: ImageVector) {
     }
 }
 
-/** 同步位置：设置里的“同步位置”列表、连接页的切换组都按这个顺序。 */
+/** Sync location：设置里的“Sync location”列表、连接页的切换组都按这个顺序。 */
 private val syncLocations = listOf(
     "gist" to "GitHub Gist",
-    "gitee" to "Gitee 代码片段",
+    "gitee" to "Gitee snippet",
     WebDavSyncProvider.ID to "WebDAV",
 )
 
-/** 本机保存的 WebDAV 账号对应的“测试连接”结果键，和 SyncCoordinator 记的 target 一致。 */
+/** 本机保存的 WebDAV 账号对应的“Test connection”结果键，和 SyncCoordinator 记的 target 一致。 */
 private fun savedWebDavKey(sync: SyncUiState): String = savedWebDavDraft(sync)?.locationKey().orEmpty()
 
 /** 本机保存的 WebDAV 账号，密码留空（界面状态里没有密码，交给 SyncCoordinator 补上）。 */
@@ -414,13 +414,13 @@ private fun SyncIntroCard(onConnect: (String) -> Unit, focus: FocusRequester) {
         Column(Modifier.padding(18.dp)) {
             ShapeIcon(Icons.Filled.CloudUpload)
             Text(
-                "云端是副本，本机才是主版本",
+                "The cloud is a copy; this device is the primary",
                 Modifier.padding(top = 12.dp),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
             )
             Text(
-                "连接 GitHub Gist、Gitee 或 WebDAV 后，自建歌单会自动同步。修改先保存在本机，断网也能用。",
+                "After connecting GitHub Gist, Gitee or WebDAV, your playlists sync automatically. Changes save here first and work offline.",
                 Modifier.padding(top = 4.dp),
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -433,7 +433,7 @@ private fun SyncIntroCard(onConnect: (String) -> Unit, focus: FocusRequester) {
                 Button(
                     onClick = { onConnect("gist") },
                     modifier = Modifier.heightIn(min = 48.dp).focusRequester(focus).tvFocusRing(RoundedCornerShape(24.dp)),
-                ) { Text("连接 GitHub Gist") }
+                ) { Text("Connect GitHub Gist") }
                 FilledTonalButton(
                     onClick = { onConnect("gitee") },
                     modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
@@ -454,16 +454,16 @@ private fun SyncAccountCard(sync: SyncUiState, actions: MusicActions, focus: Foc
     val uri = LocalUriHandler.current
     val syncing = sync.status == SyncStatus.Syncing
     val title = when {
-        syncing -> "正在同步到 ${sync.providerLabel}"
-        account.lastSyncedAt <= 0 -> "已连接 ${sync.providerLabel}"
-        else -> "已同步到 ${sync.providerLabel}"
+        syncing -> "Syncing to ${sync.providerLabel}"
+        account.lastSyncedAt <= 0 -> "Connected to ${sync.providerLabel}"
+        else -> "Synced to ${sync.providerLabel}"
     }
     val detail = listOf(
-        relativeTime(account.lastSyncedAt).ifBlank { "尚未同步" },
-        "${sync.playlistCount} 个歌单",
-        "${sync.trackCount} 首",
-        if (sync.favoritesCount > 0) "${sync.favoritesCount} 首收藏" else "",
-        if (sync.cookieCount > 0) "${sync.cookieCount} 个平台账号" else "",
+        relativeTime(account.lastSyncedAt).ifBlank { "Not synced yet" },
+        "${sync.playlistCount} playlists",
+        "${sync.trackCount} tracks",
+        if (sync.favoritesCount > 0) "${sync.favoritesCount} favorites" else "",
+        if (sync.cookieCount > 0) "${sync.cookieCount} platform accounts" else "",
         account.accountLabel,
     ).filter { it.isNotBlank() }.joinToString(" · ")
     Surface(
@@ -476,7 +476,7 @@ private fun SyncAccountCard(sync: SyncUiState, actions: MusicActions, focus: Foc
             ShapeIcon(if (sync.conflicts.isNotEmpty()) Icons.Filled.SyncProblem else Icons.Filled.CloudDone)
             Text(title, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
             Text(
-                "$detail\n同步歌单、收藏和平台账号 Cookie",
+                "$detail\nSync playlists, favorites and platform cookies",
                 Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -484,7 +484,7 @@ private fun SyncAccountCard(sync: SyncUiState, actions: MusicActions, focus: Foc
             val certificate = sync.webDav?.certificate?.takeIf { account.provider == WebDavSyncProvider.ID && !it.systemTrusted }
             if (certificate != null) {
                 Text(
-                    "本机只认这张证书：${WebDavMessages.certificate(certificate)}",
+                    "This device trusts only this certificate: ${WebDavMessages.certificate(certificate)}",
                     Modifier.padding(top = 6.dp),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -501,7 +501,7 @@ private fun SyncAccountCard(sync: SyncUiState, actions: MusicActions, focus: Foc
                 ) {
                     Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(if (syncing) "同步中…" else "立即同步")
+                    Text(if (syncing) "Syncing…" else "Sync now")
                 }
                 if (account.provider == WebDavSyncProvider.ID) {
                     // WebDAV 没有网页可看，第二个按钮换成测本机保存的账号
@@ -516,13 +516,13 @@ private fun SyncAccountCard(sync: SyncUiState, actions: MusicActions, focus: Foc
                             LoadingIndicator(Modifier.size(20.dp))
                             Spacer(Modifier.width(6.dp))
                         }
-                        Text(if (testing) "正在测试…" else "测试连接")
+                        Text(if (testing) "Testing…" else "Test connection")
                     }
                 } else if (account.remoteUrl.isNotBlank()) {
                     FilledTonalButton(
                         onClick = { runCatching { uri.openUri(account.remoteUrl) } },
                         modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(RoundedCornerShape(24.dp)),
-                    ) { Text(if (account.provider == "gitee") "查看代码片段" else "查看 Gist") }
+                    ) { Text(if (account.provider == "gitee") "View snippet" else "View Gist") }
                 }
             }
         }
@@ -546,8 +546,8 @@ fun SyncConflictCard(conflict: SyncConflictUi, actions: MusicActions) {
         ) {
             Icon(Icons.Filled.SyncProblem, null)
             Column(Modifier.weight(1f)) {
-                Text("“${conflict.name}”有冲突", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("本机和云端都改过，处理前不会上传", style = MaterialTheme.typography.bodyMedium)
+                Text("'${conflict.name}' has a conflict", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Changed locally and in the cloud; nothing uploads until resolved", style = MaterialTheme.typography.bodyMedium)
             }
             Button(
                 onClick = { open = true },
@@ -556,14 +556,14 @@ fun SyncConflictCard(conflict: SyncConflictUi, actions: MusicActions) {
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,
                 ),
-            ) { Text("处理") }
+            ) { Text("Resolve") }
         }
     }
     if (open) {
         ConflictResolver(
-            title = "“${conflict.name}”两边都改过",
-            detail = "本机：${conflictSide(conflict.localTracks, conflict.localUpdatedAt, conflict.localDeleted)} · " +
-                "云端：${conflictSide(conflict.remoteTracks, conflict.remoteUpdatedAt, conflict.remoteDeleted)}",
+            title = "'${conflict.name}' changed on both sides",
+            detail = "This device: ${conflictSide(conflict.localTracks, conflict.localUpdatedAt, conflict.localDeleted)} · " +
+                "Cloud: ${conflictSide(conflict.remoteTracks, conflict.remoteUpdatedAt, conflict.remoteDeleted)}",
             onApply = { strategy -> actions.resolveConflict(conflict.playlistId, strategy) },
             onCancel = { open = false },
             onClose = { open = false },
@@ -572,12 +572,12 @@ fun SyncConflictCard(conflict: SyncConflictUi, actions: MusicActions) {
 }
 
 private fun conflictSide(tracks: Int, updatedAt: Long, deleted: Boolean): String =
-    if (deleted) "已删除" else if (updatedAt > 0) "$tracks 首，${dayLabel(updatedAt)} ${timeLabel(updatedAt)} 修改" else "$tracks 首"
+    if (deleted) "Deleted" else if (updatedAt > 0) "$tracks tracks, changed ${dayLabel(updatedAt)} ${timeLabel(updatedAt)}" else "$tracks tracks"
 
 private val strategyChoices = listOf(
-    Triple(SyncStrategy.Merge, "合并两版", "保留本机顺序，把云端新增的歌补在后面（推荐）"),
-    Triple(SyncStrategy.Local, "保留本机", "用本机版本覆盖云端"),
-    Triple(SyncStrategy.Remote, "使用云端", "放弃本机的修改"),
+    Triple(SyncStrategy.Merge, "Merge both", "Keep this device's order and append cloud additions (recommended)"),
+    Triple(SyncStrategy.Local, "Keep this device", "Overwrite the cloud with this device"),
+    Triple(SyncStrategy.Remote, "Use cloud", "Discard local changes"),
 )
 
 /** 三选一：选中项满圆角 + secondaryContainer，读屏是单选组。电视默认焦点在推荐项。 */
@@ -617,7 +617,7 @@ private fun ConflictResolver(
     onApply: (SyncStrategy) -> Unit,
     onCancel: () -> Unit,
     onClose: () -> Unit,
-    dismissLabel: String = "取消",
+    dismissLabel: String = "Cancel",
     dismissible: Boolean = true,
     error: String = "",
 ) {
@@ -640,8 +640,8 @@ private fun ConflictResolver(
                 Button(
                     onClick = apply,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
-                ) { Text("应用") }
-                if (dismissible && dismissLabel != "取消") {
+                ) { Text("Apply") }
+                if (dismissible && dismissLabel != "Cancel") {
                     TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) { Text(dismissLabel) }
                 }
             }
@@ -673,7 +673,7 @@ private fun ConflictResolver(
                         TextButton(onClick = onCancel, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text(dismissLabel) }
                     }
                     Spacer(Modifier.width(8.dp))
-                    Button(onClick = apply, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("应用") }
+                    Button(onClick = apply, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("Apply") }
                 }
             }
         }
@@ -690,28 +690,28 @@ private fun InitialMergeDialog(
 ) {
     val extras = { favorites: Int, cookies: Int ->
         buildString {
-            if (favorites > 0) append(" / $favorites 首收藏")
-            if (cookies > 0) append(" / $cookies 个平台账号")
+            if (favorites > 0) append(" / $favorites favorites")
+            if (cookies > 0) append(" / $cookies platform accounts")
         }
     }
     ConflictResolver(
-        title = "首次合并",
-        detail = "本机：${preview.localPlaylists} 个歌单 / ${preview.localTracks} 首" +
+        title = "First merge",
+        detail = "This device: ${preview.localPlaylists} playlists / ${preview.localTracks} tracks" +
             extras(preview.localFavorites, preview.localCookies) + " · " +
-            "${preview.providerLabel}：${preview.remotePlaylists} 个歌单 / ${preview.remoteTracks} 首" +
+            "${preview.providerLabel}: ${preview.remotePlaylists} playlists / ${preview.remoteTracks} tracks" +
             extras(preview.remoteFavorites, preview.remoteCookies),
         onApply = actions::resolveInitial,
         // 大屏不可关闭时对话框不会调用它；手机面板收起后必须清掉 initialMerge
         onCancel = actions::cancelInitial,
         // 选择后 initialMerge 清空，对话框自然消失
         onClose = {},
-        dismissLabel = "稍后",
+        dismissLabel = "Later",
         dismissible = dismissible,
         error = sync.error,
     )
 }
 
-// ======================= 连接同步 =======================
+// ======================= Connect sync =======================
 
 @Composable
 fun SyncConnectScreen(
@@ -755,7 +755,7 @@ fun SyncConnectScreen(
         if (sync.initialMerge != null) actions.cancelInitial()
         onBack()
     }
-    // 合并方式对话框盖在上面时返回 = 取消首次合并并离开；对话框窗口里没有可跟手的画面，手势只在完成后生效
+    // 合并方式对话框盖在上面时返回 = 取消First merge并离开；对话框窗口里没有可跟手的画面，手势只在完成后生效
     PredictiveBackHandler(enabled = sync.initialMerge != null) { events ->
         try {
             events.collect { }
@@ -766,7 +766,7 @@ fun SyncConnectScreen(
     if (!useQrSetup) TvDefaultFocus(tokenFocus, provider)
 
     val providerPicker: @Composable () -> Unit = {
-        // 三个选项放不下“Gitee 代码片段”全名，按钮上写短名，页面副标题仍写全名（设计稿 ⑫）
+        // 三个选项放不下“Gitee snippet”全名，按钮上写短名，页面副标题仍写全名（设计稿 ⑫）
         ConnectedToggleGroup(
             options = syncLocations.map { it.first },
             selected = provider,
@@ -789,12 +789,12 @@ fun SyncConnectScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(Modifier.padding(18.dp)) {
-                Text("会同步什么", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("What gets synced", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
                     if (webDav) {
-                        "自建歌单、收藏和平台账号 Cookie，写进 WebDAV 目录里的 mymusic-library.json。Cookie 是明文，别把这个目录共享出去。WebDAV 密码只存在本机。"
+                        "Your playlists, favorites and platform cookies, written to mymusic-library.json in your WebDAV directory. Cookies are plain text, so do not share this directory. The WebDAV password stays on this device."
                     } else {
-                        "自建歌单、收藏和平台账号 Cookie。Cookie 会以明文写入私密 Gist / 代码片段，请勿公开文件链接。不包括最近播放、下载文件和播放进度。"
+                        "Your playlists, favorites and platform cookies. Cookies are written in plain text into the private Gist / snippet, so never share the file link. Recently played, downloads and playback progress are excluded."
                     },
                     Modifier.padding(top = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
@@ -813,21 +813,21 @@ fun SyncConnectScreen(
                 }
             },
             modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-        ) { Text("如何创建令牌？") }
+        ) { Text("How do I create a token?") }
     }
     val offline: @Composable () -> Unit = {
         Column {
             Text(
-                "不使用账号",
+                "No account",
                 Modifier.padding(start = 4.dp, top = 8.dp),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = { exportPlaylistsOpen = true }, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("导出歌单…") }
-                TextButton(onClick = exportFile, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("导出整库备份") }
-                TextButton(onClick = importFile, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("从文件导入") }
+                TextButton(onClick = { exportPlaylistsOpen = true }, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("Export playlists…") }
+                TextButton(onClick = exportFile, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("Export full library backup") }
+                TextButton(onClick = importFile, modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp))) { Text("Import from file") }
             }
         }
     }
@@ -837,13 +837,13 @@ fun SyncConnectScreen(
             onValueChange = { token = it.trim() },
             modifier = Modifier.fillMaxWidth().focusRequester(tokenFocus).tvFocusRing(RoundedCornerShape(4.dp)),
             singleLine = true,
-            label = { Text("访问令牌") },
+            label = { Text("Access token") },
             leadingIcon = { Icon(Icons.Filled.Lock, null) },
             trailingIcon = {
                 IconButton(onClick = { showToken = !showToken }) {
                     Icon(
                         if (showToken) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        if (showToken) "隐藏令牌" else "显示令牌",
+                        if (showToken) "Hide token" else "Show token",
                     )
                 }
             },
@@ -851,8 +851,8 @@ fun SyncConnectScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
             supportingText = {
                 Text(
-                    if (gist) "需要 gist 权限。令牌用 Android Keystore 加密，只保存在本机，不会写进同步文件。"
-                    else "在 Gitee 私人令牌里勾选 gists 权限。令牌加密后只保存在本机。",
+                    if (gist) "Requires the gist scope. The token is encrypted with the Android Keystore, kept on this device and never written to the sync file."
+                    else "Enable the gists scope on your Gitee private token. The token is encrypted and kept on this device only.",
                 )
             },
         )
@@ -861,18 +861,18 @@ fun SyncConnectScreen(
             onValueChange = { remote = it },
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp).tvFocusRing(RoundedCornerShape(4.dp)),
             singleLine = true,
-            label = { Text(if (gist) "Gist ID（可选）" else "代码片段 ID（可选）") },
-            placeholder = { Text(if (gist) "留空则新建一个私密 Gist" else "留空则新建一个私密代码片段") },
-            supportingText = { Text("也可以粘贴已有的链接") },
+            label = { Text(if (gist) "Gist ID (optional)" else "Snippet ID (optional)") },
+            placeholder = { Text(if (gist) "Leave empty to create a private Gist" else "Leave empty to create a private snippet") },
+            supportingText = { Text("You can also paste an existing link") },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         )
         if (window.isTv) {
             Column(Modifier.padding(top = 8.dp)) {
-                InfoNote("手机扫码可避免在电视上输入长令牌。")
+                InfoNote("Scan with your phone to avoid typing a long token on TV.")
                 TextButton(
                     onClick = { tvManualInput = false },
                     modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                ) { Text("使用扫码配置") }
+                ) { Text("Configure by QR code") }
             }
         }
         if (sync.error.isNotBlank()) {
@@ -880,7 +880,7 @@ fun SyncConnectScreen(
         }
         if (sync.initialMerge != null) {
             Box(Modifier.padding(top = 12.dp)) {
-                InfoNote("本机和云端都有歌单，请选择首次合并方式。令牌已加密保存在本机。", "amber")
+                InfoNote("Both this device and the cloud have playlists; choose how to merge them the first time. The token is encrypted on this device.", "amber")
             }
         }
         Button(
@@ -898,11 +898,11 @@ fun SyncConnectScreen(
             if (syncing) {
                 LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 Spacer(Modifier.width(8.dp))
-                Text("正在验证…")
+                Text("Verifying…")
             } else {
                 Icon(Icons.Filled.Cloud, null, Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("连接并同步")
+                Text("Connect and sync")
             }
         }
     }
@@ -917,11 +917,11 @@ fun SyncConnectScreen(
             )
             if (window.isTv) {
                 Column(Modifier.padding(top = 8.dp)) {
-                    InfoNote("手机扫码可避免在电视上输入密码。")
+                    InfoNote("Scan with your phone to avoid typing a password on TV.")
                     TextButton(
                         onClick = { tvManualInput = false },
                         modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text("使用扫码配置") }
+                    ) { Text("Configure by QR code") }
                 }
             }
         } else {
@@ -930,12 +930,12 @@ fun SyncConnectScreen(
     }
 
     PageScaffold(
-        title = "连接同步",
+        title = "Connect sync",
         subtitle = when {
-            useQrSetup -> "手机扫码配置"
+            useQrSetup -> "Configure with phone QR code"
             webDav -> "WebDAV"
             gist -> "GitHub Gist"
-            else -> "Gitee 代码片段"
+            else -> "Gitee snippet"
         },
         onBack = leave,
     ) { padding ->

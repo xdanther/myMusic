@@ -25,7 +25,6 @@ import com.mytv.mymusic.data.playreport.QQPlayReporter
 import com.mytv.mymusic.data.playreport.QianqianPlayReporter
 import com.mytv.mymusic.data.sync.SecretStore
 import com.mytv.mymusic.data.sync.SyncCoordinator
-import com.mytv.mymusic.data.update.UpdateRepository
 import com.mytv.mymusic.playback.AdjustableLruEvictor
 import com.mytv.mymusic.playback.AppleSession
 import com.mytv.mymusic.playback.EqualizerController
@@ -65,7 +64,6 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider, c
         }
     }
     lateinit var sync: SyncCoordinator
-    lateinit var update: UpdateRepository
     lateinit var queueStore: QueueStore
     /** 「天天听歌」福利中心：听歌时长、任务领取和 VIP 天数，只存本机。 */
     lateinit var listenTasks: ListenTaskStore
@@ -171,7 +169,6 @@ class MyMusicApp : Application(), ViewModelStoreOwner, Configuration.Provider, c
             settings = settings,
             scope = appScope,
         )
-        update = UpdateRepository(this, settings)
         // 本地歌的线索跟着歌单同步：建快照时从本地音乐库取，合并完写回；线索一变（换匹配、上传、删云端）就防抖同步
         sync.localRefs = localLibrary.syncRefs
         localLibrary.onRefsChanged = { sync.onLocalChange() }

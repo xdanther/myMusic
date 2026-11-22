@@ -130,7 +130,7 @@ private sealed interface CheckState {
 }
 
 /**
- * 上传面板（设计稿第 ⑥ 张）：选位置（网易云盘 / WebDAV；QQ 云盘列出来但不能选），只在 Wi-Fi 下上传，
+ * 上传面板（设计稿第 ⑥ 张）：选位置（网易云盘 / WebDAV；QQ 云盘列出来但不能选），Upload on Wi-Fi only，
  * 说明，开始上传。点开始前先按容量和单文件大小查一遍，不够就写在这里，不进队列。
  */
 @Composable
@@ -190,8 +190,8 @@ private fun LocalUploadSheet(
 
     AdaptiveSheet(
         onDismiss = onDismiss,
-        title = if (request.force) "重新上传 ${request.ids.distinct().size} 首" else "上传 ${request.ids.distinct().size} 首",
-        subtitle = "共 ${CloudMessages.formatSize(bytes)}，一首一首传，可以随时取消",
+        title = if (request.force) "Re-upload ${request.ids.distinct().size} tracks" else "Upload ${request.ids.distinct().size} tracks",
+        subtitle = "${CloudMessages.formatSize(bytes)} total, uploaded one by one; cancel any time",
     ) {
         Column(
             Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
@@ -202,9 +202,9 @@ private fun LocalUploadSheet(
                 val ready = target in clouds
                 val selected = target == provider && target.canUpload
                 val summary = when {
-                    !target.canUpload -> CloudMessages.QQ_UPLOAD_UNSUPPORTED.removePrefix("QQ 音乐云盘")
-                    target == CloudProvider.NeteaseCloud && !ready -> "还没登录网易云 · 点这里去登录"
-                    target == CloudProvider.WebDav && !ready -> "还没有配置 · 点这里连接 WebDAV"
+                    !target.canUpload -> CloudMessages.QQ_UPLOAD_UNSUPPORTED.removePrefix("QQ Music cloud drive")
+                    target == CloudProvider.NeteaseCloud && !ready -> "Not signed in to NetEase · tap to sign in"
+                    target == CloudProvider.WebDav && !ready -> "Not configured · tap to connect WebDAV"
                     else -> targetSummary(target, checks[target], webDav)
                 }
                 ListRow(
@@ -240,7 +240,7 @@ private fun LocalUploadSheet(
                         selected -> ({ Icon(Icons.Filled.Check, null) })
                         target.canUpload && !ready -> ({
                             Text(
-                                if (target == CloudProvider.NeteaseCloud) "去登录" else "去连接",
+                                if (target == CloudProvider.NeteaseCloud) "Sign in" else "Connect",
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary,
                             )
@@ -251,24 +251,24 @@ private fun LocalUploadSheet(
             }
             Box(Modifier.padding(top = 10.dp)) {
                 SwitchRow(
-                    title = "只在 Wi-Fi 下上传",
+                    title = "Upload on Wi-Fi only",
                     checked = prefs.uploadWifiOnly,
                     onCheckedChange = { value -> library.launch { updatePrefs { it.copy(uploadWifiOnly = value) } } },
                     index = 0,
                     count = 1,
-                    summary = "用移动网络时先排队",
+                    summary = "Queue on mobile data",
                     icon = Icons.Filled.Wifi,
                 )
             }
             Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // 一首都不会传（都传过了、都在排队、都没文件）时不说“传完后能播这几首”，只留下面那句为什么
                 if (toUpload.isNotEmpty()) {
-                    InfoNote("传的是原文件，不转码。传完后，同步过的歌单在其它设备上能直接播这 ${toUpload.size} 首。单个文件超过 500 MB 的会跳过。")
+                    InfoNote("Original files are uploaded without transcoding. Afterwards, synced playlists can play these ${toUpload.size} tracks on other devices. Files over 500 MB are skipped.")
                 }
                 notice.notes.forEach { InfoNote(it) }
                 when {
                     !configured -> InfoNote(
-                        if (provider == CloudProvider.NeteaseCloud) "先登录网易云音乐，或者换成 WebDAV。" else "先连接 WebDAV，或者换成网易云盘。",
+                        if (provider == CloudProvider.NeteaseCloud) "Sign in to NetEase Cloud Music first, or switch to WebDAV." else "Connect WebDAV first, or switch to the NetEase cloud drive.",
                         "amber",
                     )
                     check is CheckState.Failed && notice.blocking.isEmpty() -> InfoNote(check.message, "red")
@@ -291,9 +291,9 @@ private fun LocalUploadSheet(
                         val waitWifi = prefs.uploadWifiOnly && LocalUploadNetwork.metered(context)
                         snackbar.showSnackbar(
                             when {
-                                added == 0 -> "这些歌已经在上传队列里了"
-                                waitWifi -> "已排上 $added 首，连上 Wi-Fi 后开始传"
-                                else -> "开始上传 $added 首到${if (target == CloudProvider.WebDav) " WebDAV" else target.label}"
+                                added == 0 -> "These tracks are already in the upload queue"
+                                waitWifi -> "$added tracks queued; upload starts once Wi-Fi is back"
+                                else -> "Start uploading $added tracks to ${if (target == CloudProvider.WebDav) " WebDAV" else target.label}"
                             },
                         )
                     }
@@ -307,9 +307,9 @@ private fun LocalUploadSheet(
             ) {
                 if (check is CheckState.Loading && configured) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
-                    Text("正在检查空间…", Modifier.padding(start = 8.dp))
+                    Text("Checking space…", Modifier.padding(start = 8.dp))
                 } else {
-                    Text(if (request.force) "重新上传" else "开始上传")
+                    Text(if (request.force) "Re-upload" else "Start upload")
                 }
             }
         }
@@ -322,18 +322,18 @@ private fun targetSummary(target: CloudProvider, check: CheckState?, webDav: Web
     val quota = result?.quota?.takeIf { it.known }
     return when (target) {
         CloudProvider.NeteaseCloud -> when {
-            check is CheckState.Loading -> "正在查容量…"
+            check is CheckState.Loading -> "Checking space…"
             check is CheckState.Failed -> check.message
-            result != null && result.shortfall > 0 -> "还差 ${CloudMessages.formatSize(result.shortfall)}"
-            quota != null -> "剩 ${CloudMessages.formatSize(quota.free)} · 曲库里有的歌直接秒传"
-            else -> "曲库里有的歌直接秒传"
+            result != null && result.shortfall > 0 -> "${CloudMessages.formatSize(result.shortfall)} short"
+            quota != null -> "${CloudMessages.formatSize(quota.free)} free · tracks already in the cloud upload instantly"
+            else -> "Tracks already in the cloud upload instantly"
         }
         CloudProvider.WebDav -> {
             val base = webDav?.let(::webDavTargetLabel) ?: CloudProvider.WebDav.label
             when {
                 check is CheckState.Failed -> "$base · ${check.message}"
-                result != null && result.shortfall > 0 -> "$base · 还差 ${CloudMessages.formatSize(result.shortfall)}"
-                quota != null -> "$base · 剩 ${CloudMessages.formatSize(quota.free)}"
+                result != null && result.shortfall > 0 -> "$base · ${CloudMessages.formatSize(result.shortfall)} short"
+                quota != null -> "$base · ${CloudMessages.formatSize(quota.free)} free"
                 else -> base
             }
         }
@@ -341,7 +341,7 @@ private fun targetSummary(target: CloudProvider, check: CheckState?, webDav: Web
     }
 }
 
-/** 现在连的是不是按流量计费的网络（移动网络、热点）：只在 Wi-Fi 下上传时，这种网络上先排队。 */
+/** 现在连的是不是按流量计费的网络（移动网络、热点）：Upload on Wi-Fi only时，这种网络上先排队。 */
 internal object LocalUploadNetwork {
     fun metered(context: android.content.Context): Boolean = runCatching {
         context.getSystemService(android.net.ConnectivityManager::class.java)?.isActiveNetworkMetered ?: false
@@ -365,10 +365,10 @@ internal fun LazyListScope.localUploadSection(
         val progress = "${state.current.coerceAtLeast(if (state.active.isEmpty()) 0 else 1)} / ${state.total}"
         DayLabel(
             when {
-                state.busy && state.paused != null -> "上传已暂停 · $progress"
-                state.busy && state.active.isEmpty() -> "等待上传 · $progress"
-                state.busy -> "正在上传 · $progress"
-                else -> "上传失败 · ${state.failed.size} 首"
+                state.busy && state.paused != null -> "Upload paused · $progress"
+                state.busy && state.active.isEmpty() -> "Waiting to upload · $progress"
+                state.busy -> "Uploading · $progress"
+                else -> "Upload failed · ${state.failed.size} tracks"
             },
         )
     }
@@ -380,11 +380,11 @@ internal fun LazyListScope.localUploadSection(
                     TextButton(
                         onClick = { uploads.resume(provider) },
                         modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text("继续") }
+                    ) { Text("Continue") }
                     TextButton(
                         onClick = { uploads.removeAll(provider) },
                         modifier = Modifier.tvFocusRing(RoundedCornerShape(20.dp)),
-                    ) { Text("都不传了") }
+                    ) { Text("Cancel all") }
                 }
             }
         }
@@ -393,9 +393,9 @@ internal fun LazyListScope.localUploadSection(
         item(key = "upload:waiting", contentType = "note") {
             val waitingText = when {
                 state.backoffUntil > System.currentTimeMillis() ->
-                    "网易云要求放慢，${backoffMinutes(state.backoffUntil)} 后自动接着传。连续触发时会等得更久，最长 30 分钟。"
-                wifiOnly && metered -> "现在用的是移动网络，连上 Wi-Fi 后自动开始传。可以在设置 › 本地音乐里关掉“只在 Wi-Fi 下上传”。"
-                else -> "马上开始传…"
+                    "NetEase asked to slow down; upload resumes automatically in ${backoffMinutes(state.backoffUntil)}. Repeated triggers wait longer, up to 30 minutes."
+                wifiOnly && metered -> "You're on mobile data; uploading starts once Wi-Fi is back. You can turn off Upload on Wi-Fi only under Settings › Local music."
+                else -> "Starting upload…"
             }
             InfoNote(waitingText)
         }
@@ -416,8 +416,8 @@ internal fun LazyListScope.localUploadSection(
             val title = song?.title ?: item.meta.title.ifBlank { item.source.fileName }
             val subtitle = when (kind) {
                 "active" -> activeSubtitle(entry)
-                "next" -> if (waiting.size > 1) "等待上传 · 还有 ${waiting.size} 首" else "等待上传"
-                else -> "上传失败 · ${item.error?.message ?: CloudMessages.CLOUD_UNREACHABLE}"
+                "next" -> if (waiting.size > 1) "Waiting to upload · ${waiting.size} left" else "Waiting to upload"
+                else -> "Upload failed · ${item.error?.message ?: CloudMessages.CLOUD_UNREACHABLE}"
             }
             SongRow(
                 title = title,
@@ -440,24 +440,24 @@ internal fun LazyListScope.localUploadSection(
                                 IconButton(
                                     onClick = { uploads.cancel(entry.provider, entry.localId) },
                                     modifier = Modifier.tvFocusRing(CircleShape),
-                                ) { Icon(Icons.Filled.Close, "取消上传“$title”") }
+                                ) { Icon(Icons.Filled.Close, "Cancel upload of '$title'") }
                             }
                         }
                         "next" -> IconButton(
                             onClick = { uploads.remove(entry.provider, entry.localId) },
                             modifier = Modifier.tvFocusRing(CircleShape),
-                        ) { Icon(Icons.Filled.Close, "不传“$title”了") }
+                        ) { Icon(Icons.Filled.Close, "Cancel '$title'") }
                         else -> Row {
                             if (item.error?.retryable != false && item.error?.kind != CloudErrorKind.InvalidFile) {
                                 IconButton(
                                     onClick = { uploads.retry(entry.provider, entry.localId) },
                                     modifier = Modifier.tvFocusRing(CircleShape),
-                                ) { Icon(Icons.Filled.Refresh, "重试上传“$title”") }
+                                ) { Icon(Icons.Filled.Refresh, "Retry uploading '$title'") }
                             }
                             IconButton(
                                 onClick = { uploads.remove(entry.provider, entry.localId) },
                                 modifier = Modifier.tvFocusRing(CircleShape),
-                            ) { Icon(Icons.Filled.Close, "从上传队列里拿掉“$title”") }
+                            ) { Icon(Icons.Filled.Close, "Remove '$title' from the upload queue") }
                         }
                     }
                 },
@@ -472,15 +472,15 @@ private fun activeSubtitle(entry: LocalUploadEntry): String {
     val label = entry.provider.label
     val total = entry.item.source.size
     return when (progress.stage) {
-        CloudUploadStage.QUEUED -> "$label · 准备上传"
-        CloudUploadStage.HASHING -> "$label · 正在读文件"
-        CloudUploadStage.CHECKING -> "$label · 正在检查云端有没有"
+        CloudUploadStage.QUEUED -> "$label · preparing"
+        CloudUploadStage.HASHING -> "$label · reading file"
+        CloudUploadStage.CHECKING -> "$label · checking the cloud"
         CloudUploadStage.UPLOADING -> "$label · ${formatMb(progress.bytesDone)} / ${formatMb(total)} MB"
-        CloudUploadStage.SUBMITTING -> "$label · 正在提交"
-        CloudUploadStage.TRANSCODING -> "$label · 云盘正在处理"
-        CloudUploadStage.PUBLISHING -> "$label · 正在发布"
-        CloudUploadStage.READY -> if (progress.instant) "$label · 秒传完成" else "$label · 传完了"
-        CloudUploadStage.FAILED -> "$label · 上传失败"
+        CloudUploadStage.SUBMITTING -> "$label · submitting"
+        CloudUploadStage.TRANSCODING -> "$label · cloud is processing"
+        CloudUploadStage.PUBLISHING -> "$label · publishing"
+        CloudUploadStage.READY -> if (progress.instant) "$label · instant upload done" else "$label · uploaded"
+        CloudUploadStage.FAILED -> "$label · upload failed"
     }
 }
 
@@ -488,7 +488,7 @@ private fun formatMb(bytes: Long): String = String.format(java.util.Locale.ROOT,
 
 private fun backoffMinutes(until: Long): String {
     val minutes = ((until - System.currentTimeMillis()) / 60_000L).coerceAtLeast(0) + 1
-    return "约 $minutes 分钟"
+    return "about $minutes min"
 }
 
 /** 暂停的说明：风控要说清楚点继续之后还会先等一会儿，等的时间越来越长，免得用户以为点了没反应。 */
@@ -496,10 +496,10 @@ internal fun pausedExplanation(provider: CloudProvider, reason: CloudException?)
     val head = LocalUploadRules.pausedText(provider, reason)
     return when (reason?.kind) {
         CloudErrorKind.RiskControl ->
-            "$head。可以先在网易云音乐里完成验证；点“继续”后会先等 1 分钟再传，连续触发时等得更久（最长 30 分钟）。"
+            "$head. You can complete verification in NetEase Cloud Music first; tapping Continue waits 1 minute before uploading, longer after repeated triggers (up to 30 minutes)."
         CloudErrorKind.NotLoggedIn ->
-            if (provider == CloudProvider.WebDav) "$head。连接 WebDAV 后点“继续”。" else "$head。重新登录后点“继续”。"
-        CloudErrorKind.Unauthorized -> "$head。在设置 › 本地音乐里改好密码后点“继续”。"
+            if (provider == CloudProvider.WebDav) "$head. Connect WebDAV, then tap Continue." else "$head. Sign in again, then tap Continue."
+        CloudErrorKind.Unauthorized -> "$head. Fix the password under Settings › Local music, then tap Continue."
         else -> head
     }
 }

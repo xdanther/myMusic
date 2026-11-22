@@ -186,20 +186,13 @@ myMusic 是面向 Android 6.0 及以上设备的音乐客户端，支持手机�
 - 同步文件超过 1 MB 时同步页会提示一句，同步照常进行，内容不会被截掉。
 - 令牌和 WebDAV 密码加密后只保存在本机，不进入数据库、日志或同步文件。
 
-## 均衡器与应用更新
+## 均衡器
 
 - 均衡器绑定当前播放会话，按设备实际频段绘制五段或更多滑杆，提供平直、流行、摇滚、爵士、人声和自定义预设；设置保存在本机，切换歌曲、换源或重建 audio session 后重新应用。设备不支持时明确显示“未生效”，不影响播放。
-- 关于页检查 GitHub Release 的 `update.json`，只比较 versionCode；下载后校验 SHA-256、包名、版本号和签名，再通过 FileProvider 打开系统安装器。Android 不允许静默安装。
-- CI 在发布 APK 的同时生成 `update.json` 与 SHA-256 文件。
 
 ## 构建
 
-提交或拉取请求会运行 Android 单元测试。推送到 `main` 或 `dev` 时，GitHub Actions 会构建 Android 6.0+ 的通用 APK，并随 Release 发布 `update.json` 和 `update.apk.sha256`。
-
-配置以下仓库或组织 Secrets 后，Release 会使用正式签名；未配置时使用 debug 签名：
-
-- `SIGNING_PROPERTIES`：Base64 编码的 properties，包含 `storeFile=keystore.jks`、`storePassword`、`keyAlias`、`keyPassword`。
-- `SIGN_KEY`：Base64 编码的 JKS 密钥库。
+每次推送和拉取请求，GitHub Actions 只构建 debug 版 APK，并作为 `myMusic-debug` artifact 上传，不跑测试、不签名、不发布 Release。下载后自行安装即可。
 
 ## 许可证
 

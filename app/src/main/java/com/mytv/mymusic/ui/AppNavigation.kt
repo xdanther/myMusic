@@ -177,8 +177,6 @@ fun MyMusicApp(model: MusicViewModel) {
     val sleep by model.sleepTimer.collectAsState()
     // 不在这里读 value：进度每 100ms 变一次，读了会让整棵界面跟着重组
     val position = model.position.collectAsState()
-    val update by model.updateDetails.collectAsState()
-    val updateProgress = model.updateState.collectAsState()
     val transfer by model.transfer.collectAsState()
     val platformImport by model.platformImport.collectAsState()
     val context = LocalContext.current
@@ -369,16 +367,6 @@ fun MyMusicApp(model: MusicViewModel) {
     // 队列海报墙在主界面之上、播放页之下；播放页可以盖在墙上，关掉回到墙
     val posterVisible = state.posterOpen && state.current != null
     val covered = playerVisible || posterVisible
-    // 更新胶囊要让开的那一截：播放页上报的控件区（测量里量的，已含它自己的底边让位）加系统导航栏——
-    // 电视播放页不套 safeDrawing、量到的就是整屏坐标，不用再加；底部播放条不铺在内容上，多出来的是整条高度；
-    // 海报墙让开右下角的按钮；其余就是普通底栏
-    val pillBottom = when {
-        playerVisible ->
-            (if (window.isTv) 0.dp else navInset) + with(LocalDensity.current) { playerChrome.bottomPx.toDp() }
-        posterVisible -> navInset + if (window.isTv) 0.dp else PosterWallBottomChrome
-        window.showBottomPlayerBar && state.current != null -> BottomPlayerBarHeight + navInset
-        else -> overlayBottom
-    }
     // 播放页还在组合里（含退场动画）：墙等它完全退场再拿遥控器焦点（播放页的焦点组退场途中不放焦点出去）
     val playerComposed = remember { mutableStateOf(false) }
     val enterSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
@@ -586,13 +574,6 @@ fun MyMusicApp(model: MusicViewModel) {
                 onDismiss = actions::closeMerge,
             )
         }
-        // 更新浮层：下载期间只占底栏上方一条，应用照常可用；只有安装被系统拦下时才要用户动手
-        UpdateOverlay(
-            update = update,
-            actions = actions,
-            progress = { updateProgress.value.progress },
-            bottomPadding = pillBottom,
-        )
         startupCrash?.let { report ->
             CrashReportDialog(report = report, onDismiss = { startupCrash = null })
         }

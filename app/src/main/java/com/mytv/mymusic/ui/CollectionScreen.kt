@@ -162,9 +162,9 @@ internal fun collectionSaved(
 }
 
 /**
- * 榜单 / 歌单 / 专辑详情。手机：头部渐变取封面色，Split button 播放全部，分段曲目列表；
+ * 榜单 / 歌单 / 专辑详情。手机：头部渐变取封面色，Split button Play all，分段曲目列表；
  * 平板（≥840dp）和电视：左栏封面、标题和操作不随列表滚动，右栏是曲目。
- * collection_view 选了海报时整页换成海报视图（CollectionPosterView），手机在顶栏、平板和电视在左栏操作区切换。
+ * collection_view 选了海报时整页换成Poster view（CollectionPosterView），手机在顶栏、平板和电视在左栏操作区切换。
  */
 @Composable
 fun CollectionScreen(
@@ -177,9 +177,9 @@ fun CollectionScreen(
     onOpenPlaybackSettings: () -> Unit,
 ) {
     var target by remember { mutableStateOf<SongAction?>(null) }
-    // 电视海报视图里长按 / 菜单键打开时接在单曲操作下面的整页操作；列表视图里为 null
+    // 电视Poster view里长按 / 菜单键打开时接在单曲操作下面的整页操作；列表视图里为 null
     var targetPage by remember { mutableStateOf<WallPageActions?>(null) }
-    // 海报视图的设置面板由这里持有：电视上墙外不放按钮，它从单曲面板里的整页操作打开
+    // Poster view的设置面板由这里持有：电视上墙外不放按钮，它从单曲面板里的整页操作打开
     var posterSettingsOpen by rememberSaveable(collection.kind, collection.id) { mutableStateOf(false) }
     // 歌单的收藏 = 绑定平台歌单（跟随平台更新）；榜单 / 专辑 = 存成本地歌单，同名视为已收藏
     var savedNow by rememberSaveable(collection.kind, collection.id) { mutableStateOf(false) }
@@ -242,7 +242,7 @@ fun CollectionScreen(
     // 专辑页的黑胶：正在放这张专辑里的歌时慢慢转
     val albumSpinning = collection.kind == CollectionKind.Album && state.playing &&
         playingKey != null && songs.any { it.key == playingKey }
-    // 切到海报视图前退出多选：多选只在列表视图里
+    // 切到Poster view前退出多选：多选只在列表视图里
     val showPoster: () -> Unit = remember(actions, selection) {
         {
             selection.exit()
@@ -300,8 +300,8 @@ fun CollectionScreen(
 }
 
 /**
- * 海报视图：曲目铺成海报墙，头部收成顶部胶囊和浮动工具栏（见 CollectionPosterView）。
- * 播放全部 / 随机 / 大卡上的“播放”都是换成这张歌单的队列（和列表里点一行一样），但不弹出播放页；
+ * Poster view：曲目铺成海报墙，头部收成顶部胶囊和浮动工具栏（见 CollectionPosterView）。
+ * Play all / 随机 / 大卡上的“播放”都是换成这张歌单的队列（和列表里点一行一样），但不弹出播放页；
  * 长按格子和大卡的“更多”是和列表同一个单曲操作面板；加载失败、空歌单沿用列表的提示，盖在墙中间。
  */
 @Composable
@@ -336,26 +336,26 @@ private fun CollectionPoster(
     val save = remember(ops, saved, isPlaylist) {
         PosterExtraAction(
             icon = if (isPlaylist) Icons.Filled.Link else if (saved) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            description = if (isPlaylist) "绑定到我的歌单" else "收藏到本地歌单",
+            description = if (isPlaylist) "Link to my playlist" else "Save to a local playlist",
             onClick = { if (!saved) ops.save() },
             on = saved,
             stateDescription = if (isPlaylist) {
-                if (saved) "已绑定，平台更新自动同步" else "未绑定"
-            } else if (saved) "已存到本地歌单" else "未收藏",
+                if (saved) "Linked; platform updates sync automatically" else "Not linked"
+            } else if (saved) "Saved to a local playlist" else "Not saved",
         )
     }
     val providers = state.providers
     val sourceName: (Song) -> String = remember(collection.sourceName, providers) {
         { song -> collection.sourceName.ifBlank { providerName(providers, song.source) } }
     }
-    // 电视上墙上没有歌时没有格子可长按，整页操作够不到：提示里再给一个“切回列表视图”出去
+    // 电视上墙上没有歌时没有格子可长按，整页操作够不到：提示里再给一个“Back to list view”出去
     val toList: (() -> Unit)? = if (LocalAppWindow.current.isTv) ({ actions.setCollectionView(CollectionView.List) }) else null
-    val toListLabel = toList?.let { "切回列表视图" }
+    val toListLabel = toList?.let { "Back to list view" }
     val message: (@Composable () -> Unit)? = when {
         songs.isNotEmpty() || collection.loading -> null
         collection.error.isNotBlank() -> ({
             DiscoverErrorState(
-                title = "歌曲没有加载出来",
+                title = "Couldn't load the tracks",
                 message = listOf(collection.sourceName, collection.error).filter { it.isNotBlank() }.joinToString("："),
                 onRetry = actions::retryCollection,
                 secondaryLabel = toListLabel,
@@ -365,9 +365,9 @@ private fun CollectionPoster(
         else -> ({
             EmptyState(
                 icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                title = "这里还没有歌曲",
-                message = "稍后重试，或换一个来源。",
-                actionLabel = "重试",
+                title = "No tracks here yet",
+                message = "Try again later, or switch sources.",
+                actionLabel = "Retry",
                 onAction = actions::retryCollection,
                 secondaryLabel = toListLabel,
                 onSecondary = toList,
@@ -495,17 +495,17 @@ private fun PhoneCollection(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
                 },
                 actions = {
                     IconButton(onClick = { onSearchOpen(!searchOpen) }) {
-                        Icon(if (searchOpen) Icons.Filled.Close else Icons.Filled.Search, if (searchOpen) "关闭歌单内检索" else "歌单内检索")
+                        Icon(if (searchOpen) Icons.Filled.Close else Icons.Filled.Search, if (searchOpen) "Close playlist search" else "Search this playlist")
                     }
                     ops.openPlaybackSettings?.let { open ->
-                        IconButton(onClick = open) { Icon(Icons.Filled.Tune, "换源设置") }
+                        IconButton(onClick = open) { Icon(Icons.Filled.Tune, "Source settings") }
                     }
-                    // 操作行已经放了播放全部、收藏、多选，海报视图的入口放顶栏
-                    IconButton(onClick = onPosterView) { Icon(Icons.Filled.GridView, "海报视图") }
+                    // 操作行已经放了Play all、收藏、多选，Poster view的入口放顶栏
+                    IconButton(onClick = onPosterView) { Icon(Icons.Filled.GridView, "Poster view") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = surface.copy(alpha = 0f),
@@ -673,7 +673,7 @@ private fun TwoPaneCollection(
                 ) {
                     if (!tv) {
                         IconButton(onClick = onBack, modifier = Modifier.padding(bottom = 8.dp)) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     }
                     if (isAlbum) {
@@ -695,7 +695,7 @@ private fun TwoPaneCollection(
                             itemVerticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (tv) {
-                                // 电视不用下拉菜单：播放全部 + 随机 + 加入队列平铺，焦点默认在“播放全部”
+                                // 电视不用下拉菜单：Play all + 随机 + 加入队列平铺，焦点默认在“Play all”
                                 Button(
                                     onClick = ops.playAll,
                                     modifier = Modifier.focusRequester(playFocus).heightIn(min = 48.dp).tvFocusRing(CircleShape),
@@ -705,10 +705,10 @@ private fun TwoPaneCollection(
                                     Text(playLabel(collection), Modifier.semantics { contentDescription = "${playLabel(collection)}：${collection.title}" })
                                 }
                                 FilledTonalIconButton(onClick = ops.shuffle, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                    Icon(Icons.Filled.Shuffle, "随机播放")
+                                    Icon(Icons.Filled.Shuffle, "Shuffle")
                                 }
                                 FilledTonalIconButton(onClick = ops.queue, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                    Icon(Icons.AutoMirrored.Filled.QueueMusic, "加入播放队列")
+                                    Icon(Icons.AutoMirrored.Filled.QueueMusic, "Add to queue")
                                 }
                             } else {
                                 PlayAllSplitButton(
@@ -724,16 +724,16 @@ private fun TwoPaneCollection(
                             MultiSelectToggle(selection, if (tv) 48.dp else null)
                             PosterViewToggle(onPosterView, if (tv) 48.dp else null)
                             FilledTonalIconButton(onClick = { onSearchOpen(!searchOpen) }, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                Icon(if (searchOpen) Icons.Filled.Close else Icons.Filled.Search, if (searchOpen) "关闭歌单内检索" else "歌单内检索")
+                                Icon(if (searchOpen) Icons.Filled.Close else Icons.Filled.Search, if (searchOpen) "Close playlist search" else "Search this playlist")
                             }
                             ops.openPlaybackSettings?.let { open ->
                                 FilledTonalIconButton(onClick = open, modifier = Modifier.size(48.dp).tvFocusRing(CircleShape)) {
-                                    Icon(Icons.Filled.Tune, "换源设置")
+                                    Icon(Icons.Filled.Tune, "Source settings")
                                 }
                             }
                         }
                     }
-                    // 专辑介绍放在左栏操作下面，收起成几行，点开看全文
+                    // About this album放在左栏操作下面，收起成几行，点开看全文
                     collection.album?.description?.takeIf { isAlbum && it.isNotBlank() }?.let { text ->
                         Spacer(Modifier.height(20.dp))
                         ExpandableText(text, collapsedLines = if (tv) 3 else 5)
@@ -760,13 +760,13 @@ private fun TwoPaneCollection(
 }
 
 private fun playLabel(collection: CollectionUiState) = when (collection.kind) {
-    CollectionKind.Album -> "播放专辑"
-    CollectionKind.Artist -> "播放歌手"
-    else -> "播放全部"
+    CollectionKind.Album -> "Play album"
+    CollectionKind.Artist -> "Play artist"
+    else -> "Play all"
 }
 
 private fun saveLabel(collection: CollectionUiState) =
-    if (collection.kind == CollectionKind.Playlist) "绑定到我的歌单" else "存到本地歌单"
+    if (collection.kind == CollectionKind.Playlist) "Link to my playlist" else "Save to a local playlist"
 
 /**
  * 歌单 = 绑定（跟随平台更新）；榜单 / 专辑 = 存成本地歌单。
@@ -774,8 +774,8 @@ private fun saveLabel(collection: CollectionUiState) =
  */
 @Composable
 private fun SaveToggle(ops: CollectionOps, saved: Boolean, bind: Boolean, size: androidx.compose.ui.unit.Dp? = null) {
-    val onLabel = if (bind) "已绑定，平台更新自动同步" else "已存到本地歌单"
-    val offLabel = if (bind) "未绑定" else "未收藏"
+    val onLabel = if (bind) "Linked; platform updates sync automatically" else "Saved to a local playlist"
+    val offLabel = if (bind) "Not linked" else "Not saved"
     FilledTonalIconToggleButton(
         checked = saved,
         onCheckedChange = { if (!saved) ops.save() },
@@ -786,7 +786,7 @@ private fun SaveToggle(ops: CollectionOps, saved: Boolean, bind: Boolean, size: 
     ) {
         Icon(
             if (bind) Icons.Filled.Link else if (saved) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = if (bind) "绑定到我的歌单" else "收藏到本地歌单",
+            contentDescription = if (bind) "Link to my playlist" else "Save to a local playlist",
         )
     }
 }
@@ -800,11 +800,11 @@ private fun MultiSelectToggle(selection: SelectionState, size: androidx.compose.
             .then(if (size != null) Modifier.size(size) else Modifier)
             .tvFocusRing(CircleShape),
     ) {
-        Icon(Icons.Filled.DoneAll, contentDescription = "批量选择歌曲")
+        Icon(Icons.Filled.DoneAll, contentDescription = "Select multiple tracks")
     }
 }
 
-/** 平板和电视左栏的“海报视图”：切过去之后记住，下次打开任何详情页都是海报。 */
+/** 平板和电视左栏的“Poster view”：切过去之后记住，下次打开任何详情页都是海报。 */
 @Composable
 private fun PosterViewToggle(onClick: () -> Unit, size: androidx.compose.ui.unit.Dp? = null) {
     FilledTonalIconButton(
@@ -813,7 +813,7 @@ private fun PosterViewToggle(onClick: () -> Unit, size: androidx.compose.ui.unit
             .then(if (size != null) Modifier.size(size) else Modifier)
             .tvFocusRing(CircleShape),
     ) {
-        Icon(Icons.Filled.GridView, contentDescription = "海报视图")
+        Icon(Icons.Filled.GridView, contentDescription = "Poster view")
     }
 }
 
@@ -834,7 +834,7 @@ private fun CollectionCover(collection: CollectionUiState, large: Boolean) {
 private fun CollectionTitle(collection: CollectionUiState, large: Boolean) {
     val tv = LocalAppWindow.current.isTv
     Text(
-        collection.title.ifBlank { "详情" },
+        collection.title.ifBlank { "Details" },
         Modifier.semantics { heading() },
         style = when {
             tv -> MaterialTheme.typography.headlineLarge
@@ -858,9 +858,9 @@ private fun CollectionTitle(collection: CollectionUiState, large: Boolean) {
     }
     Text(
         when {
-            collection.songs.isNotEmpty() -> "${collection.songs.size} 首 · 按聚合策略播放"
-            collection.loading -> "正在读取歌曲…"
-            else -> "按聚合策略播放"
+            collection.songs.isNotEmpty() -> "${collection.songs.size} tracks · plays by aggregation policy"
+            collection.loading -> "Reading tracks…"
+            else -> "Play by aggregation policy"
         },
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -885,7 +885,7 @@ private fun LazyListScope.collectionSongs(
         }
         songs.isEmpty() && collection.error.isNotBlank() -> item(key = "error", contentType = "error") {
             DiscoverErrorState(
-                title = "歌曲没有加载出来",
+                title = "Couldn't load the tracks",
                 message = listOf(collection.sourceName, collection.error).filter { it.isNotBlank() }.joinToString("："),
                 onRetry = actions::retryCollection,
             )
@@ -894,15 +894,15 @@ private fun LazyListScope.collectionSongs(
             if (query.isNotBlank()) {
                 EmptyState(
                     icon = Icons.Filled.Search,
-                    title = "没有找到匹配歌曲",
-                    message = "换个歌名、歌手或专辑关键词试试。",
+                    title = "No matching tracks found",
+                    message = "Try another title, artist or album keyword.",
                 )
             } else {
                 EmptyState(
                     icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                    title = "这里还没有歌曲",
-                    message = "稍后重试，或换一个来源。",
-                    actionLabel = "重试",
+                    title = "No tracks here yet",
+                    message = "Try again later, or switch sources.",
+                    actionLabel = "Retry",
                     onAction = actions::retryCollection,
                 )
             }
@@ -950,14 +950,14 @@ private fun LazyListScope.collectionSongs(
                     rank = if (ranked) index + 1 else null,
                     showCover = !album,
                     rankEmphasis = !album,
-                    rankLabel = if (album) ({ "第 $it 首" }) else ({ "第 $it 名" }),
+                    rankLabel = if (album) ({ "Track $it" }) else ({ "#$it" }),
                     playing = playingKey == song.key,
                     badges = songBadge(song, collection.sourceName),
                     trailing = when {
                         picking -> ({
                             Icon(
                                 if (isSelected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                                contentDescription = if (isSelected) "取消选择“${song.title}”" else "选择“${song.title}”",
+                                contentDescription = if (isSelected) "Deselect '${song.title}'" else "Select '${song.title}'",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                         })
@@ -996,7 +996,7 @@ private fun songBadge(song: Song, sourceName: String): (@Composable androidx.com
         else -> return null
     }
     return {
-        Box(Modifier.clearAndSetSemantics { contentDescription = "${sourceName.ifBlank { "当前平台" }}${availabilityLabel(status)}" }) {
+        Box(Modifier.clearAndSetSemantics { contentDescription = "${sourceName.ifBlank { "Current platform" }}${availabilityLabel(status)}" }) {
             PlatformBadge(providerMark(sourceName.ifBlank { song.source }), status)
         }
     }
@@ -1017,14 +1017,14 @@ private fun AlbumTitleBlock(collection: CollectionUiState, actions: MusicActions
     val textAlign = if (centered) TextAlign.Center else TextAlign.Start
     Column(horizontalAlignment = horizontal, modifier = Modifier.fillMaxWidth()) {
         Text(
-            listOf(album?.type?.takeIf { it.isNotBlank() } ?: "专辑", collection.sourceName).filter { it.isNotBlank() }.joinToString(" · "),
+            listOf(album?.type?.takeIf { it.isNotBlank() } ?: "Album", collection.sourceName).filter { it.isNotBlank() }.joinToString(" · "),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
         )
         Text(
-            collection.title.ifBlank { "专辑" },
+            collection.title.ifBlank { "Album" },
             Modifier.padding(top = 4.dp).semantics { heading() },
             style = when {
                 tv -> MaterialTheme.typography.headlineLarge
@@ -1063,8 +1063,8 @@ private fun AlbumTitleBlock(collection: CollectionUiState, actions: MusicActions
         val songs = collection.songs
         Text(
             when {
-                songs.isNotEmpty() -> listOf("${songs.size} 首", totalDurationLabel(songs)).filter { it.isNotBlank() }.joinToString(" · ")
-                collection.loading -> "正在读取曲目…"
+                songs.isNotEmpty() -> listOf("${songs.size} tracks", totalDurationLabel(songs)).filter { it.isNotBlank() }.joinToString(" · ")
+                collection.loading -> "Reading tracks…"
                 else -> ""
             },
             Modifier.padding(top = if (meta.isNotBlank()) 2.dp else 12.dp),
@@ -1084,7 +1084,7 @@ private fun openAlbumArtist(collection: CollectionUiState, index: Int, name: Str
     }
 }
 
-/** 手机专辑页的专辑介绍：操作按钮下面一张卡片，收起成 3 行。 */
+/** 手机专辑页的About this album：操作按钮下面一张卡片，收起成 3 行。 */
 private fun LazyListScope.albumIntro(collection: CollectionUiState, horizontal: androidx.compose.ui.unit.Dp) {
     val text = collection.album?.description.orEmpty().trim()
     if (collection.kind != CollectionKind.Album || text.isEmpty()) return
@@ -1096,7 +1096,7 @@ private fun LazyListScope.albumIntro(collection: CollectionUiState, horizontal: 
         ) {
             Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
                 Text(
-                    "专辑介绍",
+                    "About this album",
                     Modifier.padding(bottom = 6.dp).semantics { heading() },
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
@@ -1114,7 +1114,7 @@ private fun LazyListScope.albumFooter(collection: CollectionUiState, actions: Mu
     if (collection.kind != CollectionKind.Album || collection.songs.isEmpty()) return
     val album = collection.album
     val release = listOfNotNull(
-        album?.publishTime?.takeIf { it.isNotBlank() }?.let { "$it 发行" },
+        album?.publishTime?.takeIf { it.isNotBlank() }?.let { "Released $it" },
         album?.company?.takeIf { it.isNotBlank() }?.let { "℗ $it" },
     )
     if (release.isNotEmpty()) {
@@ -1134,14 +1134,14 @@ private fun LazyListScope.albumFooter(collection: CollectionUiState, actions: Mu
         val tv = LocalAppWindow.current.isTv
         Column(Modifier.padding(top = 12.dp)) {
             com.mytv.mymusic.ui.components.SectionLabel(
-                if (artist.isNotBlank()) "更多 $artist 的专辑" else "同一歌手的其他专辑",
+                if (artist.isNotBlank()) "More albums by $artist" else "More albums by this artist",
                 Modifier.padding(horizontal = horizontal),
                 trailing = album?.artistId?.takeIf { it.isNotBlank() && artist.isNotBlank() }?.let { artistId ->
                     {
                         TextButton(
                             onClick = { actions.openArtist(Playlist(id = artistId, name = artist, source = collection.source)) },
                             modifier = Modifier.tvFocusRing(CircleShape),
-                        ) { Text("歌手主页") }
+                        ) { Text("Artist page") }
                     }
                 },
             )

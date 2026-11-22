@@ -7,13 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -30,20 +27,14 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearWavyProgressIndicator
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,9 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.mytv.mymusic.R
 import com.mytv.mymusic.CrashReport
 import com.mytv.mymusic.CrashReporter
-import com.mytv.mymusic.data.update.UpdatePhase
-import com.mytv.mymusic.data.update.UpdateUiState
-import com.mytv.mymusic.data.update.formatSize
+import com.mytv.mymusic.ui.text.appVersion
 import com.mytv.mymusic.ui.CrashReportDialog
 import com.mytv.mymusic.ui.ErrorBlock
 import com.mytv.mymusic.ui.InfoNote
@@ -83,34 +72,25 @@ import com.mytv.mymusic.ui.components.tvFocusRing
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 private const val PROJECT_URL = "https://github.com/mytv-android/myMusic"
 private const val TELEGRAM_URL = "https://t.me/mytv_android_channel"
 
-/**
- * 关于与更新：应用信息、新版本卡片（下载进度、校验、安装都在卡片里完成）、
- * 检查更新 / 隐私 / 许可 / 项目主页 / 群 / 复制诊断。
- */
+/** App info, crash report entry, privacy/licenses links and diagnostics. */
 @Composable
 fun AboutScreen(
     state: MusicUiState,
-    update: UpdateUiState,
     actions: MusicActions,
     onBack: () -> Unit,
     onLicenses: () -> Unit,
     onPrivacy: () -> Unit,
     embedded: Boolean = false,
-    progress: () -> Float = { update.progress },
 ) {
     val openUri = rememberOpenUri()
     val clipboard = LocalClipboard.current
     val snackbar = LocalAppSnackbar.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var checking by remember { mutableStateOf(false) }
     var showMirrorPicker by remember { mutableStateOf(false) }
     var crashReport by remember { mutableStateOf<CrashReport?>(null) }
     var crashReportLoaded by remember { mutableStateOf(false) }
@@ -119,67 +99,16 @@ fun AboutScreen(
         crashReport = withContext(Dispatchers.IO) { CrashReporter.read(context) }
         crashReportLoaded = true
     }
-    val info = update.info
-    val showCard = info != null
-    val isChecking = checking || update.phase == UpdatePhase.Checking
+    val (versionName, versionCode) = remember(context) { appVersion(context) }
 
-    fun check() {
-        if (checking) return
-        scope.launch {
-            checking = true
-            val result = actions.checkUpdatesNow()
-            checking = false
-            if (result.info == null && result.error.isBlank()) {
-                snackbar.showSnackbar(result.message.ifBlank { "已是最新版本" })
-            }
-        }
-    }
-
-    val checkSummary = when {
-        isChecking -> "正在检查…"
-        info != null -> "有新版本 ${info.versionName}（构建 ${info.versionCode}）"
-        update.error.isNotBlank() -> "检查失败"
-        update.message.isNotBlank() -> update.message
-        else -> "下载后校验 SHA-256"
-    }
-
-    SettingsPage(SettingsSection.About, embedded, onBack, subtitle = "版本 ${update.currentVersionName.ifBlank { "1.0" }}（构建 ${update.currentVersionCode}）") {
-        item(key = "head", contentType = "appHeader") { AppHeader(update.currentVersionName, update.currentVersionCode) }
-        if (showCard && info != null) {
-            item(key = "update", contentType = "updateCard") {
-                UpdateCard(update, actions, progress)
-            }
-        }
-        if (info == null && update.error.isNotBlank() && !isChecking) {
-            item(key = "error", contentType = "error") {
-                Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    ErrorBlock("检查更新失败：${update.error}", onRetry = ::check)
-                    TextButton(onClick = actions::openReleasePage, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Text("在浏览器打开发布页")
-                    }
-                }
-            }
-        }
+    SettingsPage(SettingsSection.About, embedded, onBack, subtitle = "Version ${versionName.ifBlank { "1.0" }} (build $versionCode)") {
+        item(key = "head", contentType = "appHeader") { AppHeader(versionName, versionCode) }
         item(key = "rows", contentType = "settingsGroup") {
             SegmentedGroup(Modifier.padding(top = 12.dp)) {
                 ListRow(
-                    title = "检查更新",
+                    title = "Report an issue",
                     index = 0,
-                    count = 9,
-                    onClick = ::check,
-                    icon = Icons.Filled.Refresh,
-                    summary = checkSummary,
-                    showChevron = false,
-                    trailing = if (isChecking) {
-                        { LoadingIndicator(Modifier.size(32.dp)) }
-                    } else {
-                        null
-                    },
-                )
-                ListRow(
-                    title = "问题反馈",
-                    index = 1,
-                    count = 9,
+                    count = 8,
                     onClick = {
                         if (crashReportLoaded) {
                             if (crashReport != null) showCrashReport = true
@@ -188,105 +117,105 @@ fun AboutScreen(
                     },
                     icon = Icons.Filled.BugReport,
                     summary = when {
-                        !crashReportLoaded -> "正在检查本机崩溃报告…"
-                        crashReport != null -> "有一份异常退出报告，可查看、复制或删除"
-                        else -> "前往 GitHub Issues，附简短设备与版本信息"
+                        !crashReportLoaded -> "Checking for crash reports on this device…"
+                        crashReport != null -> "A crash report is available to view, copy or delete"
+                        else -> "Open GitHub Issues with a short device and version note"
                     },
                 )
                 ListRow(
-                    title = "GitHub 镜像源",
-                    index = 2,
-                    count = 9,
+                    title = "GitHub mirror",
+                    index = 1,
+                    count = 8,
                     onClick = { showMirrorPicker = true },
                     icon = Icons.Filled.CloudDownload,
                     summary = when (state.githubMirror) {
-                        GithubMirror.Auto -> "自动测速，选最快的线路"
-                        GithubMirror.Direct -> "直连 github.com"
-                        else -> "优先 ${state.githubMirror.label}，失败按顺序回退"
+                        GithubMirror.Auto -> "Test all routes and use the fastest"
+                        GithubMirror.Direct -> "Connect to github.com directly"
+                        else -> "Prefer ${state.githubMirror.label}, fall back in order"
                     },
                 )
                 ListRow(
-                    title = "隐私说明",
-                    index = 3,
-                    count = 9,
+                    title = "Privacy",
+                    index = 2,
+                    count = 8,
                     onClick = onPrivacy,
                     icon = Icons.Filled.PrivacyTip,
-                    summary = "哪些数据留在本机，哪些会离开",
+                    summary = "What stays on this device and what leaves it",
                 )
                 ListRow(
-                    title = "开源许可",
-                    index = 4,
-                    count = 9,
+                    title = "Open source licenses",
+                    index = 3,
+                    count = 8,
                     onClick = onLicenses,
                     icon = Icons.Filled.Code,
-                    summary = "AGPL-3.0 · music-lib、Folia 模组、Rush 与第三方依赖",
+                    summary = "AGPL-3.0 · music-lib, Folia modules, Rush and third-party dependencies",
                 )
                 ListRow(
-                    title = "项目主页",
-                    index = 5,
-                    count = 9,
+                    title = "Project home",
+                    index = 4,
+                    count = 8,
                     onClick = { openUri(PROJECT_URL) },
                     icon = Icons.AutoMirrored.Filled.OpenInNew,
                     summary = "github.com/mytv-android/myMusic",
                     showChevron = false,
                 )
                 ListRow(
-                    title = "Telegram 群组",
-                    index = 6,
-                    count = 9,
+                    title = "Telegram group",
+                    index = 5,
+                    count = 8,
                     onClick = { openUri(TELEGRAM_URL) },
                     icon = Icons.Filled.Group,
                     summary = "t.me/mytv_android_channel",
                     showChevron = false,
                 )
                 ListRow(
-                    title = "复制诊断信息",
-                    index = 7,
-                    count = 9,
+                    title = "Copy diagnostics",
+                    index = 6,
+                    count = 8,
                     onClick = {
                         scope.launch {
-                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("myMusic 诊断信息", actions.diagnostics())))
-                            snackbar.showSnackbar("诊断信息已复制")
+                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("myMusic diagnostics", actions.diagnostics())))
+                            snackbar.showSnackbar("Diagnostics copied")
                         }
                     },
                     icon = Icons.Filled.ContentCopy,
                     iconTone = IconTone.Tertiary,
-                    summary = "设备、版本、启用平台和最近 ${com.mytv.mymusic.AppLog.snapshot().size} 条运行日志",
+                    summary = "Device, version, enabled platforms and the last ${com.mytv.mymusic.AppLog.snapshot().size} log lines",
                     showChevron = false,
                 )
                 ListRow(
-                    title = "导出日志文件",
-                    index = 8,
-                    count = 9,
+                    title = "Export log file",
+                    index = 7,
+                    count = 8,
                     onClick = {
                         scope.launch { snackbar.showSnackbar(actions.exportLog()) }
                     },
                     icon = Icons.Filled.Share,
                     iconTone = IconTone.Tertiary,
-                    summary = "运行日志写成文件后分享，适合条数多的时候",
+                    summary = "Share the run log as a file, handy when there are many lines",
                     showChevron = false,
                 )
             }
         }
         item(key = "sodam", contentType = "creditCard") {
             Box(Modifier.padding(top = 12.dp)) {
-                SodamCredit(note = "汽水会员整曲的签名服务与协议来自 SodaM（AGPL-3.0）")
+                SodamCredit(note = "Full-track signing for Soda member songs comes from SodaM (AGPL-3.0)")
             }
         }
         item(key = "logNote", contentType = "infoNote") {
             Box(Modifier.padding(top = 8.dp)) {
-                InfoNote("运行日志只记在本机内存里，最多 800 条，退出应用即清空。Cookie 和令牌在写入前就已抹掉，导出前也会再过滤一遍，但仍建议只发给可信的人。")
+                InfoNote("Run logs live in this device's memory only, at most 800 lines, and are cleared when the app exits. Cookies and tokens are stripped before writing and filtered again before export, but still send them only to people you trust.")
             }
         }
         item(key = "links", contentType = "linksCard") { LinksCard(openUri) }
         item(key = "note", contentType = "infoNote") {
             Box(Modifier.padding(top = 16.dp)) {
-                InfoNote("Cookie、播放记录和下载文件只保存在本机。同步仅使用你选择的 Gist / Gitee 账号或 WebDAV 服务器，写入自建歌单数据；应用没有集中式服务器。")
+                InfoNote("Cookies, play history and downloads stay on this device. Sync only uses the Gist / Gitee account or WebDAV server you choose, and writes your own playlist data; the app has no central server.")
             }
         }
         item(key = "footer", contentType = "footer") {
             Text(
-                "平台层 music-lib / 7cc4467b\n学习项目，请遵守各音乐平台服务条款。",
+                "Platform layer music-lib / 7cc4467b\nA learning project; follow each music platform's terms of service.",
                 Modifier.fillMaxWidth().padding(top = 16.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -315,17 +244,14 @@ fun AboutScreen(
                         crashReport = null
                         showCrashReport = false
                     }
-                    snackbar.showSnackbar(if (deleted) "崩溃报告已删除" else "删除失败，请重试")
+                    snackbar.showSnackbar(if (deleted) "Crash report deleted" else "Delete failed, please try again")
                 }
             },
         )
     }
 }
 
-/**
- * 更新线路选择。每条线路后跟一句实测/限制说明，避免用户以为「不代理 API」的线路
- * 也适合检查更新——那几条只能加速安装包下载。
- */
+/** Mirror picker, each row followed by a short note about what that route can do. */
 @Composable
 private fun GithubMirrorDialog(
     selected: GithubMirror,
@@ -334,15 +260,15 @@ private fun GithubMirrorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("GitHub 镜像源") },
+        title = { Text("GitHub mirror") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 GithubMirror.entries.forEach { mirror ->
                     val summary = when (mirror) {
-                        GithubMirror.Auto -> "并发测速所有线路，选最快可达者"
-                        GithubMirror.Direct -> "不走代理；api.github.com 被限流时检查更新会失败"
-                        GithubMirror.ProxyOrg, GithubMirror.ProxyCom -> "更新检查与下载都可用"
-                        else -> "只加速安装包下载，检查更新仍走其它线路"
+                        GithubMirror.Auto -> "Race all routes and use the fastest reachable one"
+                        GithubMirror.Direct -> "No proxy; api.github.com may rate-limit requests"
+                        GithubMirror.ProxyOrg, GithubMirror.ProxyCom -> "Works for GitHub pages and downloads"
+                        else -> "Speeds up downloads only; other routes handle GitHub pages"
                     }
                     ListRow(
                         title = mirror.label,
@@ -357,14 +283,14 @@ private fun GithubMirrorDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("关闭") }
+            TextButton(onClick = onDismiss) { Text("Close") }
         },
     )
 }
 
 /**
- * 主页与群二维码：本机用同一套编码器生成，不依赖外部图片服务。
- * 手机上点一下直接打开链接；电视上常常没有浏览器，这时用手机扫码。
+ * Project and group QR codes, generated on-device without an external image service.
+ * Phones open the link on tap; TVs often have no browser, so scan with a phone instead.
  */
 @Composable
 private fun LinksCard(openUri: (String) -> Unit) {
@@ -382,9 +308,9 @@ private fun LinksCard(openUri: (String) -> Unit) {
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(20.dp),
     ) {
-        Text("扫码访问", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text("Scan to visit", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Text(
-            "点按打开链接，或用手机扫二维码。",
+            "Tap to open the link, or scan the QR code with your phone.",
             Modifier.padding(top = 4.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -395,14 +321,14 @@ private fun LinksCard(openUri: (String) -> Unit) {
                 Modifier.widthIn(max = qrSize * 2 + 32.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                LinkQrCell("项目主页", "github.com/mytv-android/myMusic", PROJECT_URL, qrSize, Modifier.weight(1f), openUri)
-                LinkQrCell("Telegram 群组", "t.me/mytv_android_channel", TELEGRAM_URL, qrSize, Modifier.weight(1f), openUri)
+                LinkQrCell("Project home", "github.com/mytv-android/myMusic", PROJECT_URL, qrSize, Modifier.weight(1f), openUri)
+                LinkQrCell("Telegram group", "t.me/mytv_android_channel", TELEGRAM_URL, qrSize, Modifier.weight(1f), openUri)
             }
         }
     }
 }
 
-/** 单个二维码格子：浅底深码，扫码器才认，所以不跟随主题配色。 */
+/** One QR cell: dark code on a light background so scanners can read it, independent of the theme. */
 @Composable
 private fun LinkQrCell(
     title: String,
@@ -432,7 +358,7 @@ private fun LinkQrCell(
                 .padding(10.dp),
             contentAlignment = Alignment.Center,
         ) {
-            QrCodeImage(url, Modifier.fillMaxSize(), description = "$title 二维码")
+            QrCodeImage(url, Modifier.fillMaxSize(), description = "$title QR code")
         }
         Text(
             title,
@@ -449,7 +375,7 @@ private fun LinkQrCell(
     }
 }
 
-/** 与 res/drawable/ic_launcher_background.xml 相同的渐变（左上到右下）；那份 XML 由品牌仓库生成，改色时两处一起改。 */
+/** Same gradient as res/drawable/ic_launcher_background.xml (top-left to bottom-right). */
 private val LauncherIconBackground = Brush.linearGradient(
     listOf(Color(0xFF1E9483), Color(0xFF006B5F), Color(0xFF00524A)),
 )
@@ -470,123 +396,9 @@ private fun AppHeader(versionName: String, versionCode: Long) {
         }
         Text("myMusic", Modifier.padding(top = 10.dp), style = MaterialTheme.typography.headlineSmall)
         Text(
-            "版本 ${versionName.ifBlank { "1.0" }}（构建 $versionCode） · AGPL-3.0",
+            "Version ${versionName.ifBlank { "1.0" }} (build $versionCode) · AGPL-3.0",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-}
-
-/** 新版本卡片：更新说明、下载进度、校验和安装都在这里；下载和安装自动进行，系统对话框确认无法省略。 */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun UpdateCard(update: UpdateUiState, actions: MusicActions, progress: () -> Float) {
-    val info = update.info ?: return
-    val scheme = MaterialTheme.colorScheme
-    val content = scheme.onTertiaryContainer
-    val downloading = update.phase == UpdatePhase.Downloading || update.phase == UpdatePhase.Verifying
-    val ready = update.phase == UpdatePhase.Ready
-    val primaryColors = ButtonDefaults.buttonColors(containerColor = scheme.tertiary, contentColor = scheme.onTertiary)
-    val zone = ZoneId.systemDefault()
-    val releaseSummary = remember(info.size, info.publishedAt, zone) {
-        "${formatSize(info.size)} · ${formatDate(info.publishedAt, zone)}"
-    }
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(scheme.tertiaryContainer)
-            .padding(20.dp),
-    ) {
-        Text("发现新版本 ${info.versionName}（构建 ${info.versionCode}）", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = content)
-        Text(
-            releaseSummary,
-            style = MaterialTheme.typography.bodyMedium,
-            color = content.copy(alpha = 0.85f),
-        )
-        if (info.notes.isNotEmpty()) {
-            Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                info.notes.forEach { note ->
-                    Text("· $note", style = MaterialTheme.typography.bodyMedium, color = content)
-                }
-            }
-        }
-        if (downloading || ready) {
-            UpdateDownloadProgress(update.phase, update.phaseLabel, progress, content)
-        } else {
-            Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Filled.Verified, null, Modifier.size(18.dp), tint = content)
-                Text(
-                    "下载后自动校验 SHA-256、包名和版本号，然后自动打开系统安装器。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = content,
-                )
-            }
-        }
-        if (update.error.isNotBlank()) {
-            Box(Modifier.padding(top = 10.dp)) { InfoNote(update.error, "red") }
-        }
-        if (update.permissionRequired) {
-            Box(Modifier.padding(top = 10.dp)) { InfoNote("需要允许本应用安装未知来源的应用。", "amber") }
-        }
-        if (!downloading) {
-            FlowRow(
-                Modifier.fillMaxWidth().padding(top = 14.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                val textButton: @Composable (String, () -> Unit) -> Unit = { label, onClick ->
-                    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(CircleShape)) {
-                        Text(label, color = content)
-                    }
-                }
-                val mainButton: @Composable (String, () -> Unit) -> Unit = { label, onClick ->
-                    Button(onClick = onClick, colors = primaryColors, modifier = Modifier.heightIn(min = 48.dp).tvFocusRing(CircleShape)) {
-                        Text(label)
-                    }
-                }
-                when {
-                    ready -> {
-                        if (update.permissionRequired) textButton("允许安装", actions::openInstallPermission)
-                        mainButton("重新打开安装器", actions::installUpdate)
-                    }
-                    update.phase == UpdatePhase.Error -> {
-                        textButton("浏览器打开", actions::openReleasePage)
-                        mainButton("重试下载", actions::downloadUpdate)
-                    }
-                    else -> mainButton("立即下载", actions::downloadUpdate)
-                }
-            }
-        }
-    }
-}
-
-private fun formatDate(value: String, zone: ZoneId): String = runCatching {
-    DateTimeFormatter.ISO_LOCAL_DATE.withZone(zone).format(Instant.parse(value))
-}.getOrDefault(value)
-
-/** 只有进度绘制和百分比文字观察下载数值，版本说明与按钮不跟着刷新。 */
-@Composable
-private fun UpdateDownloadProgress(phase: UpdatePhase, label: String, progress: () -> Float, color: Color) {
-    LinearWavyProgressIndicator(
-        progress = { if (phase == UpdatePhase.Downloading) progress() else 1f },
-        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
-        color = color,
-        trackColor = color.copy(alpha = 0.2f),
-    )
-    UpdateProgressLabel(phase, label, progress, color)
-}
-
-@Composable
-private fun UpdateProgressLabel(phase: UpdatePhase, label: String, progress: () -> Float, color: Color) {
-    val percent by remember(phase, progress) {
-        derivedStateOf { if (phase == UpdatePhase.Downloading) (progress().coerceIn(0f, 1f) * 100).toInt() else 100 }
-    }
-    Text(
-        "${label.ifBlank { if (phase == UpdatePhase.Ready) "已下载" else "正在下载" }} $percent% · 下载后校验 SHA-256",
-        Modifier.padding(top = 6.dp),
-        style = MaterialTheme.typography.bodyMedium,
-        color = color.copy(alpha = 0.85f),
-    )
 }

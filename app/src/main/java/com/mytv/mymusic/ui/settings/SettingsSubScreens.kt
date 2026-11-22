@@ -351,7 +351,7 @@ private fun LayoutModeChips(selected: LayoutMode, onSelect: (LayoutMode) -> Unit
     }
 }
 
-/** 启动页：冷打开应用时先停在哪个顶层入口。设置里存的是路由，认不出来的回默认「榜单」。 */
+/** 启动页：冷打开应用时先停在哪个顶层入口。设置里存的是路由，认不出来的回默认「Charts」。 */
 @Composable
 private fun StartupPageOptions(selectedRoute: String, onSelect: (String) -> Unit) {
     val selected = TopTab.entries.firstOrNull { it.route == selectedRoute } ?: TopTab.Charts
@@ -593,7 +593,7 @@ private val QUALITY_PREFERENCE_OPTIONS = listOf(
     AudioQuality.Master,
 )
 
-/** 播放与换源：换源模式按钮组、平台顺序入口、匹配选项。 */
+/** 播放与换源：Source switching按钮组、平台顺序入口、匹配选项。 */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun PlaybackSettingsScreen(
@@ -610,20 +610,20 @@ internal fun PlaybackSettingsScreen(
     val pinnable = searchable + listOfNotNull(lxProvider.takeIf { lxRecords.isNotEmpty() })
     val priority = aggregation.priorityFor(searchable.map { it.id } + LxPlatform.PROVIDER_ID)
     SettingsPage(SettingsSection.Playback, embedded, onBack) {
-        item(key = "crossHead", contentType = "sectionHeader") { SectionLabel("切歌过渡") }
+        item(key = "crossHead", contentType = "sectionHeader") { SectionLabel("Crossfade") }
         item(key = "crossSwitch", contentType = "switch") {
             SwitchRow(
-                title = "切歌过渡",
+                title = "Crossfade",
                 checked = state.crossfadeEnabled,
                 onCheckedChange = { actions.setCrossfadeEnabled(it) },
                 index = 0,
                 count = 1,
-                summary = "上一首还没收完就把下一首接进来；关掉则整首播完再切",
+                summary = "Brings the next track in before the previous one ends; turn it off to play each track fully before switching",
                 icon = Icons.Filled.AutoAwesome,
             )
         }
         if (state.crossfadeEnabled) {
-            item(key = "crossModeHead", contentType = "sectionHeader") { SectionLabel("方式") }
+            item(key = "crossModeHead", contentType = "sectionHeader") { SectionLabel("Mode") }
             item(key = "crossMode", contentType = "toggleGroup") {
                 ConnectedToggleGroup(
                     options = CrossfadeMode.entries,
@@ -635,22 +635,22 @@ internal fun PlaybackSettingsScreen(
             }
             when (state.crossfadeMode) {
                 CrossfadeMode.Fade -> {
-                    item(key = "crossLengthHead", contentType = "sectionHeader") { SectionLabel("过渡时长") }
+                    item(key = "crossLengthHead", contentType = "sectionHeader") { SectionLabel("Crossfade duration") }
                     item(key = "crossLength", contentType = "toggleGroup") {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             ConnectedToggleGroup(
                                 options = listOf(4, 6, 8, 10),
                                 selected = state.crossfadeSeconds,
                                 onSelect = { actions.setCrossfadeSeconds(it) },
-                                label = { "$it 秒" },
+                                label = { "$it s" },
                                 modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth(),
                             )
-                            SettingsNote("淡化发生在这首歌结尾的最后几秒。手动切歌、直播和带版权的整曲仍然直接切。")
+                            SettingsNote("Fading happens in the last seconds of a track. Manual skips, live streams and DRM full tracks still switch directly.")
                         }
                     }
                 }
                 CrossfadeMode.Automix -> {
-                    item(key = "crossAnimHead", contentType = "sectionHeader") { SectionLabel("过渡动画") }
+                    item(key = "crossAnimHead", contentType = "sectionHeader") { SectionLabel("Crossfade animation") }
                     item(key = "crossAnim", contentType = "toggleGroup") {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             ConnectedToggleGroup(
@@ -660,23 +660,23 @@ internal fun PlaybackSettingsScreen(
                                 label = { it.label },
                                 modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth(),
                             )
-                            SettingsNote("短于 5 秒的过渡不画动画；播放页点一下圆环就消失。")
+                            SettingsNote("Crossfades shorter than 5 seconds draw no animation; tap the ring on the player page to dismiss it.")
                         }
                     }
                     item(key = "crossCache", contentType = "settingRow") {
                         ListRow(
-                            title = "播放缓存 ${if (state.cacheLimitMb >= 1024) "${state.cacheLimitMb / 1024} GB" else "${state.cacheLimitMb} MB"}",
+                            title = "Playback cache ${if (state.cacheLimitMb >= 1024) "${state.cacheLimitMb / 1024} GB" else "${state.cacheLimitMb} MB"}",
                             index = 0,
                             count = 1,
                             onClick = { onOpen(SettingsSection.Storage) },
                             icon = Icons.Filled.History,
-                            summary = "分析要完整读完两首歌；缓存不够时会退回等功率淡化",
+                            summary = "Analysis must read both tracks fully; with too little cache it falls back to equal-power fading",
                         )
                     }
                 }
                 CrossfadeMode.None -> {
                     item(key = "crossNone", contentType = "infoNote") {
-                        SettingsNote("整首播完再直接切到下一首，和关掉总开关一样；下一首也不会提前准备。")
+                        SettingsNote("Plays each track fully and then switches, same as turning the master switch off; the next track is not prepared in advance either.")
                     }
                 }
             }
@@ -694,7 +694,7 @@ internal fun PlaybackSettingsScreen(
                 }
             }
         }
-        item(key = "qualityHead", contentType = "sectionHeader") { SectionLabel("播放音质") }
+        item(key = "qualityHead", contentType = "sectionHeader") { SectionLabel("Playback quality") }
         item(key = "quality", contentType = "chips") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val selectedQuality = AudioQuality.normalize(state.audioQuality) ?: AudioQuality.Auto
@@ -708,12 +708,12 @@ internal fun PlaybackSettingsScreen(
                     }
                 }
                 SettingsNote(
-                    "锁了档位就只取那一档；平台给不了（没上架、账号没有会员）时先换平台，仍不行才退回自动档。" +
-                        "各平台能选哪些档取决于当前账号，Spotify 与 Apple Music 只有试听片段。",
+                    "A locked tier is the only one requested; when the platform can't provide it (not available, no membership) the app tries another platform and only then falls back to auto." +
+                        "Available tiers depend on your account; Spotify and Apple Music only provide preview clips.",
                 )
             }
         }
-        item(key = "modeHead", contentType = "sectionHeader") { SectionLabel("换源模式") }
+        item(key = "modeHead", contentType = "sectionHeader") { SectionLabel("Source switching") }
         item(key = "mode", contentType = "toggleGroup") {
             ConnectedToggleGroup(
                 options = PlaybackMode.entries,
@@ -721,9 +721,9 @@ internal fun PlaybackSettingsScreen(
                 onSelect = { actions.setPlaybackMode(it) },
                 label = {
                     when (it) {
-                        PlaybackMode.Auto -> "自动"
-                        PlaybackMode.Priority -> "优先音源"
-                        PlaybackMode.Pinned -> "固定音源"
+                        PlaybackMode.Auto -> "Auto"
+                        PlaybackMode.Priority -> "Preferred source"
+                        PlaybackMode.Pinned -> "Pinned source"
                     }
                 },
                 modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth(),
@@ -732,14 +732,14 @@ internal fun PlaybackSettingsScreen(
         item(key = "modeNote", contentType = "note") {
             SettingsNote(
                 when (aggregation.playbackMode) {
-                    PlaybackMode.Auto -> "完整音源优先，其次按下面的平台顺序和码率选择。当前音源失败时自动换到下一个，播放页的音源标签会说明。"
-                    PlaybackMode.Priority -> "先尝试排在前面的平台，不可用时再依次向后回退。"
-                    PlaybackMode.Pinned -> "优先使用指定平台；它没有返回地址时仍会回退，并提示实际播放源。"
+                    PlaybackMode.Auto -> "Full sources come first, then the platform order and bitrate below. When the current source fails the app switches to the next one, and the source chip on the player page explains what is playing."
+                    PlaybackMode.Priority -> "Tries platforms in order and falls back down the list when one is unavailable."
+                    PlaybackMode.Pinned -> "Prefers the selected platform; if it returns no URL the app still falls back and shows the actual source."
                 },
             )
         }
         if (aggregation.playbackMode == PlaybackMode.Pinned) {
-            item(key = "pinHead", contentType = "sectionHeader") { SectionLabel("固定音源") }
+            item(key = "pinHead", contentType = "sectionHeader") { SectionLabel("Pinned source") }
             item(key = "pin", contentType = "chips") {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     pinnable.forEach { provider ->
@@ -749,68 +749,68 @@ internal fun PlaybackSettingsScreen(
             }
         }
         item(key = "priorityHead", contentType = "sectionHeader") {
-            SectionLabel("音源顺序") {
-                Text("越靠前越先尝试", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            SectionLabel("Source order") {
+                Text("Higher positions are tried first", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         item(key = "priority", contentType = "settingRow") {
             ListRow(
-                // 顺序全应用只有一份，就在「音乐源」里排；这里只说明现在是什么顺序
+                // 顺序全应用只有一份，就在「Sources」里排；这里只说明现在是什么顺序
                 title = priority.take(3).joinToString(" → ") { providerName(state.providers, it) }
-                    .ifBlank { "还没有平台" },
+                    .ifBlank { "No platforms yet" },
                 index = 0,
                 count = 1,
                 onClick = { onOpen(SettingsSection.Sources) },
                 icon = Icons.Filled.Tune,
-                summary = "自动换源和手动换源都按这个顺序回退；去「音乐源」里调整",
+                summary = "Automatic and manual switching fall back in this order; change it under Sources",
             )
         }
-        item(key = "matchHead", contentType = "sectionHeader") { SectionLabel("匹配") }
+        item(key = "matchHead", contentType = "sectionHeader") { SectionLabel("Match") }
         item(key = "strict", contentType = "switch") {
             SwitchRow(
-                title = "严格匹配",
+                title = "Strict matching",
                 checked = aggregation.matchStrictness == MatchStrictness.Strict,
                 onCheckedChange = { actions.setStrictMatch(it) },
                 index = 0,
                 count = 3,
-                summary = "降低 Live、伴奏、重制版被误合并的概率",
+                summary = "Reduces false merges of live, instrumental and remastered versions",
                 icon = Icons.Filled.Shield,
             )
         }
         item(key = "preview", contentType = "switch") {
             SwitchRow(
-                title = "允许试听片段",
+                title = "Allow preview clips",
                 checked = aggregation.allowPreview,
                 onCheckedChange = { actions.setAllowPreview(it) },
                 index = 1,
                 count = 3,
-                summary = "没有完整音源时，播放平台返回的试听片段",
+                summary = "Plays the preview clip a platform returns when no full source exists",
                 icon = Icons.Filled.MusicNote,
             )
         }
         item(key = "clearMatch", contentType = "settingRow") {
             ListRow(
-                title = "清除匹配缓存",
+                title = "Clear match cache",
                 index = 2,
                 count = 3,
                 onClick = null,
                 icon = Icons.Filled.CleaningServices,
-                summary = "下次换源重新检索同一录音；拆分与手动合并不受影响",
+                summary = "The same recording is looked up again on the next source switch; splits and manual merges are unaffected",
                 showChevron = false,
                 trailing = {
-                    TextButton(onClick = actions::clearMatchCache, modifier = Modifier.tvFocusRing(CircleShape)) { Text("清除") }
+                    TextButton(onClick = actions::clearMatchCache, modifier = Modifier.tvFocusRing(CircleShape)) { Text("Clear") }
                 },
             )
         }
         item(key = "note", contentType = "note") {
             Box(Modifier.padding(top = 16.dp)) {
-                InfoNote("自动换源与手动换源都使用这里的规则。播放器里始终显示当前实际播放源。")
+                InfoNote("Both automatic and manual source switching follow these rules. The player always shows the source actually playing.")
             }
         }
     }
 }
 
-// ======================= 音乐源 =======================
+// ======================= Sources =======================
 
 internal fun orderedEnabledSources(providers: List<ProviderInfo>, enabledIds: List<String>): List<ProviderInfo> {
     val byId = providers.associateBy { it.id }
@@ -818,7 +818,7 @@ internal fun orderedEnabledSources(providers: List<ProviderInfo>, enabledIds: Li
 }
 
 /**
- * 音乐源：启用哪些平台、按什么顺序。顺序全应用只有这一份——聚合搜索、榜单和歌单的来源条、
+ * Sources：启用哪些平台、按什么顺序。顺序全应用只有这一份——聚合搜索、Charts和Playlists的来源条、
  * 换源面板、播放换源都按它排。关掉的平台不参与这些；换源时碰上仍会排在最后试着用。
  */
 @Composable
@@ -835,16 +835,16 @@ internal fun SourcesSettingsScreen(
     val orderable = searchable + ProviderInfo(
         id = LxPlatform.PROVIDER_ID,
         name = LxPlatform.PROVIDER_NAME,
-        note = if (lxRecords.isEmpty()) "尚未添加脚本" else "${lxRecords.count { it.enabled }} 个启用脚本 · 内部顺序在自定义音源中调整",
+        note = if (lxRecords.isEmpty()) "No scripts added yet" else "${lxRecords.count { it.enabled }} scripts enabled · order is set under Custom sources",
     )
     val enabledIds = state.aggregation.enabledOrDefault(orderable.map { it.id })
     val enabled = orderedEnabledSources(orderable, enabledIds)
     val disabled = orderable.filterNot { it.id in enabledIds }
     SettingsPage(SettingsSection.Sources, embedded, onBack) {
         item(key = "enabledHead", contentType = "sectionHeader") {
-            SectionLabel("已启用") {
+            SectionLabel("Enabled") {
                 Text(
-                    "${enabled.size} 个 · 越靠前越优先",
+                    "${enabled.size} platforms · higher means earlier",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -853,13 +853,13 @@ internal fun SourcesSettingsScreen(
         when {
             searchable.isEmpty() -> item(key = "loading", contentType = "skeleton") { SkeletonRows(6) }
             enabled.isEmpty() -> item(key = "enabledEmpty", contentType = "note") {
-                SettingsNote("还没有启用任何平台：聚合搜索和换源都不会有结果，榜单、歌单的来源条也只剩没启用的。")
+                SettingsNote("No platform is enabled yet: aggregated search and source switching return nothing, and the Charts and Playlists source strip only shows disabled platforms.")
             }
             else -> item(key = "enabled", contentType = "sourceList") {
                 SourceOrderList(enabled, tv, actions::moveSource, actions::toggleAggregateProvider)
             }
         }
-        item(key = "disabledHead", contentType = "sectionHeader") { SectionLabel("已关闭") }
+        item(key = "disabledHead", contentType = "sectionHeader") { SectionLabel("Off") }
         if (disabled.isNotEmpty()) {
             item(key = "disabled", contentType = "sourceList") {
                 SegmentedGroup {
@@ -872,7 +872,7 @@ internal fun SourcesSettingsScreen(
                                 onClick = { actions.toggleAggregateProvider(provider.id) },
                                 modifier = Modifier.semantics {
                                     role = Role.Switch
-                                    stateDescription = "已关闭"
+                                    stateDescription = "Off"
                                 },
                                 leading = { ProviderMark(provider.name, 36.dp, id = provider.id) },
                                 summary = capabilities(provider),
@@ -885,7 +885,7 @@ internal fun SourcesSettingsScreen(
             }
         }
         item(key = "note", contentType = "note") {
-            SettingsNote("顺序同时决定聚合搜索、榜单和歌单的来源条、换源面板和播放换源的先后。")
+            SettingsNote("The order also decides aggregated search, the Charts and Playlists source strip, the source panel and playback fallbacks.")
         }
         item(key = "lxSources", contentType = "settingRow") {
             Box(Modifier.padding(top = 16.dp)) {
@@ -894,12 +894,12 @@ internal fun SourcesSettingsScreen(
         }
         item(key = "reset", contentType = "settingRow") {
             ListRow(
-                title = "恢复默认平台与顺序",
+                title = "Restore default platforms and order",
                 index = 0,
                 count = 1,
                 onClick = actions::resetSources,
                 icon = Icons.Filled.Refresh,
-                summary = "只动内置音乐源；自定义脚本、换源模式和匹配严格度不受影响",
+                summary = "Affects built-in sources only; custom scripts, the source-switch mode and match strictness are unaffected",
             )
         }
     }
@@ -987,12 +987,12 @@ private fun SourceRow(
             .then(moveKeys)
             // 整行可点就是开关（读屏角色和 Switch 都由整行给出）；拿起时按 OK 是放下
             .clickable(
-                onClickLabel = if (moving) "放下" else "关闭$name",
+                onClickLabel = if (moving) "Put down" else "Turn off $name",
                 onClick = { if (moving) onToggleMove() else onToggle() },
             )
             .semantics {
                 role = Role.Switch
-                stateDescription = if (moving) "正在移动" else "第 $rank 位，已启用"
+                stateDescription = if (moving) "Moving" else "Position $rank, enabled"
             }
             .padding(start = 8.dp, end = if (tv) 12.dp else 4.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1028,16 +1028,16 @@ private fun SourceRow(
             IconButton(onClick = onToggleMove, modifier = Modifier.tvFocusRing(CircleShape)) {
                 Icon(
                     if (moving) Icons.Filled.SwapVert else Icons.Filled.DragHandle,
-                    if (moving) "放下$name" else "拿起$name",
+                    if (moving) "Put down $name" else "Pick up $name",
                     tint = if (moving) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
                 )
             }
         } else {
             IconButton(onClick = { onMove(-1) }, enabled = index > 0) {
-                Icon(Icons.Filled.KeyboardArrowUp, "上移$name")
+                Icon(Icons.Filled.KeyboardArrowUp, "Move $name up")
             }
             IconButton(onClick = { onMove(1) }, enabled = index < count - 1) {
-                Icon(Icons.Filled.KeyboardArrowDown, "下移$name")
+                Icon(Icons.Filled.KeyboardArrowDown, "Move $name down")
             }
         }
     }
@@ -1045,7 +1045,7 @@ private fun SourceRow(
 
 // ======================= 搜索与浏览 =======================
 
-/** 搜索与浏览：默认浏览来源（点开选择）+ 跳到音乐源管理平台的启停与顺序。 */
+/** 搜索与浏览：Default browse source（点开选择）+ 跳到Sources管理平台的启停与顺序。 */
 @Composable
 internal fun SearchBrowseSettingsScreen(
     state: MusicUiState,
@@ -1059,7 +1059,7 @@ internal fun SearchBrowseSettingsScreen(
     val searchable = state.providers.filter { it.search }
     val enabled = state.aggregation.enabledOrDefault(searchable.map { it.id }).size
     SettingsPage(SettingsSection.Search, embedded, onBack) {
-        item(key = "browseHead", contentType = "sectionHeader") { SectionLabel("默认浏览来源") }
+        item(key = "browseHead", contentType = "sectionHeader") { SectionLabel("Default browse source") }
         item(key = "browse", contentType = "settingRow") {
             ListRow(
                 title = currentName,
@@ -1067,21 +1067,21 @@ internal fun SearchBrowseSettingsScreen(
                 count = 2,
                 onClick = { pickerOpen = true },
                 leading = { ProviderMark(currentName, 40.dp, active = true, id = state.providerId) },
-                summary = "榜单、歌单页打开时的来源；不影响播放换源",
+                summary = "Source for Charts and Playlists; does not affect playback source switching",
             )
         }
         item(key = "sources", contentType = "settingRow") {
             ListRow(
-                title = "音乐源",
+                title = "Sources",
                 index = 1,
                 count = 2,
                 onClick = { onOpen(SettingsSection.Sources) },
                 icon = Icons.Filled.Tune,
-                summary = "已启用 $enabled 个平台 · 启停与顺序",
+                summary = "$enabled platforms enabled · toggles and order",
             )
         }
         item(key = "note", contentType = "note") {
-            SettingsNote("平台越多结果越全，搜索和匹配也可能更慢。在「音乐源」里可以关掉不用的平台、调整先后。")
+            SettingsNote("More platforms mean fuller results and possibly slower search and matching. Turn off unused platforms and reorder them under Sources.")
         }
     }
     if (pickerOpen) {
@@ -1091,12 +1091,12 @@ internal fun SearchBrowseSettingsScreen(
 
 private fun capabilities(provider: ProviderInfo): String {
     val caps = listOfNotNull(
-        "单曲".takeIf { provider.search },
-        "歌单".takeIf { provider.searchPlaylist },
-        "专辑".takeIf { provider.searchAlbum },
-        "歌手".takeIf { provider.searchArtist },
-        "榜单".takeIf { provider.topLists },
-        "歌词".takeIf { provider.lyrics },
+        "Track".takeIf { provider.search },
+        "Playlists".takeIf { provider.searchPlaylist },
+        "Album".takeIf { provider.searchAlbum },
+        "Artists".takeIf { provider.searchArtist },
+        "Charts".takeIf { provider.topLists },
+        "Lyrics".takeIf { provider.lyrics },
     ).joinToString(" · ")
     return listOf(caps, provider.note).filter { it.isNotBlank() }.joinToString(" · ")
 }
@@ -1105,7 +1105,7 @@ private fun capabilities(provider: ProviderInfo): String {
 private fun BrowseSourceSheet(state: MusicUiState, actions: MusicActions, onDismiss: () -> Unit) {
     val focus = remember { FocusRequester() }
     SettingsTvFocus(focus)
-    AdaptiveSheet(onDismiss = onDismiss, title = "默认浏览来源", subtitle = "榜单、歌单页打开时先显示这个平台") {
+    AdaptiveSheet(onDismiss = onDismiss, title = "Default browse source", subtitle = "Shows this platform first when Charts or Playlists opens") {
         Column(
             Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(SegmentGap),
@@ -1142,8 +1142,8 @@ private fun BrowseSourceSheet(state: MusicUiState, actions: MusicActions, onDism
 // ======================= 平台账号 =======================
 
 /**
- * 平台账号：每个平台一行，已登录用 primary 标出，未登录给出登录按钮。
- * 电视上只提供扫码登录，不让用户在电视上输入 Cookie。
+ * 平台账号：每个平台一行，已登录用 primary 标出，Not signed in给出登录按钮。
+ * 电视上只提供Sign in with QR code，不让用户在电视上输入 Cookie。
  */
 @Composable
 fun AccountsSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: () -> Unit, embedded: Boolean = false) {
@@ -1161,12 +1161,12 @@ fun AccountsSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: (
         SettingsSection.Accounts,
         embedded,
         onBack,
-        subtitle = if (loggedCount > 0) "已登录 $loggedCount 个平台" else stringResource(SettingsSection.Accounts.subtitleRes),
+        subtitle = if (loggedCount > 0) "Signed in to $loggedCount platforms" else stringResource(SettingsSection.Accounts.subtitleRes),
     ) {
         item(key = "intro", contentType = "note") {
             SettingsNote(
-                if (tv) "各平台账号相互独立。电视上用手机扫码登录，Cookie 保存在本机；连接同步后会以明文写入私密同步文件。"
-                else "各平台账号相互独立。Cookie 用于换源和 VIP 检测；连接同步后会以明文写入私密同步文件，请勿公开文件链接。点按平台可以粘贴或更新 Cookie。",
+                if (tv) "Platform accounts are independent. On TV, sign in by scanning with your phone; cookies stay on this device and, once sync is connected, are written in plain text into the private sync file."
+                else "Platform accounts are independent. Cookies are used for source switching and VIP checks; once sync is connected they are written in plain text into the private sync file, so never share the file link. Tap a platform to paste or update its cookie.",
                 Modifier.padding(bottom = 8.dp),
             )
         }
@@ -1197,13 +1197,13 @@ fun AccountsSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: (
         if (providers.any { it.id == "soda" }) {
             item(key = "soda_signer", contentType = "signerGroup") {
                 Column(Modifier.padding(top = 12.dp)) {
-                    SectionLabel("汽水播放")
+                    SectionLabel("Soda playback")
                     ListRow(
-                        title = "汽水播放签名器",
+                        title = "Soda playback signer",
                         index = 0,
                         count = 1,
                         onClick = { signerOpen = true },
-                        // 图标用 SodaM 官方 logo：默认连的就是它的公共签名服务
+                        // 图标用 SodaM 官方 logo：默认连的就是它的公共Signing service
                         leading = {
                             Box(
                                 Modifier
@@ -1221,8 +1221,8 @@ fun AccountsSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: (
         item(key = "note", contentType = "note") {
             Box(Modifier.padding(top = 16.dp)) {
                 InfoNote(
-                    if (tv) "电视上可扫码登录；支持账号密码的平台直接用遥控器输入即可。"
-                    else "能否扫码以平台接口为准；支持账号密码的平台点“登录”输入用户名和密码。",
+                    if (tv) "Sign in with a QR code on TV; for platforms that support passwords, enter them with the remote."
+                    else "Whether a QR code works depends on the platform API; for platforms with password sign-in, tap Sign in and enter your username and password.",
                 )
             }
         }
@@ -1302,13 +1302,13 @@ private fun AccountRow(
     val summary = when {
         loggedIn -> {
             val info = profile?.let { p -> listOf(p.nickname, p.detail).filter { it.isNotBlank() }.joinToString(" · ") }.orEmpty()
-            info.ifBlank { "已登录" }
+            info.ifBlank { "Signed in" }
         }
-        !provider.loginRequired -> "无需登录"
-        provider.passwordLogin -> "未登录 · 用户名密码"
-        provider.qrLogin -> "未登录"
-        tv -> "未登录 · 请在手机上登录"
-        else -> "未登录 · 仅支持 Cookie"
+        !provider.loginRequired -> "No sign-in needed"
+        provider.passwordLogin -> "Not signed in · username and password"
+        provider.qrLogin -> "Not signed in"
+        tv -> "Not signed in · sign in on your phone"
+        else -> "Not signed in · cookie only"
     }
     ListRow(
         title = provider.name,
@@ -1337,9 +1337,9 @@ private fun AccountRow(
             when {
                 loggedIn -> {
                     TextButton(onClick = onLogout, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Text("退出", Modifier.semantics { contentDescription = "退出${provider.name}" }, color = MaterialTheme.colorScheme.error)
+                        Text("Sign out", Modifier.semantics { contentDescription = "Sign out of ${provider.name}" }, color = MaterialTheme.colorScheme.error)
                     }
-                    // 登录后引导导入的平台歌单：随时能再打开
+                    // 登录后引导导入的平台Playlists：随时能再打开
                     Box {
                         IconButton(
                             onClick = { menuOpen = true },
@@ -1347,20 +1347,20 @@ private fun AccountRow(
                         ) {
                             Icon(
                                 Icons.Filled.MoreVert,
-                                "更多操作：${provider.name}",
+                                "More actions: ${provider.name}",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(
-                                text = { Text("导入我的歌单…") },
+                                text = { Text("Import my playlists…") },
                                 onClick = {
                                     menuOpen = false
                                     onImport()
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("下次登录再问一次") },
+                                text = { Text("Ask again on next sign-in") },
                                 onClick = {
                                     menuOpen = false
                                     onResetPrompt()
@@ -1370,21 +1370,21 @@ private fun AccountRow(
                     }
                 }
                 provider.passwordLogin -> FilledTonalButton(onClick = onPassword, modifier = Modifier.tvFocusRing(CircleShape)) {
-                    Text("登录", Modifier.semantics { contentDescription = "登录${provider.name}" })
+                    Text("Sign in", Modifier.semantics { contentDescription = "Sign in to ${provider.name}" })
                 }
                 provider.qrLogin -> FilledTonalButton(onClick = onQr, modifier = Modifier.tvFocusRing(CircleShape)) {
                     Icon(Icons.Filled.QrCode2, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("登录", Modifier.semantics { contentDescription = "扫码登录${provider.name}" })
+                    Text("Sign in", Modifier.semantics { contentDescription = "Sign in to ${provider.name} with a QR code" })
                 }
-                provider.loginRequired && !tv -> FilledTonalButton(onClick = onCookie) { Text("Cookie", Modifier.semantics { contentDescription = "用 Cookie 登录${provider.name}" }) }
+                provider.loginRequired && !tv -> FilledTonalButton(onClick = onCookie) { Text("Cookie", Modifier.semantics { contentDescription = "Sign in to ${provider.name} with a cookie" }) }
             }
         },
     )
 }
 
 /**
- * 一条扫码通道：[type] 传给平台层（QQ 的 "" 是 QQ 扫码、"wx" 是微信扫码），其余给界面。
+ * One scan channel: [type] is passed to the platform layer ("qq" for QQ, "wx" for WeChat); the rest goes to the UI.
  */
 private data class QrChannel(val type: String, val label: String, val subtitle: String)
 
@@ -1397,13 +1397,13 @@ private data class QrChannel(val type: String, val label: String, val subtitle: 
  */
 private fun qrLoginChannels(provider: ProviderInfo): List<QrChannel> = when (provider.id) {
     "qq" -> listOf(
-        QrChannel("wx", "微信 扫码", "用微信扫描二维码，并在手机上确认登录"),
-        QrChannel("", "QQ 扫码", "用 QQ 扫描二维码，并在手机上确认登录"),
+        QrChannel("wx", "WeChat QR code", "Scan the QR code with WeChat and confirm the sign-in on your phone"),
+        QrChannel("", "QQ QR code", "Scan the QR code with QQ and confirm the sign-in on your phone"),
     )
-    else -> listOf(QrChannel("", "扫码登录", "用${provider.name} App 扫描二维码，并在手机上确认登录"))
+    else -> listOf(QrChannel("", "Sign in with QR code", "Scan the QR code with the ${provider.name} app and confirm the sign-in on your phone"))
 }
 
-/** 扫码登录：手机是底部面板，平板和电视是居中对话框（电视二维码放大，方便在沙发上扫）。 */
+/** Sign in with QR code：手机是底部面板，平板和电视是居中对话框（电视二维码放大，方便在沙发上扫）。 */
 @Composable
 private fun QrLoginPanel(
     provider: ProviderInfo,
@@ -1424,9 +1424,9 @@ private fun QrLoginPanel(
     SideEffect(provider.id, cookie, initialCookie) {
         if (cookie.isNotBlank() && cookie != initialCookie) onDismiss()
     }
-    val title = "扫码登录${provider.name}"
+    val title = "Sign in to ${provider.name} with a QR code"
     val subtitle = channels.firstOrNull { it.type == type }?.subtitle
-        ?: "用${provider.name} App 扫描二维码，并在手机上确认登录"
+        ?: "Scan the QR code with the ${provider.name} app and confirm the sign-in on your phone"
     val refresh = { actions.startQrLogin(provider.id, type) }
     if (window.isPhone) {
         AdaptiveSheet(onDismiss = onDismiss, title = title, subtitle = subtitle) {
@@ -1475,7 +1475,7 @@ private fun QrLoginBody(
     val active = state.loginProviderId == provider.id
     val login = if (active) state.login else null
     val status = if (active) state.loginStatus else ""
-    val ended = status == "二维码已过期" || status.contains("失败")
+    val ended = status == "QR code expired" || status.contains("Failed")
     val qrSize = when {
         window.isTv -> 300.dp
         window.isPhone -> 220.dp
@@ -1494,7 +1494,7 @@ private fun QrLoginBody(
                     MusicChip(
                         channel.label,
                         type == channel.type,
-                        description = "扫码登录${provider.name}：${channel.label}",
+                        description = "Sign in to ${provider.name} with a QR code: ${channel.label}",
                     ) { onTypeChange(channel.type) }
                 }
             }
@@ -1525,16 +1525,16 @@ private fun QrLoginBody(
                     if (decoded != null) {
                         androidx.compose.foundation.Image(
                             decoded,
-                            "登录二维码",
+                            "Sign-in QR code",
                             Modifier.fillMaxSize(),
                             filterQuality = androidx.compose.ui.graphics.FilterQuality.None,
                         )
                     }
                 }
-                image.isNotBlank() -> AsyncImage(model = image, contentDescription = "登录二维码", modifier = Modifier.fillMaxSize())
+                image.isNotBlank() -> AsyncImage(model = image, contentDescription = "Sign-in QR code", modifier = Modifier.fillMaxSize())
                 url.isNotBlank() -> QrCodeImage(url, Modifier.fillMaxSize())
                 login == null && !ended -> LoadingIndicator(Modifier.size(56.dp))
-                else -> Icon(Icons.Filled.ErrorOutline, "没有二维码", Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
+                else -> Icon(Icons.Filled.ErrorOutline, "No QR code", Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
             }
             if (ended && login != null) {
                 // 过期或失败后盖住旧二维码，免得被误扫
@@ -1543,7 +1543,7 @@ private fun QrLoginBody(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        if (status == "二维码已过期") "已过期" else "已失效",
+                        if (status == "QR code expired") "Expired" else "Expired",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )
@@ -1557,7 +1557,7 @@ private fun QrLoginBody(
         ) {
             if (!ended) LoadingIndicator(Modifier.size(28.dp))
             Text(
-                status.ifBlank { "正在获取二维码…" },
+                status.ifBlank { "Getting the QR code…" },
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (ended) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -1568,7 +1568,7 @@ private fun QrLoginBody(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         ) {
             if (onCookie != null) {
-                TextButton(onClick = onCookie) { Text("改用 Cookie 登录") }
+                TextButton(onClick = onCookie) { Text("Use a cookie instead") }
             }
             if (ended) {
                 Button(
@@ -1577,17 +1577,17 @@ private fun QrLoginBody(
                 ) {
                     Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("刷新二维码")
+                    Text("Refresh QR code")
                 }
             } else {
                 TextButton(
                     onClick = onRefresh,
                     modifier = Modifier.focusRequester(refreshFocus).heightIn(min = 48.dp).tvFocusRing(CircleShape),
-                ) { Text("刷新二维码") }
+                ) { Text("Refresh QR code") }
             }
         }
         Text(
-            "登录后会问一次要不要把这个账号的歌单导入成跟随平台更新的歌单，可以先关掉。",
+            "After signing in you are asked once whether to import this account's playlists as platform-linked playlists; you can turn it off.",
             Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1616,18 +1616,18 @@ private fun CookieDialog(provider: ProviderInfo, initial: String, onSave: (Strin
                     value = value,
                     onValueChange = { value = it },
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 100.dp),
-                    placeholder = { Text("粘贴 Cookie") },
+                    placeholder = { Text("Paste cookie") },
                     visualTransformation = PasswordVisualTransformation(),
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(value) }) { Text("保存") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        confirmButton = { TextButton(onClick = { onSave(value) }) { Text("Save") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
 /**
- * 用户名 + 密码登录；成功后 Cookie 变化，面板自动关闭。
+ * Username + 密码登录；成功后 Cookie 变化，面板自动关闭。
  * 自建服务器（[ProviderInfo.serverLogin]）多一个服务器地址输入框，密码只存本机。
  */
 @Composable
@@ -1647,13 +1647,13 @@ private fun PasswordLoginDialog(
     }
     val active = state.loginProviderId == provider.id
     val status = if (active) state.loginStatus else ""
-    val busy = status == "登录中…"
-    val error = status.takeIf { it.startsWith("登录失败") }.orEmpty()
+    val busy = status == "Signing in…"
+    val error = status.takeIf { it.startsWith("Sign-in failed") }.orEmpty()
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
         title = {
             DialogAvoidsFold()
-            Text("登录${provider.name}")
+            Text("Sign in to ${provider.name}")
         },
         text = {
             Column {
@@ -1662,7 +1662,7 @@ private fun PasswordLoginDialog(
                         "Sign in with your own Navidrome / Subsonic server. The password stays on this device " +
                             "and is never synced; only the address and username are kept as a marker."
                     } else {
-                        "使用 music.op.wiki 的账号；没有账号请先在网站上注册。登录后可以同步、播放和修改自己的歌单；新建歌单仍在网站操作。"
+                        "Uses a music.op.wiki account; register on the site first if you have none. After signing in you can sync, play and edit your playlists; creating playlists is still done on the site."
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1684,14 +1684,14 @@ private fun PasswordLoginDialog(
                     value = username,
                     onValueChange = { username = it },
                     modifier = Modifier.fillMaxWidth().padding(top = if (provider.serverLogin) 8.dp else 12.dp),
-                    label = { Text("用户名") },
+                    label = { Text("Username") },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    label = { Text("密码") },
+                    label = { Text("Password") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
@@ -1700,7 +1700,7 @@ private fun PasswordLoginDialog(
                 )
                 if (error.isNotBlank()) {
                     Text(
-                        error.removePrefix("登录失败："),
+                        error.removePrefix("Sign-in failed: "),
                         modifier = Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
@@ -1713,32 +1713,32 @@ private fun PasswordLoginDialog(
                 onClick = { onSubmit(server, username, password) },
                 enabled = username.isNotBlank() && password.isNotBlank() &&
                     (!provider.serverLogin || server.isNotBlank()) && !busy,
-            ) { Text(if (busy) "登录中…" else "登录") }
+            ) { Text(if (busy) "Signing in…" else "Sign in") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !busy) { Text("取消") }
+            TextButton(onClick = onDismiss, enabled = !busy) { Text("Cancel") }
         },
     )
 }
 
 /** 个别平台的 Cookie 有固定格式，按平台给提示；没有特殊要求的用通用说明。 */
 private fun cookieHint(provider: ProviderInfo): String = when (provider.id) {
-    // Apple 的歌词在 /songs/{id}/lyrics 子资源上，只有带 media-user-token 才返回；
+    // Apple 的Lyrics在 /songs/{id}/lyrics 子资源上，只有带 media-user-token 才返回；
     // 商店还要和歌曲所属目录一致，中国区账号需要显式声明 storefront。
-    "apple" -> "粘贴 Apple Music 网页版的 Cookie，必须包含 media-user-token，否则拿不到歌词。" +
-        "多个字段用分号隔开；账号是中国区的话再加 storefront=cn，否则按美区目录检索和取歌词。"
-    // 私人歌单和账号资料靠 SAPISIDHASH 鉴权，缺 SAPISID 就只剩公开内容。
-    "youtubemusic" -> "粘贴 music.youtube.com 的完整 Cookie，必须包含 SAPISID 或 __Secure-3PAPISID。" +
-        "不登录也能搜索、播放和看公开歌单；登录后才会出现你的私人歌单。"
-    "mhub" -> "建议用用户名密码登录；这里也可以粘贴 mhub_session=... 的会话 Cookie。"
-    else -> "只保存在本机，换源与 VIP 检测会使用它。留空保存等于退出登录。"
+    "apple" -> "Paste the Apple Music web player cookie; it must contain media-user-token, otherwise lyrics can't be fetched." +
+        "Separate fields with semicolons; add storefront=cn for a China-region account, otherwise the US catalog is searched and lyrics are fetched for it."
+    // 私人Playlists和账号资料靠 SAPISIDHASH 鉴权，缺 SAPISID 就只剩公开内容。
+    "youtubemusic" -> "Paste the full music.youtube.com cookie; it must contain SAPISID or __Secure-3PAPISID." +
+        "You can search, play and browse public playlists without signing in; your private playlists appear only after sign-in."
+    "mhub" -> "Sign in with your username and password; you can also paste a session cookie such as mhub_session=..."
+    else -> "Stored only on this device and used for source switching and VIP checks. Saving it empty signs you out."
 }
 
-/** 签名器行的副标题：默认连 SodaM 公共服务，自填地址或关掉都要说清楚。 */
+/** 签名器行的副标题：默认连 SodaM public服务，自填地址或关掉都要说清楚。 */
 private fun signerSummary(state: MusicUiState): String = when {
-    !state.sodaSignerEnabled -> "已关闭 · 会员整曲只会返回试听片段"
-    state.sodaSignerUrl.isBlank() -> "SodaM 公共签名服务 · 会员整曲可用"
-    else -> "自定义 · ${signerLabel(state.sodaSignerUrl)}"
+    !state.sodaSignerEnabled -> "Off · member full tracks return preview clips only"
+    state.sodaSignerUrl.isBlank() -> "SodaM public signing service · member full tracks available"
+    else -> "Custom · ${signerLabel(state.sodaSignerUrl)}"
 }
 
 private fun signerLabel(url: String): String {
@@ -1750,7 +1750,7 @@ private fun signerLabel(url: String): String {
 /**
  * 汽水签名器：协议与 sodam / libresoda / libmssdk 的 POST /sign 一致，
  * 签名器需要看到即将发出的 URL、body 和全部请求头。
- * 默认用 SodaM 的公共签名服务，也可以换成自建实例。
+ * 默认用 SodaM 的公共Signing service，也可以换成自建实例。
  */
 @Composable
 private fun SodaSignerDialog(
@@ -1768,19 +1768,19 @@ private fun SodaSignerDialog(
         onDismissRequest = onDismiss,
         title = {
             DialogAvoidsFold()
-            Text("汽水播放签名器")
+            Text("Soda playback signer")
         },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                SodamCredit(note = "会员整曲的逐请求签名由 SodaM 提供，点按查看项目")
+                SodamCredit(note = "Per-request signing for member full tracks comes from SodaM; tap to open the project")
                 Row(
                     Modifier.fillMaxWidth().padding(top = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("启用签名器", style = MaterialTheme.typography.bodyLarge)
+                        Text("Enable signer", style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            if (enabled) "会员账号可播放整曲与无损音质" else "关闭后会员曲目只有公开试听片段",
+                            if (enabled) "Member accounts can play full tracks and lossless audio" else "When off, member tracks only get public preview clips",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1789,7 +1789,7 @@ private fun SodaSignerDialog(
                 }
                 if (enabled) {
                     Text(
-                        "签名服务",
+                        "Signing service",
                         Modifier.padding(top = 14.dp),
                         style = MaterialTheme.typography.labelLarge,
                     )
@@ -1797,7 +1797,7 @@ private fun SodaSignerDialog(
                         options = listOf(false, true),
                         selected = custom,
                         onSelect = { custom = it },
-                        label = { if (it) "自定义服务" else "SodaM 公共" },
+                        label = { if (it) "Custom service" else "SodaM public" },
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     )
                     if (custom) {
@@ -1805,7 +1805,7 @@ private fun SodaSignerDialog(
                             value = url,
                             onValueChange = { url = it },
                             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                            label = { Text("签名服务地址") },
+                            label = { Text("Signing service URL") },
                             placeholder = { Text("http://192.168.1.10:8899/sign") },
                             singleLine = true,
                         )
@@ -1813,14 +1813,14 @@ private fun SodaSignerDialog(
                             value = token,
                             onValueChange = { token = it },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            label = { Text("Token（可选）") },
+                            label = { Text("Token (optional)") },
                             visualTransformation = PasswordVisualTransformation(),
                             singleLine = true,
                         )
                     } else {
                         Text(
-                            "SodaM 作者提供的公共实例，桌面版默认就连这一个。签名请求会带着 Cookie " +
-                                "和完整请求头发过去，只在自己信任的网络环境下使用。",
+                            "A public instance run by SodaM's author, and the default for the desktop build. Signing requests send your cookie " +
+                                "and full request headers are sent; use it only on networks you trust.",
                             Modifier.padding(top = 10.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1831,19 +1831,19 @@ private fun SodaSignerDialog(
         },
         confirmButton = {
             TextButton(
-                // 选公共服务时清掉自填地址，回落到内置的 SodaM 公共签名服务
+                // 选公共服务时清掉自填地址，回落到内置的 SodaM publicSigning service
                 onClick = {
                     onSave(if (custom) url else "", if (custom) token else "", enabled)
                 },
-            ) { Text("保存") }
+            ) { Text("Save") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
 // ======================= 存储 =======================
 
-/** 存储：总占用大字 + 分段占用条 + 分项清除。清除缓存不影响歌单、收藏和下载，不需要二次确认。 */
+/** 存储：总占用大字 + 分段占用条 + 分项清除。清除缓存不影响Playlists、收藏和下载，不需要二次确认。 */
 @Composable
 fun StorageSettingsScreen(
     cacheBytes: Long,
@@ -1857,9 +1857,9 @@ fun StorageSettingsScreen(
     onBack: () -> Unit,
     embedded: Boolean = false,
 ) {
-    SettingsPage(SettingsSection.Storage, embedded, onBack, subtitle = "应用共占用 ${formatBytes(cacheBytes + downloadsBytes)}") {
+    SettingsPage(SettingsSection.Storage, embedded, onBack, subtitle = "App uses ${formatBytes(cacheBytes + downloadsBytes)}") {
         item(key = "usage", contentType = "storageUsage") { StorageUsageCard(cacheBytes, downloadsBytes) }
-        item(key = "limitHead", contentType = "sectionHeader") { SectionLabel("播放缓存上限") }
+        item(key = "limitHead", contentType = "sectionHeader") { SectionLabel("Playback cache limit") }
         item(key = "limit", contentType = "cacheLimit") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 ConnectedToggleGroup(
@@ -1870,51 +1870,51 @@ fun StorageSettingsScreen(
                     modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth(),
                 )
                 SettingsNote(
-                    if (LocalAppWindow.current.isTv) "电视盒子存储空间小，默认 256 MB。超过上限时先删最久没播放的缓存。"
-                    else "默认 512 MB。超过上限时先删最久没播放的缓存；调低后立即生效。",
+                    if (LocalAppWindow.current.isTv) "TV boxes have little storage, so the default is 256 MB. Over the limit, the least recently played cache is deleted first."
+                    else "Default 512 MB. Over the limit, the least recently played cache is deleted first; lowering it applies immediately.",
                 )
             }
         }
         item(key = "rows", contentType = "settingsGroup") {
             SegmentedGroup(Modifier.padding(top = 12.dp)) {
                 ListRow(
-                    title = "播放缓存",
+                    title = "Playback cache",
                     index = 0,
                     count = 3,
                     onClick = null,
                     icon = Icons.Filled.History,
                     iconTone = IconTone.Tertiary,
-                    summary = "${formatBytes(cacheBytes)} · 清除后播放时会重新缓存",
+                    summary = "${formatBytes(cacheBytes)} · playback re-caches after clearing",
                     showChevron = false,
                     trailing = {
-                        TextButton(onClick = onClearCache, enabled = cacheBytes > 0, modifier = Modifier.tvFocusRing(CircleShape)) { Text("清除") }
+                        TextButton(onClick = onClearCache, enabled = cacheBytes > 0, modifier = Modifier.tvFocusRing(CircleShape)) { Text("Clear") }
                     },
                 )
                 ListRow(
-                    title = "下载文件",
+                    title = "Downloads",
                     index = 1,
                     count = 3,
                     onClick = onOpenDownloads,
                     icon = Icons.Filled.Download,
                     iconTone = IconTone.Primary,
-                    summary = "$downloadsCount 首 · ${formatBytes(downloadsBytes)}",
-                    value = "管理",
+                    summary = "$downloadsCount tracks · ${formatBytes(downloadsBytes)}",
+                    value = "Manage",
                 )
                 ListRow(
-                    title = "匹配缓存",
+                    title = "Match cache",
                     index = 2,
                     count = 3,
                     onClick = null,
                     icon = Icons.Filled.CleaningServices,
-                    summary = "清除后下次换源重新匹配；拆分与手动合并不受影响",
+                    summary = "The next source switch matches again; splits and manual merges are unaffected",
                     showChevron = false,
                     trailing = {
-                        TextButton(onClick = onClearMatch, modifier = Modifier.tvFocusRing(CircleShape)) { Text("清除") }
+                        TextButton(onClick = onClearMatch, modifier = Modifier.tvFocusRing(CircleShape)) { Text("Clear") }
                     },
                 )
             }
         }
-        item(key = "note", contentType = "note") { SettingsNote("清除缓存不会影响歌单、收藏和下载文件。下载文件是唯一的离线音源，请在“下载”里管理。") }
+        item(key = "note", contentType = "note") { SettingsNote("Clearing the cache does not affect playlists, favorites or downloads. Downloads are the only offline source; manage them under Downloads.") }
     }
 }
 
@@ -1924,8 +1924,8 @@ private fun StorageUsageCard(cacheBytes: Long, downloadsBytes: Long) {
     val scheme = MaterialTheme.colorScheme
     val total = cacheBytes + downloadsBytes
     val parts = listOf(
-        Triple("下载", downloadsBytes, scheme.primary),
-        Triple("播放缓存", cacheBytes, scheme.tertiary),
+        Triple("Download", downloadsBytes, scheme.primary),
+        Triple("Playback cache", cacheBytes, scheme.tertiary),
     )
     Column(
         Modifier
@@ -1934,7 +1934,7 @@ private fun StorageUsageCard(cacheBytes: Long, downloadsBytes: Long) {
             .background(scheme.surfaceContainerHigh)
             .padding(20.dp),
     ) {
-        Text("应用共占用", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+        Text("App uses", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         Text(formatBytes(total), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
         Row(
             Modifier
@@ -1976,10 +1976,10 @@ private fun StorageUsageCard(cacheBytes: Long, downloadsBytes: Long) {
     }
 }
 
-// ======================= 播放上报 =======================
+// ======================= Play reporting =======================
 
 /**
- * 播放上报：把「听了什么、听了多久、听完了没有」回传给平台。
+ * Play reporting：把「听了什么、听了多久、听完了没有」回传给平台。
  * 汽水的推荐流、每日推荐、听歌模式都靠这个才有个人口味，关掉之后首页推荐会一直是通用内容。
  */
 @Composable
@@ -1988,20 +1988,20 @@ fun ReportSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: () 
     SettingsPage(SettingsSection.Report, embedded, onBack) {
         item(key = "switch", contentType = "switch") {
             SwitchRow(
-                title = "播放上报",
+                title = "Play reporting",
                 checked = state.playReportEnabled,
                 onCheckedChange = actions::setPlayReportEnabled,
                 index = 0,
                 count = 1,
                 summary = if (state.playReportEnabled) {
-                    "听歌记录会回传给对应平台，推荐跟着口味走"
+                    "Listening history is reported back to each platform so recommendations follow your taste"
                 } else {
-                    "已关闭：不发任何播放记录，推荐只按热门内容给"
+                    "Off: no play reports are sent; recommendations use popular content only"
                 },
                 icon = Icons.Filled.Analytics,
             )
         }
-        item(key = "platformsHead", contentType = "sectionHeader") { SectionLabel("会上报的平台") }
+        item(key = "platformsHead", contentType = "sectionHeader") { SectionLabel("Platforms that report") }
         item(key = "platforms", contentType = "platformRows") {
             Column {
                 providers.forEachIndexed { index, id ->
@@ -2019,14 +2019,14 @@ fun ReportSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: () 
         }
         item(key = "what", contentType = "note") {
             SettingsNote(
-                "上报内容包括曲目 ID、实际播放时长（暂停不计）、是否播完，以及切歌 / 暂停 / 换队列的原因。" +
-                    "汽水还会把最近听过的曲目连时长一起带在推荐请求里，服务端据此调整推荐。" +
-                    "不上报用户名、Cookie、播放地址或文件内容。",
+                "Reports include the track ID, actual listened time (pauses excluded), whether it finished, and the reason for a track change, pause or queue change." +
+                    "Soda also includes recently played tracks and durations in its recommendation requests, and adjusts recommendations accordingly." +
+                    "No usernames, cookies, playback URLs or file contents are reported.",
             )
         }
         item(key = "note", contentType = "note") {
             Box(Modifier.padding(top = 4.dp)) {
-                InfoNote("开关只影响播放上报；搜索、取流、歌词和下载不受影响。关掉后已经发出去的记录不会撤回。")
+                InfoNote("The switch only affects play reporting; search, streaming, lyrics and downloads are unaffected. Records already sent are not withdrawn when you turn it off.")
             }
         }
     }
@@ -2035,11 +2035,11 @@ fun ReportSettingsScreen(state: MusicUiState, actions: MusicActions, onBack: () 
 /** 平台上报的当前状态：各平台自己的说明 + 有没有登录态。 */
 private fun platformReportSummary(providerId: String, state: MusicUiState): String {
     val reporter = PlayReportHub.reporter(providerId) ?: return ""
-    val detail = reporter.reportSummary().ifBlank { "正在上报" }
+    val detail = reporter.reportSummary().ifBlank { "Reporting" }
     val login = when {
-        !state.playReportEnabled -> "总开关已关闭"
-        state.cookies[providerId].isNullOrBlank() -> "未登录：只按设备记录"
-        else -> "已登录"
+        !state.playReportEnabled -> "Master switch is off"
+        state.cookies[providerId].isNullOrBlank() -> "Not signed in: device-only stats"
+        else -> "Signed in"
     }
     return "$detail\n$login"
 }
@@ -2050,7 +2050,7 @@ private const val LICENSE_URL = "https://github.com/mytv-android/myMusic/blob/ma
 private const val NOTICES_URL = "https://github.com/mytv-android/myMusic/blob/main/THIRD_PARTY_NOTICES.md"
 private const val GPL3_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
 
-/** 移植的 MIT 歌词动画模组：MIT 要求随副本附上版权行和许可原文，这里原样给出。 */
+/** 移植的 MIT Lyrics动画模组：MIT 要求随副本附上版权行和许可原文，这里原样给出。 */
 private const val FOLIA_MIT_NOTICE =
     "Copyright (c) 2026 baiyangmuzz（miside-drop）\n" +
         "Copyright (c) 2026 pomepii（wave-light、vinyl-disc）\n" +
@@ -2070,43 +2070,43 @@ private const val FOLIA_MIT_NOTICE =
 fun LicensesScreen(onBack: () -> Unit, embedded: Boolean = false) {
     val openUri = rememberOpenUri()
     val thirdParty = listOf(
-        "music-lib" to "平台能力来源。当前纳入 commit 90b2942，保留 Go 源码用于移植参考与许可证说明。",
-        "music-lib / Kotlin 移植" to "使用 OkHttp、原生加密工具与 Kotlin 实现，不引入 GoMobile、AAR 或额外后端。",
-        "music-lib / Spotify" to "Spotify 平台的匿名 Web Player 检索、公开嵌入与榜单镜像兜底、Web API 客户端凭据流程均移植自 music-lib 的 spotify 包（AGPL-3.0）。",
-        "music-lib / 音质阶梯" to "各平台的可选音质档位、码率标签与「不静默降档」判定移植自 music-lib 的 model/quality.go 与各平台 quality.go（AGPL-3.0）。",
-        "SodaM / libresoda" to "汽水签名服务协议（POST /sign、GET /config、x-helios / x-medusa）、取流链路与加密流解密逻辑的来源（AGPL-3.0）。应用默认连接 SodaM 的公共签名服务，可在设置里换成自建实例。",
-        "MHub / music.op.wiki" to "YouTube Music 的音频准备接口来源：MHub 公开实例（AGPL-3.0）。应用只调用它的 HTTP API，不打包其代码；音频由服务端逐首准备，客户端按它的限流要求串行请求。",
-        "AndroidX、Media3、Coil、Room、WorkManager" to "均按其 Apache-2.0 或对应开源许可使用；完整列表随应用和仓库提供。",
-        "二维码生成" to "扫码登录的二维码按 Nayuki QR Code generator（MIT）的算法在本机生成。",
-        "LX Music / QuickJS" to "自定义音源使用落雪音乐移动版的自定义源协议适配层（Apache-2.0）与 QuickJS Wrapper 2.4.0（Apache-2.0）。pdone 音源合集仅作为导入入口，应用不内置其中的脚本。",
-        "MaterialKolor、Haze" to "动态配色（MIT）与模糊效果（Apache-2.0）。",
-        "Lyricon / 词幕" to "使用官方 Provider / Subscriber SDK 0.1.70 与本机词幕服务互通歌曲、歌词和播放状态（Apache-2.0）。",
-        "YesPlayMusic" to "歌词背景“律动”的分频段自适应增益与频谱通量鼓点检测参考其 MIT 实现；音频分析改由本机 ExoPlayer PCM 完成。",
-        "Roboto Flex 字体" to "拉丁字母和数字使用 Roboto Flex（SIL Open Font License 1.1），应用内为只含字重轴和拉丁字符的子集。",
-        "folia-major（Folia）" to "全屏歌词动画的模式接口照 Folium v1.x 文档设计；虹光、52Hz 移植自它的官方样例模组；队列和歌单的海报墙参考它的 Lattice 版块布局。均为 AGPL-3.0。",
-        "Folia 社区歌词动画模组" to "巨幕、跳一跳移植自 tumuyan 的 cinerama 1.0.0、visualizer-jump 1.2.0（AGPL-3.0）；" +
-            "MiSide 掉落、动感波光、黑胶唱片、星潮·银河分别移植自 miside-drop、wave-light、vinyl-disc、stardrift（MIT），" +
-            "“按速度”换动画的思路来自 bpm-style-director（MIT）。全部用 Kotlin 原生重写，不运行、也不打包原模组的代码和素材。",
-        "Rush（shub39）" to "歌词动画“Rush”照 Rush 7.2.1 的歌词页用 Kotlin 改写：封面取色底、左对齐大字、景深模糊、逐字羽化扫光、间奏三点和六种背景。" +
-            "GPL-3.0-or-later，与本应用的 AGPL-3.0 代码按两份许可的第 13 条组合分发。不打包它的字体和图标。",
+        "music-lib" to "Source of platform capabilities. Pinned at commit 90b2942; the Go sources are kept for porting reference and license notes.",
+        "music-lib / Kotlin port" to "Built with OkHttp, platform crypto and Kotlin; no GoMobile, AAR or extra backend.",
+        "music-lib / Spotify" to "Anonymous Web Player search, public embed and chart mirror fallbacks, and the Web API client-credentials flow for Spotify are ported from music-lib's spotify package (AGPL-3.0).",
+        "music-lib / quality ladder" to "Per-platform quality tiers, bitrate labels and the no-silent-downgrade rule are ported from music-lib's model/quality.go and each platform's quality.go (AGPL-3.0).",
+        "SodaM / libresoda" to "Source of the Soda signing protocol (POST /sign, GET /config, x-helios / x-medusa), the streaming chain and encrypted-stream decryption (AGPL-3.0). The app connects to SodaM's public signing service by default; switch to your own instance in settings.",
+        "MHub / music.op.wiki" to "YouTube Music audio preparation uses the public MHub instance (AGPL-3.0). The app only calls its HTTP API and does not bundle its code; audio is prepared track by track on the server and the client requests serially within its rate limits.",
+        "AndroidX、Media3、Coil、Room、WorkManager" to "All are used under Apache-2.0 or their respective open-source licenses; the full list ships with the app and repository.",
+        "QR code generation" to "Sign-in QR codes are generated on this device with the Nayuki QR Code generator algorithm (MIT).",
+        "LX Music / QuickJS" to "Custom sources use the LX Music mobile custom-source protocol adapter (Apache-2.0) and QuickJS Wrapper 2.4.0 (Apache-2.0). The pdone source collection is only an import entry point; its scripts are not bundled.",
+        "MaterialKolor、Haze" to "Dynamic color (MIT) and blur effects (Apache-2.0).",
+        "Lyricon / Lyric Stage" to "Uses the official Provider / Subscriber SDK 0.1.70 to exchange songs, lyrics and playback state with the on-device Lyricon service (Apache-2.0).",
+        "YesPlayMusic" to "The Rhythm lyric backdrop's per-band adaptive gain and spectral-flux beat detection follow its MIT implementation; audio analysis now runs on local ExoPlayer PCM.",
+        "Roboto Flex font" to "Latin letters and digits use Roboto Flex (SIL Open Font License 1.1), bundled as a subset with only the weight axis and Latin characters.",
+        "folia-major（Folia）" to "The full-screen lyric animation interface follows the Folium v1.x docs; Aurora and 52Hz are ported from its official sample modules; the queue and playlist poster wall follows its Lattice layout. All AGPL-3.0.",
+        "Folia community lyric animation modules" to "Cinerama and Jump are ported from tumuyan's cinerama 1.0.0 and visualizer-jump 1.2.0 (AGPL-3.0);" +
+            "MiSide drop, wave light, vinyl disc and stardrift are ported from miside-drop, wave-light, vinyl-disc and stardrift (MIT)," +
+            "The by-tempo animation switching follows bpm-style-director (MIT). Everything is rewritten natively in Kotlin; the original module's code and assets are neither run nor bundled.",
+        "Rush（shub39）" to "The Rush lyric animation is rewritten in Kotlin after Rush 7.2.1's lyric page: a color sampled from the cover, large left-aligned text, depth blur, per-character feather wipe, three interlude dots and six backdrops." +
+            "GPL-3.0-or-later, combined with this app's AGPL-3.0 code under section 13 of both licenses. Its fonts and icons are not bundled.",
     )
     SettingsPage(SettingsSection.Licenses, embedded, onBack) {
         item(key = "app", contentType = "licenseCard") {
             TextCard(
                 title = "GNU Affero General Public License v3.0",
-                body = "myMusic 的应用代码与移植的平台层均以 AGPL-3.0 发布。",
+                body = "myMusic's app code and ported platform layer are released under AGPL-3.0.",
                 index = 0,
                 count = 1,
                 footer = {
                     TextButton(onClick = { openUri(LICENSE_URL) }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Text("查看完整文本")
+                        Text("View full text")
                         Spacer(Modifier.width(6.dp))
                         Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(18.dp))
                     }
                 },
             )
         }
-        item(key = "thirdHead", contentType = "sectionHeader") { SectionLabel("上游与第三方") }
+        item(key = "thirdHead", contentType = "sectionHeader") { SectionLabel("Upstream and third-party") }
         itemsIndexed(
             thirdParty,
             key = { _, item -> "license:${item.first}" },
@@ -2114,32 +2114,32 @@ fun LicensesScreen(onBack: () -> Unit, embedded: Boolean = false) {
         ) { index, (title, body) ->
             TextCard(title, body, index, thirdParty.size)
         }
-        item(key = "gplHead", contentType = "sectionHeader") { SectionLabel("GPL-3.0 许可") }
+        item(key = "gplHead", contentType = "sectionHeader") { SectionLabel("GPL-3.0 license") }
         item(key = "gpl", contentType = "licenseCard") {
             TextCard(
-                title = "GNU General Public License v3.0（Rush 歌词样式）",
-                body = "Copyright (C) 2026 Shubham Gorai。改写的文件保留原文件头和版权行，注明修改内容和日期，按 GPL 第 3 版或更新版本分发。",
+                title = "GNU General Public License v3.0 (Rush lyric style)",
+                body = "Copyright (C) 2026 Shubham Gorai. Rewritten files keep the original header and copyright lines, note the changes and date, and are distributed under GPL v3 or later.",
                 index = 0,
                 count = 1,
                 footer = {
                     TextButton(onClick = { openUri(GPL3_URL) }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Text("查看完整文本")
+                        Text("View full text")
                         Spacer(Modifier.width(6.dp))
                         Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(18.dp))
                     }
                 },
             )
         }
-        item(key = "mitHead", contentType = "sectionHeader") { SectionLabel("MIT 许可原文") }
+        item(key = "mitHead", contentType = "sectionHeader") { SectionLabel("MIT license text") }
         item(key = "mit", contentType = "licenseCard") {
             TextCard(
-                title = "MIT License（MiSide 掉落、动感波光、黑胶唱片、星潮·银河、按速度）",
+                title = "MIT License (MiSide drop, wave light, vinyl disc, stardrift, by tempo)",
                 body = FOLIA_MIT_NOTICE,
                 index = 0,
                 count = 1,
                 footer = {
                     TextButton(onClick = { openUri(NOTICES_URL) }, modifier = Modifier.tvFocusRing(CircleShape)) {
-                        Text("查看完整第三方声明")
+                        Text("View full third-party notices")
                         Spacer(Modifier.width(6.dp))
                         Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(18.dp))
                     }
@@ -2148,7 +2148,7 @@ fun LicensesScreen(onBack: () -> Unit, embedded: Boolean = false) {
         }
         item(key = "note", contentType = "note") {
             Box(Modifier.padding(top = 16.dp)) {
-                InfoNote("如果二次分发，请保留许可证、版权声明与修改说明，并遵守 AGPL-3.0 的源码提供义务。")
+                InfoNote("If you redistribute, keep the license, copyright notices and change notes, and comply with AGPL-3.0's source-availability requirement.")
             }
         }
     }
@@ -2157,15 +2157,15 @@ fun LicensesScreen(onBack: () -> Unit, embedded: Boolean = false) {
 @Composable
 fun PrivacyScreen(onBack: () -> Unit, embedded: Boolean = false) {
     val blocks = listOf(
-        "留在本机" to "最近播放、下载文件、播放进度和匹配缓存只保存在设备上。同步令牌和 WebDAV 密码使用 Android Keystore 加密，只保存在本机。",
-        "本地音乐" to "扫描只读音频文件，不读图片和视频，也不改动文件本身；封面缓存和扫描记录只存在本机，匹配结果也只存在本机，除非这首歌加进了已同步的歌单或喜欢（见下）。自动匹配时，有标签的歌把歌名和歌手发给已启用平台的搜索；没有标签的截取 3 秒、降到 8 kHz 单声道算成指纹，只把指纹发给网易云音乐的听歌识曲，音频本身不离开设备。加进已同步歌单或喜欢的本地歌，同步文件里只有这些：歌名、歌手、专辑、时长、文件名、文件指纹、文件所在设备的名字、云端副本的位置和匹配结果（匹配到哪个平台的哪首歌）。不包含文件路径、音频、歌词和封面图片，也不包含播放地址和 WebDAV 密码。音频文件只在你点了上传时才会传出去：选网易云盘就传到你自己的网易云盘，选 WebDAV 就传到你自己的服务器；传的是原文件，默认只在 Wi-Fi 下传。把只在本机的歌加进已同步的歌单时只会提醒一句，从不自动上传。QQ 音乐云盘只读取列表、播放已匹配的歌，不会往里上传。",
-        "歌词背景音频分析" to "“律动”只分析 ExoPlayer 已解码、正在输出的 PCM，不读取麦克风，不申请录音权限，也不保存或上传音频及频谱。暂停或离开播放页后停止分析。",
-        "词幕歌词互通" to "“发送歌词到词幕”默认开启，把当前歌曲名、歌手、歌词和播放进度通过本机的词幕核心服务提供给其他应用；不包含音频、Cookie、令牌或播放地址。“接收其他播放器歌词”默认关闭，开启后只在本机显示词幕收到的歌曲和歌词。两项均可在设置 › 播放页关闭，数据不经 myMusic 服务器。",
-        "写入你选择的云端" to "启用同步后，自建歌单、收藏和平台账号 Cookie 会写入你的 GitHub Gist、Gitee 代码片段或 WebDAV 目录。Cookie 以明文保存，请勿公开文件链接或共享该目录；同步文件不包含同步令牌、WebDAV 密码、播放地址和下载文件。选 WebDAV 时，同步文件写在你的 WebDAV 目录里；WebDAV 密码只存在本机，不进同步文件。",
-        "网络请求" to "应用直接请求音乐平台上游接口、更新清单和同步服务，没有 myMusic 自建中转服务器。汽水播放签名器默认使用 SodaM 的公共签名服务（可在设置里关闭或换成自建实例），会员整曲的取流请求会带着 Cookie 和完整请求头发给该服务。YouTube Music 直连 YouTube 取流；使用 music.op.wiki 音源时，搜索和音频由这个第三方服务提供，取流只发送歌曲 ID，不发送 Cookie。用 music.op.wiki 账号登录时，用户名和密码只发给它，本机只保存会话 Cookie。第三方仍会看到其服务所需的常规请求信息。扫码登录的二维码在本机生成。",
-        "自定义音源" to "只有你主动导入时才会运行落雪自定义音源脚本。脚本保存在本机，不随音乐库同步；它可以通过自己的接口访问网络，并会收到待播放歌曲的歌名、歌手、平台歌曲 ID、时长和封面等取流所需信息，但不会收到 myMusic 保存的平台 Cookie。在线更新会重新下载原地址的脚本；删除音源会删除本机脚本。请只导入信任的脚本。",
-        "播放上报" to "开启“播放上报”（设置 › 播放上报，默认开）后，正在播放的曲目 ID、实际播放时长（暂停不计）、是否播完，以及切歌 / 暂停 / 换队列的原因会回传给该曲目所属的平台，用来让推荐流跟上你的口味；汽水还会把最近听过的曲目连时长一起带在推荐请求里。接入的平台有汽水音乐、网易云音乐、QQ音乐、酷我音乐和千千音乐；咪咕与 JOOX 公开面上没有可实现的上报接口。上报不带用户名、Cookie、播放地址或文件内容。关掉开关后一个请求都不发，已经发出去的服务端记录不会撤回。",
-        "诊断信息" to "复制诊断只包含版本、设备型号、Android 版本、启用平台和最近错误；不包含 Cookie、令牌或完整播放 URL。",
+        "Stay on this device" to "Recently played, downloads, playback progress and the match cache are stored on this device only. Sync tokens and WebDAV passwords are encrypted with the Android Keystore and kept locally.",
+        "Local music" to "Scanning only reads audio files, never images or videos, and never modifies them; cover caches and scan records stay on this device, and so do match results unless the track is added to a synced playlist or your favorites (see below). For automatic matching, tagged tracks send their title and artist to search on enabled platforms; untagged clips are cut to 3 seconds, downsampled to 8 kHz mono and turned into a fingerprint, and only the fingerprint goes to NetEase Cloud Music's recognition service - the audio itself never leaves the device. For local tracks added to synced playlists or favorites, the sync file holds only: title, artist, album, duration, file name, file fingerprint, the name of the device holding the file, the cloud copy location and the match result (which platform's track it matched). It holds no file paths, audio, lyrics or cover images, and no playback URLs or WebDAV passwords. Audio files are uploaded only when you tap upload: to your own NetEase cloud drive or your own WebDAV server, sending the original file, by default over Wi-Fi only. Adding a device-only track to a synced playlist shows a reminder and never uploads automatically. The QQ Music cloud drive is read-only here: tracks are listed and matched songs played, never uploaded.",
+        "Lyric backdrop audio analysis" to "'Rhythm' only analyses PCM that ExoPlayer has decoded and is outputting. It does not use the microphone, request recording permission, or store or upload audio and spectra. Analysis stops when playback pauses or you leave the player page.",
+        "Lyricon lyric sharing" to "'Send lyrics to Lyricon' is on by default and exposes the current title, artist, lyrics and playback position to other apps through the on-device Lyricon core service; it carries no audio, cookies, tokens or playback URLs. 'Receive lyrics from other players' is off by default; when on, it shows only the song and lyrics Lyricon receives, on this device. Both can be turned off under Settings › Playback; no data passes through a myMusic server.",
+        "Writes to the cloud you choose" to "Once sync is on, your playlists, favorites and platform cookies are written to your GitHub Gist, Gitee snippet or WebDAV directory. Cookies are stored in plain text, so never share the file link or directory; the sync file contains no sync tokens, WebDAV passwords, playback URLs or downloaded files. With WebDAV the sync file lives in your WebDAV directory, and the WebDAV password stays on this device.",
+        "Network requests" to "The app calls music platform upstream APIs and sync services directly; there is no myMusic relay server. The Soda play signer defaults to SodaM's public signing service (turn it off or use your own instance in settings), and member full-track requests send cookies and full headers to that service. YouTube Music streams directly from YouTube; with the music.op.wiki source, search and audio come from that third party and only track IDs are sent, never cookies. Signing in with a music.op.wiki account sends your username and password only to it, and only the session cookie is kept locally. Third parties still see the usual request details their services need. QR codes for sign-in are generated on this device.",
+        "Custom sources" to "LX custom source scripts run only when you import them. Scripts are stored on this device and never synced with your library; a script can reach the network through its own interfaces and receives the title, artist, platform track ID, duration and cover needed to fetch a stream, but it never receives platform cookies stored by myMusic. Online updates re-download the script from its original URL; deleting a source deletes the local script. Import only scripts you trust.",
+        "Play reporting" to "With play reporting on (Settings › Play reporting, on by default), the playing track ID, actual listened time (pauses excluded), whether it finished, and the reason for a track change, pause or queue change are sent back to the track's platform so recommendations follow your taste; Soda also includes recently played tracks and durations in its recommendation requests. Supported platforms are Soda Music, NetEase Cloud Music, QQ Music, Kuwo Music and Qianqian Music; Migu and JOOX expose no public reporting interface. Reports contain no usernames, cookies, playback URLs or file contents. When the switch is off no request is sent; records already on the server are not withdrawn.",
+        "Diagnostics" to "Copied diagnostics contain only the version, device model, Android version, enabled platforms and recent errors; no cookies, tokens or full playback URLs.",
     )
     SettingsPage(SettingsSection.Privacy, embedded, onBack) {
         itemsIndexed(
@@ -2177,7 +2177,7 @@ fun PrivacyScreen(onBack: () -> Unit, embedded: Boolean = false) {
         }
         item(key = "note", contentType = "note") {
             Box(Modifier.padding(top = 16.dp)) {
-                InfoNote("退出平台账号或断开同步会清除对应的本机凭据；卸载应用会删除应用目录内的所有本地数据。")
+                InfoNote("Signing out of a platform account or disconnecting sync clears the matching local credentials; uninstalling the app deletes all local data in its directories.")
             }
         }
     }

@@ -82,9 +82,9 @@ import kotlinx.coroutines.withContext
 
 private val LocalTitlePolicy.label: String
     get() = when (this) {
-        LocalTitlePolicy.File -> "文件"
-        LocalTitlePolicy.FillGaps -> "只补空缺"
-        LocalTitlePolicy.Match -> "匹配结果"
+        LocalTitlePolicy.File -> "File"
+        LocalTitlePolicy.FillGaps -> "Fill gaps only"
+        LocalTitlePolicy.Match -> "Match result"
     }
 
 /** 设置首页“本地音乐”那一行的当前值。 */
@@ -121,9 +121,9 @@ internal fun rememberLocalSettingsSummary(): String {
 }
 
 /**
- * 设置 › 本地音乐（设计稿第 ⑩ 张）：扫描范围（系统媒体库、文件夹、跳过短音频）、封面和歌词（自动匹配、
- * 标题和歌手、同名 .lrc）、上传（默认位置、WebDAV 服务器、加进歌单时提醒、只在 Wi-Fi 下）、
- * 播放（没有文件时用平台版本）。全是现有的设置行。
+ * 设置 › 本地音乐（设计稿第 ⑩ 张）：扫描范围（System media library、文件夹、跳过短音频）、Cover and lyrics（Automatic matching、
+ * Title and artist、同名 .lrc）、上传（默认位置、WebDAV server、加进歌单时提醒、只在 Wi-Fi 下）、
+ * 播放（Use the platform version when the file is missing）。全是现有的设置行。
  *
  * [onOpenAccounts] 去平台账号登录网易云；[onConnectWebDav] 去配 WebDAV（同步在用 WebDAV 时是同步那张表单）。
  */
@@ -149,11 +149,11 @@ internal fun LocalMusicSettingsScreen(
     val folders = prefs.folders
     val scanCount = 1 + folders.size + (if (access.canPickFolder) 1 else 0) + 1
     SettingsPage(SettingsSection.LocalMusic, embedded, onBack) {
-        item(key = "scanHead", contentType = "sectionHeader") { SectionLabel("扫描") }
+        item(key = "scanHead", contentType = "sectionHeader") { SectionLabel("Scan") }
         item(key = "media", contentType = "switch") {
             val on = prefs.mediaStore && access.hasPermission
             SwitchRow(
-                title = "系统媒体库",
+                title = "System media library",
                 checked = on,
                 onCheckedChange = { checked ->
                     // 打开时还没有权限就先要权限；权限结果回来会自动扫描
@@ -164,9 +164,9 @@ internal fun LocalMusicSettingsScreen(
                 count = scanCount,
                 modifier = Modifier.focusRequester(first),
                 summary = when {
-                    !access.hasPermission -> "手机里所有音频；需要“音乐和音频”权限"
-                    on -> "手机里所有音频 · ${perOrigin[LOCAL_ORIGIN_MEDIA] ?: 0} 首"
-                    else -> "手机里所有音频"
+                    !access.hasPermission -> "All audio on this phone; needs the music and audio permission"
+                    on -> "All audio on this phone · ${perOrigin[LOCAL_ORIGIN_MEDIA] ?: 0} tracks"
+                    else -> "All audio on this phone"
                 },
                 icon = Icons.Filled.LibraryMusic,
             )
@@ -179,14 +179,14 @@ internal fun LocalMusicSettingsScreen(
                     count = scanCount,
                     onClick = null,
                     icon = Icons.Filled.Folder,
-                    summary = "${perOrigin[folder.uri] ?: 0} 首",
+                    summary = "${perOrigin[folder.uri] ?: 0} tracks",
                     showChevron = false,
                     trailing = {
                         IconButton(
                             onClick = { library.launch { removeFolder(folder.uri) } },
                             modifier = Modifier.tvFocusRing(CircleShape),
                         ) {
-                            Icon(Icons.Filled.RemoveCircleOutline, "移除文件夹“${folder.name}”", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(Icons.Filled.RemoveCircleOutline, "Remove folder '${folder.name}'", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
                 )
@@ -196,41 +196,41 @@ internal fun LocalMusicSettingsScreen(
         if (access.canPickFolder) {
             item(key = "addFolder", contentType = "row") {
                 ListRow(
-                    title = "添加文件夹",
+                    title = "Add folder",
                     index = 1 + folders.size,
                     count = scanCount,
                     onClick = access.pickFolder,
                     icon = Icons.Filled.CreateNewFolder,
-                    summary = "SD 卡、U 盘或媒体库没收录的目录",
+                    summary = "SD card, USB drive or folders the media library doesn't index",
                 )
             }
         }
         item(key = "skipShort", contentType = "switch") {
             SwitchRow(
-                title = "跳过 30 秒以下的音频",
+                title = "Skip audio under 30 seconds",
                 checked = prefs.skipShort,
                 onCheckedChange = { value -> library.launch { updatePrefs { it.copy(skipShort = value) } } },
                 index = scanCount - 1,
                 count = scanCount,
-                summary = "铃声、录音、提示音",
+                summary = "Ringtones, recordings and alerts",
                 icon = Icons.Filled.Timer,
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             item(key = "lrcNote", contentType = "note") {
-                SettingsNote("Android 11 起，系统媒体库里的歌读不到旁边的同名 .lrc；想用自己的 .lrc，把歌所在的文件夹加进来。")
+                SettingsNote("Since Android 11, tracks in the system media library can't read a neighbouring .lrc; add the folder holding the songs to use your own .lrc.")
             }
         }
 
-        item(key = "matchHead", contentType = "sectionHeader") { SectionLabel("封面和歌词") }
+        item(key = "matchHead", contentType = "sectionHeader") { SectionLabel("Cover and lyrics") }
         item(key = "autoMatch", contentType = "switch") {
             SwitchRow(
-                title = "自动匹配",
+                title = "Automatic matching",
                 checked = prefs.autoMatch,
                 onCheckedChange = { value -> library.launch { setAutoMatch(value) } },
                 index = 0,
                 count = 3,
-                summary = "先按标签搜，再用 3 秒听歌识曲；文件不改",
+                summary = "Searches by tags first, then a 3-second audio match; files are never modified",
                 icon = Icons.Filled.AutoFixHigh,
             )
         }
@@ -239,30 +239,30 @@ internal fun LocalMusicSettingsScreen(
         }
         item(key = "preferLrc", contentType = "switch") {
             SwitchRow(
-                title = "同名 .lrc 优先",
+                title = "Prefer a neighbouring .lrc",
                 checked = prefs.preferLrc,
                 onCheckedChange = { value -> library.launch { updatePrefs { it.copy(preferLrc = value) } } },
                 index = 2,
                 count = 3,
-                summary = "歌曲旁边有同名歌词文件时用它",
+                summary = "Use a neighbouring .lrc with the same name",
                 icon = Icons.Filled.Lyrics,
             )
         }
 
-        item(key = "uploadHead", contentType = "sectionHeader") { SectionLabel("上传") }
+        item(key = "uploadHead", contentType = "sectionHeader") { SectionLabel("Upload") }
         item(key = "uploadTarget", contentType = "row") {
             val usable = target in index.clouds
             ListRow(
-                title = "默认上传到",
+                title = "Upload to",
                 index = 0,
                 count = 4,
                 onClick = { pickTarget = true },
                 leading = { UploadTargetIcon(target.takeIf { usable }) },
                 summary = when {
-                    !usable -> "还没有可用的位置"
+                    !usable -> "No location available yet"
                     target == CloudProvider.NeteaseCloud -> listOfNotNull(
                         target.label,
-                        neteaseQuota?.let { "已用 ${CloudMessages.formatSize(it.used)} / ${CloudMessages.formatSize(it.total)}" },
+                        neteaseQuota?.let { "${CloudMessages.formatSize(it.used)} / ${CloudMessages.formatSize(it.total)} used" },
                     ).joinToString(" · ")
                     else -> webDav?.let { "WebDAV · ${it.hostLabel}" } ?: "WebDAV"
                 },
@@ -270,59 +270,59 @@ internal fun LocalMusicSettingsScreen(
         }
         item(key = "uploadWebDav", contentType = "row") {
             ListRow(
-                title = "WebDAV 服务器",
+                title = "WebDAV server",
                 index = 1,
                 count = 4,
                 onClick = onConnectWebDav,
                 icon = Icons.Filled.Cloud,
                 summary = when {
-                    webDav == null || !webDav.hasPassword -> "还没有配置 · 坚果云、Nextcloud、群晖或自己的服务器"
-                    syncUsesWebDav -> "${webDav.hostLabel} · 和音乐库同步共用"
-                    else -> "${webDav.hostLabel} · 放上传的歌"
+                    webDav == null || !webDav.hasPassword -> "Not configured · Nutstore, Nextcloud, Synology or your own server"
+                    syncUsesWebDav -> "${webDav.hostLabel} · shared with library sync"
+                    else -> "${webDav.hostLabel} · for uploaded tracks"
                 },
             )
         }
         item(key = "uploadPrompt", contentType = "switch") {
             SwitchRow(
-                title = "加进歌单时提醒上传",
+                title = "Remind to upload when adding to a playlist",
                 checked = prefs.uploadPrompt,
                 onCheckedChange = { value -> library.launch { updatePrefs { it.copy(uploadPrompt = value) } } },
                 index = 2,
                 count = 4,
-                summary = "只在本机的歌加进已同步的歌单时提示",
+                summary = "Warn when a device-only track is added to a synced playlist",
                 icon = Icons.Filled.NotificationsActive,
             )
         }
         item(key = "uploadWifi", contentType = "switch") {
             SwitchRow(
-                title = "只在 Wi-Fi 下上传",
+                title = "Upload on Wi-Fi only",
                 checked = prefs.uploadWifiOnly,
                 onCheckedChange = { value -> library.launch { updatePrefs { it.copy(uploadWifiOnly = value) } } },
                 index = 3,
                 count = 4,
-                summary = "用移动网络时先排队",
+                summary = "Queue on mobile data",
                 icon = Icons.Filled.Wifi,
             )
         }
 
-        item(key = "playHead", contentType = "sectionHeader") { SectionLabel("播放") }
+        item(key = "playHead", contentType = "sectionHeader") { SectionLabel("Play") }
         item(key = "fallback", contentType = "switch") {
             SwitchRow(
-                title = "没有文件时用平台版本",
+                title = "Use the platform version when the file is missing",
                 checked = prefs.platformFallback,
                 onCheckedChange = { value -> library.launch { updatePrefs { it.copy(platformFallback = value) } } },
                 index = 0,
                 count = 1,
-                summary = "其它设备上的本地歌没上传时，用匹配到的那首播放",
+                summary = "For local tracks on other devices that aren't uploaded, play the matched track",
                 icon = Icons.Filled.SwapHoriz,
             )
         }
         item(key = "privacy", contentType = "note") {
             Box(Modifier.padding(top = 12.dp)) {
                 InfoNote(
-                    "扫描只读取文件信息和标签，不改文件，也不会自己上传。自动匹配时把歌名和歌手发给已启用的平台搜索；" +
-                        "标签不够时在本机把 3 秒片段算成指纹，只把指纹发给网易云识曲，不发音频。" +
-                        "只有你点了上传，文件才会传到你选的网易云盘或 WebDAV。",
+                    "Scanning only reads file information and tags, never modifies files and never uploads by itself. Automatic matching sends title and artist to enabled platform searches;" +
+                        "When tags are insufficient a 3-second clip is fingerprinted on this device and only the fingerprint goes to NetEase recognition; no audio is sent." +
+                        "Files go to your NetEase cloud drive or WebDAV only when you tap upload.",
                 )
             }
         }
@@ -349,7 +349,7 @@ internal fun LocalMusicSettingsScreen(
     }
 }
 
-/** 行首的位置图标：网易云盘用平台图标，WebDAV 用云，还没有可用的位置时是空心云。 */
+/** 行首的位置图标：网易云盘用平台图标，WebDAV 用云，No location available yet时是空心云。 */
 @Composable
 private fun UploadTargetIcon(target: CloudProvider?) {
     when (target) {
@@ -360,8 +360,8 @@ private fun UploadTargetIcon(target: CloudProvider?) {
 }
 
 /**
- * “默认上传到”的单选面板：网易云盘、WebDAV 能选；QQ 音乐云盘列出来但不可选（只能读取）。
- * 没登录 / 没配置的那行点了去登录 / 去连接（设计稿第 05 节“默认上传到”）。
+ * “Upload to”的单选面板：网易云盘、WebDAV 能选；QQ 音乐云盘列出来但不可选（Read only）。
+ * 没登录 / 没配置的那行点了去登录 / 去连接（设计稿第 05 节“Upload to”）。
  */
 @Composable
 private fun UploadTargetSheet(
@@ -375,7 +375,7 @@ private fun UploadTargetSheet(
 ) {
     val focus = remember { FocusRequester() }
     SettingsTvFocus(focus)
-    AdaptiveSheet(onDismiss = onDismiss, title = "默认上传到", subtitle = "上传面板里也能临时换") {
+    AdaptiveSheet(onDismiss = onDismiss, title = "Upload to", subtitle = "Can also be changed in the upload panel") {
         Column(
             Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(SegmentGap),
@@ -401,11 +401,11 @@ private fun UploadTargetSheet(
                             this.selected = on
                         },
                     summary = when {
-                        !provider.canUpload -> "只能读取"
-                        provider == CloudProvider.NeteaseCloud && !ready -> "还没登录网易云 · 点这里去登录"
-                        provider == CloudProvider.WebDav && !ready -> "还没有配置 · 点这里连接 WebDAV"
+                        !provider.canUpload -> "Read only"
+                        provider == CloudProvider.NeteaseCloud && !ready -> "Not signed in to NetEase · tap to sign in"
+                        provider == CloudProvider.WebDav && !ready -> "Not configured · tap to connect WebDAV"
                         provider == CloudProvider.WebDav -> webDav?.hostLabel.orEmpty()
-                        else -> "曲库里有的歌直接秒传"
+                        else -> "Tracks already in the cloud upload instantly"
                     },
                     selected = on,
                     showChevron = false,
@@ -420,7 +420,7 @@ private fun UploadTargetSheet(
     }
 }
 
-/** 同步是不是正连着 WebDAV：是的话 WebDAV 服务器那行写“和音乐库同步共用”，点进去是同步那张表单。 */
+/** 同步是不是正连着 WebDAV：是的话 WebDAV server那行写“和音乐库同步共用”，点进去是同步那张表单。 */
 @Composable
 private fun rememberSyncUsesWebDav(): Boolean {
     val context = LocalContext.current
@@ -442,7 +442,7 @@ private fun rememberNeteaseQuota(loggedIn: Boolean): CloudQuota? {
     return quota
 }
 
-/** “标题和歌手”：分段列表里的一行，下面挂三段连接按钮组（文件 / 只补空缺 / 匹配结果）。 */
+/** “Title and artist”：分段列表里的一行，下面挂三段连接按钮组（文件 / Fill gaps only / Match result）。 */
 @Composable
 private fun TitlePolicyRow(selected: LocalTitlePolicy, onSelect: (LocalTitlePolicy) -> Unit) {
     val shape = segmentShape(1, 3)
@@ -457,9 +457,9 @@ private fun TitlePolicyRow(selected: LocalTitlePolicy, onSelect: (LocalTitlePoli
         Row(verticalAlignment = Alignment.CenterVertically) {
             ToneIcon(Icons.Filled.Title, IconTone.Secondary)
             Column(Modifier.padding(start = 14.dp).semantics(mergeDescendants = true) {}) {
-                Text("标题和歌手", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text("Title and artist", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
                 Text(
-                    "文件标签和匹配结果不一致时显示哪个",
+                    "Which to show when file tags and the match disagree",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -474,9 +474,9 @@ private fun TitlePolicyRow(selected: LocalTitlePolicy, onSelect: (LocalTitlePoli
         )
         Text(
             when (selected) {
-                LocalTitlePolicy.File -> "只用文件自己的标签，没有标题时显示文件名。"
-                LocalTitlePolicy.FillGaps -> "标签是空的或“Track 01 / 未知艺术家”这类占位时用匹配结果，像样的标签不覆盖。"
-                LocalTitlePolicy.Match -> "匹配上了就整套用匹配结果的标题、歌手和专辑。"
+                LocalTitlePolicy.File -> "Uses the file's own tags; shows the file name when there is no title."
+                LocalTitlePolicy.FillGaps -> "Empty tags or placeholders like Track 01 / Unknown Artist are replaced by the match; decent tags are kept."
+                LocalTitlePolicy.Match -> "When matched, use the matched title, artist and album throughout."
             },
             Modifier.padding(top = 8.dp),
             style = MaterialTheme.typography.bodySmall,

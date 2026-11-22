@@ -248,17 +248,17 @@ class SyncCoordinator(
         val account = syncDao.accountOnce()
         if (account == null) {
             _state.update { it.copy(status = SyncStatus.NoAccount, phase = "", message = "", error = "") }
-            if (manual) emit("还没有连接同步账户。", error = true)
+            if (manual) emit("No sync account is connected yet.", error = true)
             return@withLock false
         }
         if (!manual && !account.autoSync) return@withLock false
         if (pendingInitial != null) {
-            if (manual) emit("请先完成首次合并方式的选择。", error = true)
+            if (manual) emit("Choose how to merge the first time first.", error = true)
             return@withLock false
         }
         val provider = providers[account.provider]
         if (provider == null) {
-            fail("同步后端不可用：${account.provider}")
+            fail("Sync backend unavailable: ${account.provider}")
             return@withLock false
         }
         val token = credential(account.provider)
@@ -272,7 +272,7 @@ class SyncCoordinator(
             return@withLock false
         }
         if (account.remoteId.isBlank()) {
-            fail("同步账户缺少远端文件，请在设置中重新连接。")
+            fail("The sync account has no remote file; reconnect in settings.")
             return@withLock false
         }
         if (syncDao.conflictsOnce().isNotEmpty()) {
@@ -280,18 +280,18 @@ class SyncCoordinator(
                 it.copy(
                     status = SyncStatus.NeedsAttention,
                     phase = "",
-                    message = "还有 ${syncDao.conflictsOnce().size} 个歌单需要处理冲突，处理前不会上传。",
+                    message = "${syncDao.conflictsOnce().size} playlists still have conflicts; nothing uploads until they're resolved.",
                     error = "",
                 )
             }
-            if (manual) emit("请先处理同步冲突。", error = true)
+            if (manual) emit("Resolve sync conflicts first.", error = true)
             return@withLock false
         }
 
         _state.update {
             it.copy(
                 status = SyncStatus.Syncing,
-                phase = "正在读取云端文件",
+                phase = "Reading the cloud file",
                 message = "",
                 error = "",
             )
@@ -315,7 +315,7 @@ class SyncCoordinator(
                             remoteUrl = remoteFile.htmlUrl,
                         ))
                         saveBase(local, remoteFile.revision)
-                        finish("同步已就绪")
+                        finish("Sync is ready")
                         true
                     }
                     remoteEmpty -> {
@@ -327,7 +327,7 @@ class SyncCoordinator(
                             remoteUrl = uploaded.htmlUrl,
                         ))
                         val aligned = reconcileAfterPush(provider, token, account, uploaded, local)
-                        if (aligned) finish("已上传 ${local.summary()}")
+                        if (aligned) finish("Uploaded ${local.summary()}")
                         aligned
                     }
                     localEmpty -> {
@@ -338,7 +338,7 @@ class SyncCoordinator(
                             remoteRevision = remoteFile.revision,
                             remoteUrl = remoteFile.htmlUrl,
                         ))
-                        finish("已从云端恢复 ${remote.summary()}")
+                        finish("Restored from the cloud: ${remote.summary()}")
                         true
                     }
                     else -> {
@@ -361,7 +361,7 @@ class SyncCoordinator(
                                     local = local,
                                     remote = remote,
                                 ),
-                                message = "本机和云端都有数据，请选择首次合并方式。",
+                                message = "Both this device and the cloud have data; choose how to merge the first time.",
                                 error = "",
                             )
                         }
@@ -369,7 +369,7 @@ class SyncCoordinator(
                     }
                 }
             } else {
-                _state.update { it.copy(phase = "正在合并歌单") }
+                _state.update { it.copy(phase = "Merging playlists") }
                 val result = SyncMerge.merge(base, local, remote)
                 if (result.conflicts.isNotEmpty()) {
                     recordConflicts(result.conflicts)
@@ -391,11 +391,11 @@ class SyncCoordinator(
                         it.copy(
                             status = SyncStatus.NeedsAttention,
                             phase = "",
-                            message = "有 ${result.conflicts.size} 个歌单需要处理冲突，处理前不会上传。",
+                            message = "${result.conflicts.size} playlists have conflicts; nothing uploads until they're resolved.",
                             error = "",
                         )
                     }
-                    if (notify) emit("发现 ${result.conflicts.size} 个同步冲突，请先处理。", error = true)
+                    if (notify) emit("Found ${result.conflicts.size} sync conflicts; resolve them first.", error = true)
                     false
                 } else if (snapshotSignature(local) == snapshotSignature(remote)) {
                     saveBase(remote, remoteFile.revision)
@@ -405,11 +405,11 @@ class SyncCoordinator(
                         remoteUrl = remoteFile.htmlUrl,
                     ))
                     pruneTombstones()
-                    finish("已是最新")
+                    finish("Up to date")
                     true
                 } else {
                     if (snapshotSignature(localSnapshot()) != snapshotSignature(local)) {
-                        fail("同步过程中本机数据有新的修改，请再次同步。")
+                        fail("This device changed during sync; sync again.")
                         return@withLock false
                     }
                     var currentRemoteFile = remoteFile
@@ -425,7 +425,7 @@ class SyncCoordinator(
                     var round = 0
                     while (uploaded == null) {
                         if (round++ >= MAX_PUSH_ROUNDS) {
-                            fail("云端文件在同步期间持续变化，请稍后再试。")
+                            fail("The cloud file kept changing during sync; try again later.")
                             return@withLock false
                         }
                         val latest = provider.read(token, account.remoteId)
@@ -454,11 +454,11 @@ class SyncCoordinator(
                                     it.copy(
                                         status = SyncStatus.NeedsAttention,
                                         phase = "",
-                                        message = "有 ${again.conflicts.size} 个歌单需要处理冲突，处理前不会上传。",
+                                        message = "${again.conflicts.size} playlists have conflicts; nothing uploads until they're resolved.",
                                         error = "",
                                     )
                                 }
-                                if (notify) emit("发现 ${again.conflicts.size} 个同步冲突，请先处理。", error = true)
+                                if (notify) emit("Found ${again.conflicts.size} sync conflicts; resolve them first.", error = true)
                                 return@withLock false
                             }
                             if (snapshotSignature(latestLocal) == snapshotSignature(latestSnapshot)) {
@@ -469,7 +469,7 @@ class SyncCoordinator(
                                     remoteUrl = latest.htmlUrl,
                                 ))
                                 pruneTombstones()
-                                finish("已是最新")
+                                finish("Up to date")
                                 return@withLock true
                             }
                             merged = SyncSnapshot(
@@ -484,7 +484,7 @@ class SyncCoordinator(
                             continue
                         }
                         applySnapshot(merged, removeAbsent = false, dirty = true)
-                        _state.update { it.copy(phase = "正在上传数据") }
+                        _state.update { it.copy(phase = "Uploading data") }
                         uploaded = try {
                             upload(provider, token, account, merged, latest)
                         } catch (error: SyncException) {
@@ -503,14 +503,14 @@ class SyncCoordinator(
                     ))
                     val aligned = reconcileAfterPush(provider, token, account, finalUpload, finalSnapshot)
                     pruneTombstones()
-                    if (aligned) finish("已同步 ${finalSnapshot.summary()}")
+                    if (aligned) finish("Synced ${finalSnapshot.summary()}")
                     aligned
                 }
             }
         } catch (error: SyncException) {
             val message = if (error.kind == SyncFailureKind.Auth && account.provider == WebDavSyncProvider.ID) {
                 authBlocked = blockKey(account)
-                "WebDAV 密码不对或已失效，请在“同步位置 › WebDAV”里重新输入。"
+                "The WebDAV password is wrong or expired; re-enter it in Sync location › WebDAV."
             } else {
                 error.message
             }
@@ -518,7 +518,7 @@ class SyncCoordinator(
             if (notify) emit(message, error = true)
             false
         } catch (error: Exception) {
-            val message = error.message ?: "同步失败"
+            val message = error.message ?: "Sync failed"
             fail(message)
             if (notify) emit(message, error = true)
             false
@@ -535,7 +535,7 @@ class SyncCoordinator(
 
     suspend fun connect(providerId: String, token: String, remoteInput: String): Boolean {
         val provider = providers[providerId] ?: run {
-            emit("不支持的同步后端", error = true)
+            emit("Unsupported sync backend", error = true)
             return false
         }
         val webDav = providerId == WebDavSyncProvider.ID
@@ -543,7 +543,7 @@ class SyncCoordinator(
         _state.update {
             it.copy(
                 status = SyncStatus.Syncing,
-                phase = if (webDav) "正在连接 WebDAV" else "正在验证令牌",
+                phase = if (webDav) "Connecting to WebDAV" else "Verifying the token",
                 message = "",
                 error = "",
                 // 之前测的结果（比如输错密码那次）对新连接没有意义，别留在已连接卡片下面
@@ -552,13 +552,13 @@ class SyncCoordinator(
         }
         return try {
             val accountInfo = provider.validate(token)
-            _state.update { it.copy(phase = "正在读取云端文件") }
+            _state.update { it.copy(phase = "Reading the cloud file") }
             val local = localSnapshot()
             // WebDAV 的同步文件位置是固定的，不靠用户填 ID：先看目录里有没有
             var remoteId = (if (webDav) "" else extractRemoteId(remoteInput)).ifBlank { provider.locate(token) }
             var created: RemoteFile? = null
             if (remoteId.isBlank()) {
-                _state.update { it.copy(phase = if (webDav) "正在创建同步文件" else "正在创建私人 ${provider.label}") }
+                _state.update { it.copy(phase = if (webDav) "Creating the sync file" else "Creating your private ${provider.label}") }
                 val content = encodeForUpload(local, providerId)
                 created = try {
                     provider.create(token, content)
@@ -569,7 +569,7 @@ class SyncCoordinator(
                 }
                 if (created == null) {
                     remoteId = provider.locate(token).ifBlank {
-                        throw SyncException(SyncFailureKind.Unknown, "云端同步文件状态异常，请稍后重试。")
+                        throw SyncException(SyncFailureKind.Unknown, "The cloud sync file is in an unexpected state; try again later.")
                     }
                 }
             }
@@ -595,8 +595,8 @@ class SyncCoordinator(
                 )
                 saveBase(local, remoteFile.revision)
                 markClean(local)
-                finish("已连接 ${provider.label}")
-                emit("已连接 ${provider.label}")
+                finish("Connected to ${provider.label}")
+                emit("Connected to ${provider.label}")
                 scheduleAutoSync()
                 true
             } else {
@@ -623,8 +623,8 @@ class SyncCoordinator(
                             )
                         )
                         saveBase(remote, remoteFile.revision)
-                        finish("已连接 ${provider.label}")
-                        emit("已连接 ${provider.label}")
+                        finish("Connected to ${provider.label}")
+                        emit("Connected to ${provider.label}")
                         true
                     }
                     remoteEmpty -> {
@@ -648,8 +648,8 @@ class SyncCoordinator(
                         markClean(local)
                         val aligned = reconcileAfterPush(provider, token, newAccount, uploaded, local)
                         if (aligned) {
-                            finish("已上传本机数据")
-                            emit("已连接 ${provider.label}，本机数据已上传")
+                            finish("Uploaded this device's data")
+                            emit("Connected to ${provider.label}; this device's data was uploaded")
                         }
                         true
                     }
@@ -672,8 +672,8 @@ class SyncCoordinator(
                             )
                         )
                         saveBase(remote, remoteFile.revision)
-                        finish("已从云端恢复数据")
-                        emit("已连接 ${provider.label}，已从云端恢复数据")
+                        finish("Restored data from the cloud")
+                        emit("Connected to ${provider.label}; restored data from the cloud")
                         scheduleAutoSync()
                         true
                     }
@@ -697,7 +697,7 @@ class SyncCoordinator(
                                     local = local,
                                     remote = remote,
                                 ),
-                                message = "本机和云端都有数据，请选择首次合并方式。",
+                                message = "Both this device and the cloud have data; choose how to merge the first time.",
                                 error = "",
                             )
                         }
@@ -710,7 +710,7 @@ class SyncCoordinator(
             emit(error.message, error = true)
             false
         } catch (error: Exception) {
-            val message = error.message ?: "连接失败"
+            val message = error.message ?: "Connection failed"
             fail(message)
             emit(message, error = true)
             false
@@ -720,10 +720,10 @@ class SyncCoordinator(
     suspend fun resolveInitial(strategy: SyncStrategy): Boolean = mutex.withLock {
         val pending = pendingInitial ?: return@withLock false
         if (!ensureBackup()) return@withLock false
-        _state.update { it.copy(status = SyncStatus.Syncing, phase = "正在合并本机与云端", error = "", message = "") }
+        _state.update { it.copy(status = SyncStatus.Syncing, phase = "Merging this device with the cloud", error = "", message = "") }
         return@withLock try {
             val provider = providers[pending.providerId]
-                ?: throw SyncException(SyncFailureKind.Unknown, "同步后端不可用")
+                ?: throw SyncException(SyncFailureKind.Unknown, "Sync backend unavailable")
             val build = { remote: SyncSnapshot ->
                 val content = SyncMerge.applyStrategy(pending.local, remote, strategy)
                 SyncSnapshot(
@@ -775,14 +775,14 @@ class SyncCoordinator(
             pendingInitial = null
             val aligned = reconcileAfterPush(provider, pending.token, initialAccount, pushed, merged)
             if (aligned) {
-                finish("首次合并完成")
-                emit("首次合并完成，已同步 ${merged.summary()}")
+                finish("First merge done")
+                emit("First merge done; synced ${merged.summary()}")
             }
             scheduleAutoSync()
             aligned
         } catch (error: Exception) {
-            fail(error.message ?: "首次合并失败")
-            emit(error.message ?: "首次合并失败", error = true)
+            fail(error.message ?: "First merge failed")
+            emit(error.message ?: "First merge failed", error = true)
             false
         }
     }
@@ -807,7 +807,7 @@ class SyncCoordinator(
                 syncDao.conflictsOnce().size
             }
         } catch (error: Exception) {
-            emit(error.message ?: "处理冲突失败", error = true)
+            emit(error.message ?: "Handling conflicts failed", error = true)
             return false
         }
         resolved?.let { applyLocalRefs(SyncRefMerge.index(listOf(it), emptyList()).values) }
@@ -815,7 +815,7 @@ class SyncCoordinator(
             _state.update {
                 it.copy(
                     status = SyncStatus.NeedsAttention,
-                    message = "还有 $remaining 个冲突需要处理。",
+                    message = "$remaining conflicts still need handling.",
                 )
             }
             return true
@@ -827,7 +827,7 @@ class SyncCoordinator(
         val account = syncDao.accountOnce() ?: return@withLock false
         if (syncDao.conflictsOnce().isNotEmpty()) return@withLock false
         val provider = providers[account.provider] ?: run {
-            fail("同步后端不可用：${account.provider}")
+            fail("Sync backend unavailable: ${account.provider}")
             return@withLock false
         }
         val token = credential(account.provider)
@@ -838,7 +838,7 @@ class SyncCoordinator(
         _state.update {
             it.copy(
                 status = SyncStatus.Syncing,
-                phase = "正在上传冲突处理结果",
+                phase = "Uploading the conflict result",
                 message = "",
                 error = "",
             )
@@ -848,8 +848,8 @@ class SyncCoordinator(
             if (account.remoteRevision.isNotBlank() && remoteFile.revision.isNotBlank() &&
                 remoteFile.revision != account.remoteRevision
             ) {
-                fail("云端文件在冲突处理期间又发生变化，请重新同步。")
-                emit("云端文件已变化，请重新同步。", error = true)
+                fail("The cloud file changed again while conflicts were handled; sync again.")
+                emit("The cloud file changed; sync again.", error = true)
                 return@withLock false
             }
             val local = localSnapshot()
@@ -857,8 +857,8 @@ class SyncCoordinator(
                 upload(provider, token, account, local, remoteFile)
             } catch (error: SyncException) {
                 if (error.kind != SyncFailureKind.Precondition) throw error
-                fail("云端文件在冲突处理期间又发生变化，请重新同步。")
-                emit("云端文件已变化，请重新同步。", error = true)
+                fail("The cloud file changed again while conflicts were handled; sync again.")
+                emit("The cloud file changed; sync again.", error = true)
                 return@withLock false
             }
             saveBase(local, uploaded.revision)
@@ -872,8 +872,8 @@ class SyncCoordinator(
             val aligned = reconcileAfterPush(provider, token, account, uploaded, local)
             pruneTombstones()
             if (aligned) {
-                finish("冲突已处理，已同步 ${local.playlists.count { it.deletedAt == null }} 个歌单")
-                emit("冲突已处理并完成同步")
+                finish("Conflicts handled; synced ${local.playlists.count { it.deletedAt == null }} playlists")
+                emit("Conflicts handled and sync finished")
             }
             aligned
         } catch (error: SyncException) {
@@ -881,7 +881,7 @@ class SyncCoordinator(
             emit(error.message, error = true)
             false
         } catch (error: Exception) {
-            val message = error.message ?: "冲突处理结果上传失败"
+            val message = error.message ?: "Uploading the conflict result failed"
             fail(message)
             emit(message, error = true)
             false
@@ -914,7 +914,7 @@ class SyncCoordinator(
                 providerLabel = "",
                 status = SyncStatus.NoAccount,
                 phase = "",
-                message = "同步已断开，本机歌单保留。",
+                message = "Sync disconnected; playlists on this device are kept.",
                 error = "",
                 conflicts = emptyList(),
                 initialMerge = null,
@@ -974,7 +974,7 @@ class SyncCoordinator(
         var account = resolveWebDavDraft(draft)
         if (account.trustSelfSigned && account.baseUrl?.isHttps == true) {
             _state.update {
-                it.copy(status = SyncStatus.Syncing, phase = "正在读取服务器证书", message = "", error = "", webDavCheck = WebDavCheckUi())
+                it.copy(status = SyncStatus.Syncing, phase = "Reading the server certificate", message = "", error = "", webDavCheck = WebDavCheckUi())
             }
             val decision = try {
                 inspectCertificate(account)
@@ -1014,7 +1014,7 @@ class SyncCoordinator(
 
     private suspend fun updateWebDavAccount(account: WebDavAccount): Boolean {
         _state.update {
-            it.copy(status = SyncStatus.Syncing, phase = "正在连接 WebDAV", message = "", error = "", webDavCheck = WebDavCheckUi())
+            it.copy(status = SyncStatus.Syncing, phase = "Connecting to WebDAV", message = "", error = "", webDavCheck = WebDavCheckUi())
         }
         return try {
             // 先用新密码 / 新指纹访问一次，对了才存，免得把错的覆盖掉原来那个
@@ -1037,14 +1037,14 @@ class SyncCoordinator(
             val account = draft?.let(::resolveWebDavDraft) ?: webDavAccounts.load()
             if (account == null) {
                 _state.update {
-                    it.copy(webDavCheck = WebDavCheckUi(ok = false, message = "本机没有保存 WebDAV 账号，请重新连接。"))
+                    it.copy(webDavCheck = WebDavCheckUi(ok = false, message = "No WebDAV account is saved on this device; please reconnect."))
                 }
                 return@launch
             }
             val target = account.locationKey()
             val saved = draft == null
             _state.update {
-                it.copy(webDavCheck = WebDavCheckUi(running = true, message = "正在测试…", target = target, saved = saved))
+                it.copy(webDavCheck = WebDavCheckUi(running = true, message = "Testing…", target = target, saved = saved))
             }
             val result = try {
                 when (val decision = inspectCertificate(account)) {
@@ -1077,7 +1077,7 @@ class SyncCoordinator(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                WebDavCheckUi(ok = false, message = error.message ?: "测试失败", target = target, saved = saved)
+                WebDavCheckUi(ok = false, message = error.message ?: "Test failed", target = target, saved = saved)
             }
             // 测试期间又开始了另一次测试时，只认最后那次
             _state.update { current ->
@@ -1094,7 +1094,7 @@ class SyncCoordinator(
      */
     suspend fun saveWebDavStorage(draft: WebDavAccount): String {
         if (syncDao.accountOnce()?.provider == WebDavSyncProvider.ID) {
-            return "音乐库同步正在用 WebDAV，请在“音乐库同步”里修改这个账号。"
+            return "Music library sync is using WebDAV; change this account in Music library sync."
         }
         var account = resolveWebDavDraft(draft)
         return try {
@@ -1117,7 +1117,7 @@ class SyncCoordinator(
         } catch (error: WebDavException) {
             WebDavMessages.describe(error, account)
         } catch (error: Exception) {
-            error.message ?: "保存失败"
+            error.message ?: "Save failed"
         }
     }
 
@@ -1140,7 +1140,7 @@ class SyncCoordinator(
     private fun saveCredential(providerId: String, credential: String) {
         if (providerId == WebDavSyncProvider.ID) {
             val account = WebDavAccount.decode(credential)
-                ?: throw SyncException(SyncFailureKind.Auth, "WebDAV 账号信息不完整，请重新连接。")
+                ?: throw SyncException(SyncFailureKind.Auth, "The WebDAV account details are incomplete; please reconnect.")
             webDavAccounts.save(account)
         } else {
             secretStore.saveToken(providerId, credential)
@@ -1158,8 +1158,8 @@ class SyncCoordinator(
     }
 
     private fun missingCredentialMessage(providerId: String): String =
-        if (providerId == WebDavSyncProvider.ID) "本机没有 WebDAV 账号了，请在“同步位置 › WebDAV”里重新连接。"
-        else "同步令牌已失效，请在设置中重新连接。"
+        if (providerId == WebDavSyncProvider.ID) "This device no longer has the WebDAV account; reconnect in Sync location › WebDAV."
+        else "The sync token expired; reconnect in settings."
 
     suspend fun export(uri: Uri): Boolean = try {
         val snapshot = localSnapshot(includeDeleted = false).copy(
@@ -1168,11 +1168,11 @@ class SyncCoordinator(
         )
         context.contentResolver.openOutputStream(uri)?.use { output ->
             output.write(SyncJson.encode(snapshot).toByteArray(Charsets.UTF_8))
-        } ?: error("无法写入所选文件")
-        emit("已导出 ${snapshot.summary()}")
+        } ?: error("Can't write the chosen file")
+        emit("Exported ${snapshot.summary()}")
         true
     } catch (error: Exception) {
-        emit(error.message ?: "导出失败", error = true)
+        emit(error.message ?: "Export failed", error = true)
         false
     }
 
@@ -1180,9 +1180,9 @@ class SyncCoordinator(
         val raw = try {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 input.readBytes().toString(Charsets.UTF_8)
-            } ?: error("无法读取所选文件")
+            } ?: error("Can't read the chosen file")
         } catch (error: Exception) {
-            emit(error.message ?: "导入失败", error = true)
+            emit(error.message ?: "Import failed", error = true)
             return false
         }
         return importText(raw, strategy)
@@ -1206,14 +1206,14 @@ class SyncCoordinator(
             db.withTransaction { libraryDao.clearPlaylists() }
         }
         applySnapshot(snapshot, removeAbsent = strategy == SyncStrategy.Remote, dirty = true)
-        emit("已导入 ${snapshot.summary()}")
+        emit("Imported ${snapshot.summary()}")
         onLocalChange()
         true
     } catch (error: SyncException) {
         emit(error.message, error = true)
         false
     } catch (error: Exception) {
-        emit(error.message ?: "导入失败", error = true)
+        emit(error.message ?: "Import failed", error = true)
         false
     }
 
@@ -1299,7 +1299,7 @@ class SyncCoordinator(
         if (bytes > limit) {
             throw SyncException(
                 SyncFailureKind.Unknown,
-                "同步文件超过 ${limit / 1024} KB，这个同步位置读不全这么大的文件，已停止自动上传。请导出本机备份并整理歌单后再同步。",
+                "The sync file is over ${limit / 1024} KB; this sync location can't read a file that large, so automatic upload stopped. Export a backup, tidy your playlists, then sync again.",
             )
         }
         // 超过 1 MB 只提示，照常上传：本地歌多了文件指纹和云端位置，体积变大是正常的
@@ -1320,11 +1320,11 @@ class SyncCoordinator(
                     ?.drop(10)
                     ?.forEach { old -> old.delete() }
             }
-            emit("已在本机创建处理前备份（${snapshot.summary()}）")
+            emit("Backed up on this device first (${snapshot.summary()})")
             true
         } catch (error: Exception) {
-            fail("无法创建本机备份，已取消本次操作：${error.message ?: "存储不可写"}")
-            emit("无法创建本机备份，操作已取消。", error = true)
+            fail("Couldn't create a local backup; cancelled: ${error.message ?: "Storage not writable"}")
+            emit("Couldn't create a local backup; the operation was cancelled.", error = true)
             false
         }
     }
@@ -1387,7 +1387,7 @@ class SyncCoordinator(
         } catch (cancel: CancellationException) {
             throw cancel
         } catch (error: Exception) {
-            com.mytv.mymusic.AppLog.w("Sync", "洛雪音源写回失败：${error.javaClass.simpleName}: ${error.message}")
+            com.mytv.mymusic.AppLog.w("Sync", "Writing LX sources back failed: ${error.javaClass.simpleName}: ${error.message}")
         }
     }
 
@@ -1403,7 +1403,7 @@ class SyncCoordinator(
         } catch (cancel: CancellationException) {
             throw cancel
         } catch (error: Exception) {
-            com.mytv.mymusic.AppLog.w("Sync", "本地歌线索写回失败：${error.javaClass.simpleName}: ${error.message}")
+            com.mytv.mymusic.AppLog.w("Sync", "Writing local track references back failed: ${error.javaClass.simpleName}: ${error.message}")
         }
     }
 
@@ -1465,9 +1465,9 @@ class SyncCoordinator(
         val favoriteCount = favorites.count { it.deletedAt == null }
         val cookieCount = cookies.count { it.deletedAt == null && it.value.isNotBlank() }
         return buildString {
-            append("$playlistCount 个歌单")
-            if (favoriteCount > 0) append("、$favoriteCount 首收藏")
-            if (cookieCount > 0) append("、$cookieCount 个平台账号")
+            append("$playlistCount playlists")
+            if (favoriteCount > 0) append(", $favoriteCount favorites")
+            if (cookieCount > 0) append(", $cookieCount platform accounts")
         }
     }
 
@@ -1552,12 +1552,12 @@ class SyncCoordinator(
     ): Boolean = try {
         reconcileAfterPushOrThrow(provider, token, account, uploaded, pushed)
     } catch (error: SyncException) {
-        fail("已上传，但读取云端最新版本失败：${error.message}")
+        fail("Uploaded, but reading the latest cloud version failed: ${error.message}")
         scheduleAutoSync()
         false
     } catch (error: Exception) {
-        val message = error.message ?: "请稍后重试"
-        fail("已上传，但校验云端最新版本失败：$message")
+        val message = error.message ?: "Try again later"
+        fail("Uploaded, but checking the latest cloud version failed: $message")
         scheduleAutoSync()
         false
     }
@@ -1574,7 +1574,7 @@ class SyncCoordinator(
         var round = 0
         while (true) {
             if (round++ >= MAX_PUSH_ROUNDS) {
-                fail("云端文件在同步期间持续变化，请稍后再试。")
+                fail("The cloud file kept changing during sync; try again later.")
                 return false
             }
             val latest = provider.read(token, account.remoteId)
@@ -1610,7 +1610,7 @@ class SyncCoordinator(
                     it.copy(
                         status = SyncStatus.NeedsAttention,
                         phase = "",
-                        message = "有 ${result.conflicts.size} 个歌单需要处理冲突，处理前不会上传。",
+                        message = "${result.conflicts.size} playlists have conflicts; nothing uploads until they're resolved.",
                         error = "",
                     )
                 }
@@ -1636,7 +1636,7 @@ class SyncCoordinator(
             // 上传前再确认一次；若又变了，回到循环开头按最新内容重新合并
             val check = provider.read(token, account.remoteId)
             if (!remoteMatches(check, latest)) continue
-            _state.update { it.copy(phase = "正在同步其他设备的更新") }
+            _state.update { it.copy(phase = "Syncing updates from other devices") }
             applySnapshot(merged, removeAbsent = false, dirty = true)
             lastUploaded = try {
                 upload(provider, token, account, merged, check)
@@ -1750,7 +1750,7 @@ class SyncCoordinator(
         val remote = SyncJson.decodePlaylist(conflict.remoteSnapshot)
         return SyncConflictUi(
             playlistId = conflict.playlistId,
-            name = local?.name ?: remote?.name ?: "未命名歌单",
+            name = local?.name ?: remote?.name ?: "Untitled playlist",
             localTracks = local?.tracks?.size ?: 0,
             remoteTracks = remote?.tracks?.size ?: 0,
             localUpdatedAt = SyncTime.toMillis(local?.updatedAt).takeIf { it > 0 } ?: conflict.detectedAt,

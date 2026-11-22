@@ -27,7 +27,7 @@ sealed interface TransferContent {
     data class Unsupported(val message: String) : TransferContent
 }
 
-class TransferTooLarge : IOException("文件解压后太大")
+class TransferTooLarge : IOException("The file is too large once unpacked")
 
 object TransferReader {
     /** 读进来的原始字节上限。 */
@@ -36,20 +36,20 @@ object TransferReader {
     /** gzip 解出来的上限，防压缩炸弹。 */
     const val MAX_INFLATED_BYTES = 96L * 1024 * 1024
 
-    const val UNKNOWN_FILE = "认不出这个文件，只能导入 myMusic 歌单文件、整库备份和洛雪导出的歌单"
+    const val UNKNOWN_FILE = "Unrecognized file; only myMusic playlist files, full backups and LX playlists can be imported"
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = false }
 
     fun read(bytes: ByteArray, inflateLimit: Long = MAX_INFLATED_BYTES): TransferContent {
-        if (bytes.isEmpty()) return TransferContent.Unsupported("文件是空的")
-        if (bytes.size > MAX_FILE_BYTES) return TransferContent.Unsupported("文件太大（超过 32MB）")
+        if (bytes.isEmpty()) return TransferContent.Unsupported("The file is empty")
+        if (bytes.size > MAX_FILE_BYTES) return TransferContent.Unsupported("The file is too large (over 32 MB)")
         val raw = if (isGzip(bytes)) {
             try {
                 inflate(bytes, inflateLimit)
             } catch (_: TransferTooLarge) {
-                return TransferContent.Unsupported("文件解压后太大，不像是歌单文件")
+                return TransferContent.Unsupported("The file is too large once unpacked and doesn't look like a playlist")
             } catch (_: IOException) {
-                return TransferContent.Unsupported("文件压缩格式坏了，读不出来")
+                return TransferContent.Unsupported("The archive is corrupt and can't be read")
             }
         } else {
             bytes
@@ -64,7 +64,7 @@ object TransferReader {
                     ?: TransferContent.Unsupported(UNKNOWN_FILE)
                 schema == SCHEMA || (type == null && root["playlists"] is JsonArray) -> TransferContent.Library(text.removePrefix(BOM))
                 LxKind.of(type) != null -> TransferContent.Lx(LxListCodec.parse(root))
-                type != null -> TransferContent.Unsupported("不认识的文件格式（type=$type）")
+                type != null -> TransferContent.Unsupported("Unknown file format (type=$type)")
                 else -> TransferContent.Unsupported(UNKNOWN_FILE)
             }
         } catch (error: IllegalArgumentException) {

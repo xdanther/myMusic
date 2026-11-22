@@ -96,7 +96,7 @@ class GistSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Play
             id = body["id"]?.jsonPrimitive?.content.orEmpty(),
             login = body["login"]?.jsonPrimitive?.content.orEmpty(),
         ).also {
-            if (it.login.isBlank()) throw SyncException(SyncFailureKind.Auth, "令牌无法读取 GitHub 账号")
+            if (it.login.isBlank()) throw SyncException(SyncFailureKind.Auth, "The token can't read the GitHub account")
         }
     }
 
@@ -107,7 +107,7 @@ class GistSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Play
 
     override suspend fun create(token: String, content: String): RemoteFile = call {
         val payload = buildJsonObject {
-            put("description", "myMusic 自建歌单同步")
+            put("description", "myMusic playlist sync")
             put("public", false)
             put(
                 "files",
@@ -138,9 +138,9 @@ class GistSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Play
 
     private fun parseFile(root: JsonObject): RemoteFile {
         val file = root["files"]?.jsonObject?.get(fileName)?.jsonObject
-            ?: throw SyncException(SyncFailureKind.Corrupt, "云端 Gist 里没有 $fileName，无法同步。")
+            ?: throw SyncException(SyncFailureKind.Corrupt, "The cloud Gist has no $fileName, so syncing can't continue.")
         val content = file["content"]?.jsonPrimitive?.content
-            ?: throw SyncException(SyncFailureKind.Corrupt, "云端文件内容无法读取。")
+            ?: throw SyncException(SyncFailureKind.Corrupt, "The cloud file couldn't be read.")
         val revision = runCatching {
             root["history"]?.jsonArray?.firstOrNull()?.jsonObject?.get("version")?.jsonPrimitive?.content
         }.getOrNull().orEmpty()
@@ -165,14 +165,14 @@ class GistSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Play
         } catch (error: SyncException) {
             throw error
         } catch (error: IOException) {
-            throw SyncException(SyncFailureKind.Network, "网络不可达：${error.message ?: "请检查连接"}")
+            throw SyncException(SyncFailureKind.Network, "Network unreachable: ${error.message ?: "请检查连接"}")
         }
     }
 }
 
 class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : PlaylistSyncProvider {
     override val id = "gitee"
-    override val label = "Gitee 代码片段"
+    override val label = "Gitee snippets"
     override val fileName = "mymusic-library.json"
     private val api = "https://gitee.com/api/v5".toHttpUrl()
 
@@ -183,7 +183,7 @@ class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Pla
             id = root["id"]?.jsonPrimitive?.content.orEmpty(),
             login = root["login"]?.jsonPrimitive?.content.orEmpty(),
         ).also {
-            if (it.login.isBlank()) throw SyncException(SyncFailureKind.Auth, "令牌无法读取 Gitee 账号")
+            if (it.login.isBlank()) throw SyncException(SyncFailureKind.Auth, "The token can't read the Gitee account")
         }
     }
 
@@ -198,7 +198,7 @@ class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Pla
     override suspend fun create(token: String, content: String): RemoteFile = call {
         val payload = buildJsonObject {
             put("access_token", token)
-            put("description", "myMusic 自建歌单同步")
+            put("description", "myMusic playlist sync")
             put("public", false)
             put(
                 "files",
@@ -224,7 +224,7 @@ class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Pla
     override suspend fun update(token: String, remoteId: String, content: String, expectedRevision: String): RemoteFile = call {
         val payload = buildJsonObject {
             put("access_token", token)
-            put("description", "myMusic 自建歌单同步")
+            put("description", "myMusic playlist sync")
             put(
                 "files",
                 buildJsonObject {
@@ -248,9 +248,9 @@ class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Pla
 
     private fun parseFile(root: JsonObject): RemoteFile {
         val file = root["files"]?.jsonObject?.get(fileName)?.jsonObject
-            ?: throw SyncException(SyncFailureKind.Corrupt, "云端代码片段里没有 $fileName，无法同步。")
+            ?: throw SyncException(SyncFailureKind.Corrupt, "The cloud snippet has no $fileName, so syncing can't continue.")
         val content = file["content"]?.jsonPrimitive?.content
-            ?: throw SyncException(SyncFailureKind.Corrupt, "云端文件内容无法读取。")
+            ?: throw SyncException(SyncFailureKind.Corrupt, "The cloud file couldn't be read.")
         return RemoteFile(
             id = root["id"]?.jsonPrimitive?.content.orEmpty(),
             content = content,
@@ -271,7 +271,7 @@ class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Pla
         } catch (error: SyncException) {
             throw error
         } catch (error: IOException) {
-            throw SyncException(SyncFailureKind.Network, "网络不可达：${error.message ?: "请检查连接"}")
+            throw SyncException(SyncFailureKind.Network, "Network unreachable: ${error.message ?: "请检查连接"}")
         }
     }
 }
@@ -282,12 +282,12 @@ private fun httpFailure(code: Int, raw: String): SyncException {
         root["message"]?.jsonPrimitive?.content.orEmpty()
     }.getOrDefault("")
     return when (code) {
-        401 -> SyncException(SyncFailureKind.Auth, "令牌无效或已过期，请重新生成。")
-        403 -> SyncException(SyncFailureKind.Permission, "令牌权限不足，请至少授予代码片段 / Gist 权限。")
-        404 -> SyncException(SyncFailureKind.NotFound, "找不到云端文件，请确认链接或重新连接。")
+        401 -> SyncException(SyncFailureKind.Auth, "The token is invalid or expired; generate a new one.")
+        403 -> SyncException(SyncFailureKind.Permission, "The token lacks permission; grant at least snippet / Gist access.")
+        404 -> SyncException(SyncFailureKind.NotFound, "Cloud file not found; check the link or reconnect.")
         else -> SyncException(
             SyncFailureKind.Unknown,
-            if (detail.isBlank()) "同步服务返回错误（HTTP $code）" else "同步服务返回错误：$detail",
+            if (detail.isBlank()) "The sync service returned an error (HTTP $code)" else "The sync service returned an error: $detail",
         )
     }
 }
@@ -299,6 +299,6 @@ private inline fun <T> call(block: () -> T): T = try {
 } catch (error: Exception) {
     throw SyncException(
         SyncFailureKind.Unknown,
-        error.message?.takeIf { it.isNotBlank() } ?: "同步失败（${error.javaClass.simpleName}）",
+        error.message?.takeIf { it.isNotBlank() } ?: "Sync failed (${error.javaClass.simpleName})",
     )
 }

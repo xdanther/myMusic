@@ -58,15 +58,15 @@ data class ImportPlan(
     val miguResolved: Int get() = lists.sumOf { it.miguResolved }
 
     companion object {
-        const val LX_LABEL = "洛雪音乐"
+        const val LX_LABEL = "LX Music"
         const val MYMUSIC_LABEL = "myMusic"
     }
 }
 
 enum class ImportTarget(val label: String) {
-    Favorites("合并到收藏"),
-    Merge("合并到同名歌单"),
-    New("新建歌单"),
+    Favorites("Merge into favorites"),
+    Merge("Merge into the same-named playlist"),
+    New("New playlist"),
 }
 
 data class ImportChoice(val include: Boolean, val target: ImportTarget)
@@ -121,7 +121,7 @@ internal fun nameKey(name: String): String = name.trim().lowercase()
 
 /** '跑步'被占了 →'跑步（2）'，再占 →'跑步（3）'。 */
 internal fun newListName(wanted: String, existing: Set<String>): String {
-    val base = wanted.trim().ifBlank { "未命名歌单" }
+    val base = wanted.trim().ifBlank { "Untitled playlist" }
     val taken = existing.mapTo(HashSet(), ::nameKey)
     if (nameKey(base) !in taken) return base
     var n = 2
@@ -131,15 +131,15 @@ internal fun newListName(wanted: String, existing: Set<String>): String {
 
 /** 新建时用的名字：同名的是绑定歌单时先加'（导入）'，再避开已有的名字。 */
 internal fun newNameFor(plan: ImportPlan, list: ImportedList, existing: Set<String> = plan.existingNames): String {
-    val wanted = if (plan.sameName[list.sourceId]?.bound == true) "${list.name}（导入）" else list.name
+    val wanted = if (plan.sameName[list.sourceId]?.bound == true) "${list.name} (imported)" else list.name
     return newListName(wanted, existing)
 }
 
 /** 预览行上的目标文字。 */
 internal fun targetLabel(plan: ImportPlan, list: ImportedList, target: ImportTarget): String = when (target) {
     ImportTarget.Favorites -> target.label
-    ImportTarget.Merge -> "合并到'${plan.sameName[list.sourceId]?.name ?: list.name}'"
-    ImportTarget.New -> "新建歌单'${newNameFor(plan, list)}'"
+    ImportTarget.Merge -> "Merge into '${plan.sameName[list.sourceId]?.name ?: list.name}'"
+    ImportTarget.New -> "New playlist '${newNameFor(plan, list)}'"
 }
 
 /** 去重用的 key：酷狗 hash 大小写不敏感，按小写比。 */
@@ -156,21 +156,21 @@ internal fun importSkippedText(plan: ImportPlan): String {
     fun sum(reason: SkipReason) = plan.lists.sumOf { it.skipped[reason] ?: 0 }
     val parts = mutableListOf<String>()
     val localMissing = sum(SkipReason.LocalNotFound)
-    if (localMissing > 0) parts += "本地文件 $localMissing 首在这台设备上没找到同名歌曲"
-    if (plan.skippedTemp > 0) parts += "临时列表（temp）${plan.skippedTemp} 首不导入"
+    if (localMissing > 0) parts += "Local files: $localMissing tracks matched no song on this device"
+    if (plan.skippedTemp > 0) parts += "Temporary list: ${plan.skippedTemp} tracks skipped"
     if (plan.migu > 0) {
         val missed = plan.migu - plan.miguResolved
         parts += if (missed > 0) {
-            "咪咕 ${plan.migu} 首在线换取，$missed 首没换到，先按版权号保存，可能放不了"
+            "Migu: ${plan.migu} tracks matched online, $missed not matched; saved by copyright id and may not play"
         } else {
-            "咪咕 ${plan.migu} 首已在线换取"
+            "Migu: ${plan.migu} tracks matched online"
         }
     }
     val unknown = sum(SkipReason.UnknownSource) + sum(SkipReason.MissingId)
-    if (unknown > 0) parts += "其它平台或缺少 id 的 $unknown 首本应用放不了"
+    if (unknown > 0) parts += "$unknown tracks from other platforms or without an id can't play here"
     val bad = sum(SkipReason.BadFormat) + sum(SkipReason.Duplicate)
-    if (bad > 0) parts += "格式不对或重复的 $bad 首"
-    return if (parts.isEmpty()) "" else parts.joinToString("；") + "。"
+    if (bad > 0) parts += "$bad tracks were malformed or duplicated"
+    return if (parts.isEmpty()) "" else parts.joinToString("; ") + "."
 }
 
 /**

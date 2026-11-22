@@ -31,14 +31,14 @@ internal abstract class LanPanelServer(
     protected abstract fun isExpired(): Boolean
 
     /** 过期时网页上看到的话。 */
-    protected open val expiredMessage: String = "二维码已过期，请扫描电视上的新二维码"
+    protected open val expiredMessage: String = "The QR code expired; scan the new one on the TV"
 
     /** 会话路径之后的部分（`""`、`index.html`、`api/…`）交给子类。 */
     protected abstract fun route(http: IHTTPSession, route: String): Response
 
     fun startPanel(): LanPanelStarted {
         val advertisedHost = if (bindHost == null) {
-            findSyncSetupAddress()?.hostAddress ?: throw IOException("未找到局域网地址，请连接 Wi-Fi 或有线网络")
+            findSyncSetupAddress()?.hostAddress ?: throw IOException("No local network address; connect to Wi-Fi or Ethernet")
         } else {
             bindHost
         }
@@ -56,20 +56,20 @@ internal abstract class LanPanelServer(
 
     final override fun serve(session: IHTTPSession): Response {
         if (!session.isLocalPeer()) {
-            return errorResponse(Response.Status.FORBIDDEN, "仅允许局域网设备访问")
+            return errorResponse(Response.Status.FORBIDDEN, "Only devices on the local network may connect")
         }
         if (isExpired()) {
             return errorResponse(Response.Status.GONE, expiredMessage)
         }
         val uri = session.uri.orEmpty()
         if (!uri.startsWith(sessionPath)) {
-            return errorResponse(Response.Status.NOT_FOUND, "页面不存在")
+            return errorResponse(Response.Status.NOT_FOUND, "Page not found")
         }
         return route(session, uri.removePrefix(sessionPath))
     }
 
     protected fun asset(name: String, mime: String, html: Boolean = false): Response {
-        val bytes = assets(name) ?: return errorResponse(Response.Status.NOT_FOUND, "面板资源未打包")
+        val bytes = assets(name) ?: return errorResponse(Response.Status.NOT_FOUND, "Panel assets not bundled")
         return textResponse(Response.Status.OK, mime, String(bytes, Charsets.UTF_8), html)
     }
 
@@ -130,7 +130,7 @@ internal abstract class LanPanelServer(
         maxBytes: Long,
         crossSiteMessage: String,
         badRequestMessage: String,
-        tooLargeMessage: String = "请求内容为空或过大",
+        tooLargeMessage: String = "The request is empty or too large",
     ): Response? {
         if (header("sec-fetch-site") == "cross-site" || !hasSameOrigin()) {
             return errorResponse(Response.Status.FORBIDDEN, crossSiteMessage)

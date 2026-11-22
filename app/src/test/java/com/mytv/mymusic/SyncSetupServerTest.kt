@@ -104,9 +104,9 @@ class SyncSetupServerTest {
             assertEquals("working", response.state())
         }
 
-        snapshot.set(SyncSetupSnapshot(sync = SyncUiState(status = SyncStatus.Syncing, phase = "正在验证令牌")))
+        snapshot.set(SyncSetupSnapshot(sync = SyncUiState(status = SyncStatus.Syncing, phase = "Verifying the token")))
         get(base, "api/status").use { response ->
-            assertEquals("正在验证令牌", kotlinx.serialization.json.Json.parseToJsonElement(response.body.string())
+            assertEquals("Verifying the token", kotlinx.serialization.json.Json.parseToJsonElement(response.body.string())
                 .jsonObject["detail"]?.jsonPrimitive?.content)
         }
         snapshot.set(
@@ -216,7 +216,7 @@ class SyncSetupServerTest {
             assertEquals("working", response.state())
         }
         get(base, "api/status").use { response -> assertEquals("working", response.state()) }
-        snapshot.set(SyncSetupSnapshot(sync = SyncUiState(status = SyncStatus.Syncing, phase = "正在验证令牌")))
+        snapshot.set(SyncSetupSnapshot(sync = SyncUiState(status = SyncStatus.Syncing, phase = "Verifying the token")))
         get(base, "api/status").use { response -> assertEquals("working", response.state()) }
         snapshot.set(SyncSetupSnapshot(sync = SyncUiState(status = SyncStatus.Error, error = message)))
         get(base, "api/status").use { response -> assertEquals("error", response.state()) }
@@ -278,7 +278,7 @@ class SyncSetupServerTest {
         val error = session.status()
         assertEquals(SyncSetupPhase.Error, error.phase)
         assertFalse(error.detail.contains("private-token"))
-        assertTrue(error.detail.contains("电视上的错误详情"))
+        assertTrue(error.detail.contains("Check the error on the TV"))
     }
 
     @Test

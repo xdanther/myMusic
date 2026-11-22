@@ -160,7 +160,7 @@ internal class SyncSetupSession(
             onSubmit(SyncSetupSubmission(submission.provider, token, submission.remote.trim(), webDav))
             SyncSetupSubmitResult.Accepted
         } catch (_: Exception) {
-            submissionError = "电视没有接收这次配置，请返回电视重试。"
+            submissionError = "The TV didn't accept this setup; go back to the TV and retry."
             SyncSetupSubmitResult.Failed
         }
     }
@@ -170,8 +170,8 @@ internal class SyncSetupSession(
         val current = snapshot()
         val provider = submittedProvider ?: return SyncSetupStatus(
             phase = SyncSetupPhase.Idle,
-            title = "等待配置",
-            detail = "填写访问令牌或 WebDAV 账号后，电视会验证并完成连接。",
+            title = "Waiting for setup",
+            detail = "Enter an access token or WebDAV account and the TV will verify and connect.",
             provider = current.provider.takeIf { it in PROVIDERS } ?: "gist",
         )
         val sync = current.sync
@@ -184,38 +184,38 @@ internal class SyncSetupSession(
         }
         return when {
             submissionError.isNotBlank() -> SyncSetupStatus(
-                SyncSetupPhase.Error, "连接未完成", submissionError, provider,
+                SyncSetupPhase.Error, "Connection incomplete", submissionError, provider,
             )
             sync.initialMerge != null -> SyncSetupStatus(
                 SyncSetupPhase.NeedsTv,
-                "请在电视上继续",
-                "本机和云端都有歌单。请在电视上选择首次合并方式，此页面会自动更新。",
+                "Continue on the TV",
+                "This device and the cloud both have playlists. Choose how to merge on the TV; this page updates automatically.",
                 provider,
             )
             sync.status == SyncStatus.Syncing -> SyncSetupStatus(
                 SyncSetupPhase.Working,
-                "正在连接",
-                sync.phase.ifBlank { "电视正在验证账号并读取云端文件。" },
+                "Connecting",
+                sync.phase.ifBlank { "The TV is verifying the account and reading the cloud file." },
                 provider,
             )
             sync.error.isNotBlank() && (observedTransition || clock() - submittedAt >= STALE_ERROR_GRACE_MILLIS) ->
                 SyncSetupStatus(
                     SyncSetupPhase.Error,
-                    "连接未完成",
+                    "Connection incomplete",
                     // WebDAV 的错误文案是固定写法（不夹服务器正文），手机上要看到才知道改哪一项
                     if (provider == WebDavSyncProvider.ID) sync.error else safeSetupError(sync.error),
                     provider,
                 )
             observedTransition && account?.provider == provider && sync.error.isBlank() -> SyncSetupStatus(
                 SyncSetupPhase.Success,
-                "连接成功",
+                "Connected",
                 successDetail(provider, sync),
                 provider,
             )
             else -> SyncSetupStatus(
                 SyncSetupPhase.Working,
-                "正在等待电视",
-                "配置已发送，电视很快会显示处理进度。",
+                "Waiting for the TV",
+                "Setup sent; the TV will show progress shortly.",
                 provider,
             )
         }
@@ -229,9 +229,9 @@ internal class SyncSetupSession(
      */
     private fun successDetail(provider: String, sync: SyncUiState): String {
         val certificate = sync.webDav?.certificate?.takeIf { provider == WebDavSyncProvider.ID && !it.systemTrusted }
-            ?: return "电视已连接 ${providerLabel(provider)}，可以关闭此页面。"
-        return "电视已连接 WebDAV，并记下了服务器的${WebDavMessages.certificate(certificate)}。" +
-            "以后证书变了，电视会停下来提醒。可以关闭此页面。"
+            ?: return "The TV is connected to ${providerLabel(provider)}; you can close this page."
+        return "The TV connected to WebDAV and saved the server's ${WebDavMessages.certificate(certificate)}." +
+            "If the certificate changes later the TV will stop and warn you. You can close this page."
     }
 
     private fun isValidWebDav(account: WebDavAccount): Boolean =
@@ -242,11 +242,11 @@ internal class SyncSetupSession(
             account.directory.length <= MAX_FIELD_CHARS
 
     private fun safeSetupError(message: String): String = when {
-        message.startsWith("令牌无效") || message.startsWith("令牌权限") || message.startsWith("令牌无法读取") -> message
-        message.startsWith("找不到云端文件") || message.startsWith("同步文件") || message.startsWith("云端") -> message
-        message.startsWith("网络不可达") -> "网络不可达，请检查电视网络连接后重试。"
-        message.startsWith("同步服务返回错误") -> "同步服务暂时不可用，请稍后重试；详细错误已显示在电视上。"
-        else -> "电视未能完成连接。请查看电视上的错误详情，修正后在此重试。"
+        message.startsWith("Invalid token") || message.startsWith("Token permissions") || message.startsWith("The token can't read") -> message
+        message.startsWith("Cloud file not found") || message.startsWith("Sync file") || message.startsWith("Cloud") -> message
+        message.startsWith("Network unreachable") -> "Network unreachable; check the TV's connection and try again."
+        message.startsWith("The sync service returned an error") -> "The sync service is unavailable; try again later. The TV shows the details."
+        else -> "The TV couldn't finish connecting. Check the error on the TV, fix it, then retry here."
     }
 
     private companion object {
@@ -342,9 +342,9 @@ internal class SyncSetupServer private constructor(
         Method.POST -> if (route == "api/connect") {
             connect(http)
         } else {
-            errorResponse(Response.Status.NOT_FOUND, "接口不存在")
+            errorResponse(Response.Status.NOT_FOUND, "Endpoint not found")
         }
-        else -> errorResponse(Response.Status.METHOD_NOT_ALLOWED, "不支持此请求方式")
+        else -> errorResponse(Response.Status.METHOD_NOT_ALLOWED, "Unsupported request method")
     }
 
     private fun get(route: String): Response = when (route) {
@@ -360,7 +360,7 @@ internal class SyncSetupServer private constructor(
             },
         )
         "api/status" -> jsonResponse(Response.Status.OK, statusJson(session.status()))
-        else -> errorResponse(Response.Status.NOT_FOUND, "资源不存在")
+        else -> errorResponse(Response.Status.NOT_FOUND, "Resource not found")
     }
 
     private fun connect(http: IHTTPSession): Response {
@@ -368,23 +368,23 @@ internal class SyncSetupServer private constructor(
             customHeader = "x-mymusic-setup",
             contentType = "application/json",
             maxBytes = MAX_CONNECT_BODY_BYTES,
-            crossSiteMessage = "请从电视提供的配置页面提交",
-            badRequestMessage = "请使用配置页面中的连接按钮",
+            crossSiteMessage = "Submit from the setup page the TV provides",
+            badRequestMessage = "Use the connect button on the setup page",
         )?.let { return it }
         val body = mutableMapOf<String, String>()
         try {
             http.parseBody(body)
         } catch (_: Exception) {
-            return errorResponse(Response.Status.BAD_REQUEST, "无法读取配置")
+            return errorResponse(Response.Status.BAD_REQUEST, "Can't read the configuration")
         }
         val raw = body["postData"].orEmpty()
         if (raw.toByteArray(Charsets.UTF_8).size > MAX_CONNECT_BODY_BYTES) {
-            return errorResponse(Response.Status.BAD_REQUEST, "请求内容过大")
+            return errorResponse(Response.Status.BAD_REQUEST, "The request is too large")
         }
         val request = try {
             json.decodeFromString<ConnectRequest>(raw)
         } catch (_: Exception) {
-            return errorResponse(Response.Status.BAD_REQUEST, "配置格式不正确")
+            return errorResponse(Response.Status.BAD_REQUEST, "Invalid setup format")
         }
         return when (session.submit(request.toSubmission())) {
             SyncSetupSubmitResult.Accepted -> jsonResponse(
@@ -392,23 +392,23 @@ internal class SyncSetupServer private constructor(
                 statusJson(
                     SyncSetupStatus(
                         SyncSetupPhase.Working,
-                        "配置已发送",
-                        "电视已收到配置，正在开始验证。",
+                        "Setup sent",
+                        "The TV received the setup and is verifying it.",
                         request.provider,
                     ),
                 ),
             )
-            SyncSetupSubmitResult.Busy -> errorResponse(Response.Status.CONFLICT, "电视正在处理配置，请稍候")
+            SyncSetupSubmitResult.Busy -> errorResponse(Response.Status.CONFLICT, "The TV is applying the setup; please wait")
             SyncSetupSubmitResult.Invalid -> errorResponse(
                 Response.Status.BAD_REQUEST,
                 if (request.provider == WebDavSyncProvider.ID) {
-                    "请检查 WebDAV 服务器地址、用户名和密码"
+                    "Check the WebDAV server address, username and password"
                 } else {
-                    "请检查服务类型和令牌；已有文件 ID 或链接不能超过 2048 个字符"
+                    "Check the service type and token; an existing file ID or link can't exceed 2048 characters"
                 },
             )
-            SyncSetupSubmitResult.Expired -> errorResponse(Response.Status.GONE, "二维码已过期，请重新扫码")
-            SyncSetupSubmitResult.Failed -> errorResponse(Response.Status.INTERNAL_ERROR, "电视没有接收配置，请重试")
+            SyncSetupSubmitResult.Expired -> errorResponse(Response.Status.GONE, "The QR code expired; scan again")
+            SyncSetupSubmitResult.Failed -> errorResponse(Response.Status.INTERNAL_ERROR, "The TV didn't accept the setup; try again")
         }
     }
 
@@ -426,7 +426,7 @@ internal class SyncSetupServer private constructor(
 
 internal fun providerLabel(provider: String): String = when (provider) {
     "gist" -> "GitHub Gist"
-    "gitee" -> "Gitee 代码片段"
+    "gitee" -> "Gitee snippets"
     WebDavSyncProvider.ID -> "WebDAV"
     else -> provider
 }

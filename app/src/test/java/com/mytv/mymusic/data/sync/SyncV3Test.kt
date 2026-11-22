@@ -113,7 +113,7 @@ class SyncV3Test {
             SyncJson.decode(raw)
             fail("v4 应该被拒绝")
         } catch (error: SyncException) {
-            assertTrue(error.message.orEmpty().contains("请先更新应用"))
+            assertTrue(error.message.orEmpty().contains("update the app first"))
         }
     }
 
@@ -295,7 +295,7 @@ class SyncV3Test {
         assertEquals("", SyncSizeBudget.warning(SyncSizeBudget.WARN_BYTES))
         val notice = SyncSizeBudget.warning(SyncSizeBudget.WARN_BYTES + 1)
         assertTrue(notice.contains("1.0 MB"))
-        assertTrue(notice.contains("同步照常进行"))
+        assertTrue(notice.contains("Syncing continues"))
         assertTrue(SyncSizeBudget.warning(3 * 1024 * 1024).contains("3.0 MB"))
         // Gist / Gitee 读不全太大的文件，仍在 900 KB 停；WebDAV 放到 4 MB
         assertEquals(900 * 1024, SyncSizeBudget.hardLimitFor("gist"))

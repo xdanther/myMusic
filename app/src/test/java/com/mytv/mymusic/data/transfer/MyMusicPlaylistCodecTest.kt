@@ -116,19 +116,19 @@ class MyMusicPlaylistCodecTest {
             ExportList("p1", "跑步", listOf(kugou), unreadable = 2),
             ExportList("p2", "通勤", emptyList()),
         )
-        assertEquals("myMusic 歌单 3 个.mymusic.json", many.fileName)
+        assertEquals("myMusic playlists (3).mymusic.json", many.fileName)
         assertEquals(4, many.counts.total)
         assertEquals(2, many.counts.kept)
         val decoded = decode(many)
         assertEquals(listOf(KIND_FAVORITES, KIND_PLAYLIST, KIND_PLAYLIST), decoded.file.playlists.map { it.kind })
-        assertEquals("3 个歌单", PlaylistExport.title(many.let { listOf(ExportList("a", "a", emptyList()), ExportList("b", "b", emptyList()), ExportList("c", "c", emptyList())) }))
+        assertEquals("3 playlists", PlaylistExport.title(many.let { listOf(ExportList("a", "a", emptyList()), ExportList("b", "b", emptyList()), ExportList("c", "c", emptyList())) }))
     }
 
     @Test
     fun safeFileNames() {
         assertEquals("abcdefghij", safeFileName("a\\b/c:d*e?f#g\"h<i>j|"))
-        assertEquals("歌单", safeFileName("  ///  "))
-        assertEquals("歌单", safeFileName(""))
+        assertEquals("Playlists", safeFileName("  ///  "))
+        assertEquals("Playlists", safeFileName(""))
         assertEquals(150, safeFileName("长".repeat(200)).length)
         assertEquals("ab", safeFileName(" a\tb\u0000 "))
     }

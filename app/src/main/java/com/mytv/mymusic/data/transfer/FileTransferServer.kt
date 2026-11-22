@@ -73,13 +73,13 @@ internal class FileTransferServer(
             "api/session" -> jsonResponse(Response.Status.OK, sessionJson())
             "api/status" -> jsonResponse(Response.Status.OK, statusJson())
             "api/download" -> if (mode is TransferMode.Download) download(mode.file) else notFound()
-            else -> errorResponse(Response.Status.NOT_FOUND, "资源不存在")
+            else -> errorResponse(Response.Status.NOT_FOUND, "Resource not found")
         }
         Method.POST -> if (route == "api/upload" && mode == TransferMode.Upload) upload(http) else notFound()
-        else -> errorResponse(Response.Status.METHOD_NOT_ALLOWED, "不支持此请求方式")
+        else -> errorResponse(Response.Status.METHOD_NOT_ALLOWED, "Unsupported request method")
     }
 
-    private fun notFound(): Response = errorResponse(Response.Status.NOT_FOUND, "接口不存在")
+    private fun notFound(): Response = errorResponse(Response.Status.NOT_FOUND, "Endpoint not found")
 
     private fun sessionJson(): JsonObject = buildJsonObject {
         put("mode", if (mode is TransferMode.Download) "download" else "upload")
@@ -103,32 +103,32 @@ internal class FileTransferServer(
             customHeader = UPLOAD_HEADER,
             contentType = "application/octet-stream",
             maxBytes = MAX_UPLOAD_BYTES,
-            crossSiteMessage = "请从电视提供的网页上传",
-            badRequestMessage = "请用电视提供的网页选择文件上传",
-            tooLargeMessage = "文件为空或超过 32MB",
+            crossSiteMessage = "Upload from the page the TV provides",
+            badRequestMessage = "Choose the file to upload on the page the TV provides",
+            tooLargeMessage = "The file is empty or over 32 MB",
         )?.let { return it }
         synchronized(this) {
-            if (received) return errorResponse(Response.Status.CONFLICT, "电视已经收到文件了")
+            if (received) return errorResponse(Response.Status.CONFLICT, "The TV received the file")
         }
         val length = http.header("content-length")?.toLongOrNull() ?: 0L
         val bytes = try {
             readExactly(http.inputStream, length.toInt())
         } catch (_: IOException) {
-            return errorResponse(Response.Status.BAD_REQUEST, "文件没有传完整，请重试")
+            return errorResponse(Response.Status.BAD_REQUEST, "The upload was incomplete; try again")
         }
         if (!TransferReader.looksLikeTransfer(bytes)) {
-            return errorResponse(Response.Status.UNSUPPORTED_MEDIA_TYPE, "不是歌单文件")
+            return errorResponse(Response.Status.UNSUPPORTED_MEDIA_TYPE, "Not a playlist file")
         }
         val name = decodeFileName(http.header("x-file-name"))
         synchronized(this) {
-            if (received) return errorResponse(Response.Status.CONFLICT, "电视已经收到文件了")
+            if (received) return errorResponse(Response.Status.CONFLICT, "The TV received the file")
             when (runCatching { onUpload(bytes, name) }.getOrDefault(UploadResult.Busy)) {
                 UploadResult.Accepted -> {
                     received = true
                     setStatus(TransferPhase.Received, "在电视上勾选要导入的歌单，再按'导入'")
                 }
-                UploadResult.Busy -> return errorResponse(Response.Status.CONFLICT, "电视正在处理别的文件，请稍后再试")
-                UploadResult.Rejected -> return errorResponse(Response.Status.UNSUPPORTED_MEDIA_TYPE, "不是歌单文件")
+                UploadResult.Busy -> return errorResponse(Response.Status.CONFLICT, "The TV is handling another file; try again shortly")
+                UploadResult.Rejected -> return errorResponse(Response.Status.UNSUPPORTED_MEDIA_TYPE, "Not a playlist file")
             }
         }
         return jsonResponse(Response.Status.ACCEPTED, statusJson())
@@ -137,9 +137,9 @@ internal class FileTransferServer(
     private fun download(file: ExportFile): Response {
         synchronized(this) {
             // 手机浏览器会预取、重试，留几次余量；用完就失效
-            if (downloads >= MAX_DOWNLOADS) return errorResponse(Response.Status.GONE, "下载次数用完了，请在电视上重新打开")
+            if (downloads >= MAX_DOWNLOADS) return errorResponse(Response.Status.GONE, "Download limit reached; reopen the page on the TV")
             downloads++
-            setStatus(TransferPhase.Done, "已下载 ${file.fileName}")
+            setStatus(TransferPhase.Done, "Downloaded ${file.fileName}")
         }
         return newFixedLengthResponse(
             Response.Status.OK,
@@ -152,7 +152,7 @@ internal class FileTransferServer(
     }
 
     private fun initialMessage(): String =
-        if (mode is TransferMode.Download) "点按钮把文件存到手机" else "选一个歌单文件发送到电视"
+        if (mode is TransferMode.Download) "Tap the button to save the file to your phone" else "Pick a playlist file to send to the TV"
 
     companion object {
         const val MAX_UPLOAD_BYTES = TransferReader.MAX_FILE_BYTES
@@ -165,7 +165,7 @@ internal class FileTransferServer(
             var read = 0
             while (read < length) {
                 val n = input.read(out, read, length - read)
-                if (n < 0) throw IOException("连接提前断开")
+                if (n < 0) throw IOException("The connection closed early")
                 read += n
             }
             return out
@@ -174,10 +174,10 @@ internal class FileTransferServer(
         /** 网页用 encodeURIComponent 放进头里；解码后去掉不能当文件名的字符，最长 150 字。 */
         internal fun decodeFileName(raw: String?): String {
             val decoded = runCatching { URLDecoder.decode(raw.orEmpty().replace("+", "%2B"), "UTF-8") }.getOrDefault("")
-            return safeFileName(decoded).takeIf { decoded.isNotBlank() } ?: "手机传来的文件"
+            return safeFileName(decoded).takeIf { decoded.isNotBlank() } ?: "Files from your phone"
         }
 
-        /** `attachment; filename="<ASCII 回退>"; filename*=UTF-8''<百分号编码>`。 */
+        /** `attachment; filename="<ASCII fallback>"; filename*=UTF-8''<百分号编码>`。 */
         internal fun contentDisposition(name: String): String {
             val ascii = name.map { if (it.code in 0x20..0x7e && it != '"' && it != '\\') it else '_' }.joinToString("")
             val encoded = URLEncoder.encode(name, "UTF-8").replace("+", "%20")

@@ -102,7 +102,7 @@ class TransferReaderTest {
     @Test
     fun tooLargeFile() {
         val big = ByteArray((TransferReader.MAX_FILE_BYTES + 1).toInt())
-        assertTrue(unsupported(TransferReader.read(big)).contains("太大"))
+        assertTrue(unsupported(TransferReader.read(big)).contains("too large"))
     }
 
     @Test
@@ -110,18 +110,18 @@ class TransferReaderTest {
         val bomb = gzip(ByteArray(1024 * 1024) { 'a'.code.toByte() })
         assertTrue(bomb.size < 16 * 1024)
         val message = unsupported(TransferReader.read(bomb, inflateLimit = 64 * 1024))
-        assertTrue(message, message.contains("太大"))
+        assertTrue(message, message.contains("too large"))
     }
 
     @Test
     fun brokenStructureIsUnsupported() {
         val message = unsupported(TransferReader.read("""{"type":"playList_v2","data":{"x":1}}""".toByteArray()))
-        assertTrue(message, message.contains("洛雪"))
+        assertTrue(message, message.contains("LX"))
     }
 
     @Test
     fun emptyFile() {
-        assertTrue(unsupported(TransferReader.read(ByteArray(0))).contains("空"))
+        assertTrue(unsupported(TransferReader.read(ByteArray(0))).contains("empty"))
         assertEquals(TransferReader.UNKNOWN_FILE, unsupported(TransferReader.read("  \n".toByteArray())))
     }
 

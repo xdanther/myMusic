@@ -151,7 +151,7 @@ data class ExportList(
 
     companion object {
         const val FAVORITES_ID = "@favorites"
-        const val FAVORITES_NAME = "我的收藏"
+        const val FAVORITES_NAME = "My favorites"
     }
 }
 
@@ -165,9 +165,9 @@ data class ExportPreview(
 
 /** 导入时导不了的原因。 */
 enum class SkipReason(val label: String) {
-    UnknownSource("本应用没有这个平台"),
-    MissingId("缺少歌曲 id"),
-    LocalNotFound("本机没找到同名本地歌"),
-    BadFormat("格式不对"),
-    Duplicate("重复"),
+    UnknownSource("This app doesn't support that platform"),
+    MissingId("Missing track id"),
+    LocalNotFound("No same-named local song on this device"),
+    BadFormat("Wrong format"),
+    Duplicate("Duplicated"),
 }

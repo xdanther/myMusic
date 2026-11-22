@@ -78,8 +78,8 @@ class ImportPlanTest {
         assertEquals(SameName("p1", " 跑步 ", bound = true), plan.sameName["userlist_1"])
         assertEquals(ImportChoice(true, ImportTarget.New), defaultChoices(plan, true)["userlist_1"])
         assertEquals(listOf(ImportTarget.New), targetsFor(plan, run))
-        assertEquals("跑步（导入）", newNameFor(plan, run))
-        assertEquals("新建歌单'跑步（导入）'", targetLabel(plan, run, ImportTarget.New))
+        assertEquals("跑步 (imported)", newNameFor(plan, run))
+        assertEquals("New playlist '跑步 (imported)'", targetLabel(plan, run, ImportTarget.New))
         // 同名的既有绑定的也有没绑定的：合并进没绑定的那个
         val mixed = lxPlan("list_v2.json", listOf(playlist("p1", "跑步", bound = true), playlist("p2", "跑步")))
         assertEquals(SameName("p2", "跑步", bound = false), mixed.sameName["userlist_1"])
@@ -93,7 +93,7 @@ class ImportPlanTest {
         assertEquals("跑步（2）", newListName("跑步", setOf("跑步")))
         assertEquals("跑步（3）", newListName("跑步", setOf("跑步", "跑步（2）")))
         assertEquals("Run（2）", newListName("Run", setOf(" run ")))
-        assertEquals("未命名歌单", newListName("  ", emptySet()))
+        assertEquals("Untitled playlist", newListName("  ", emptySet()))
     }
 
     @Test
@@ -135,8 +135,8 @@ class ImportPlanTest {
         assertTrue(plan.lx)
         assertFalse(plan.legacy)
         val text = importSkippedText(plan)
-        assertTrue(text, text.contains("咪咕 1 首"))
-        assertTrue(text, text.contains("1 首本应用放不了"))
+        assertTrue(text, text.contains("Migu: 1"))
+        assertTrue(text, text.contains("tracks from other platforms"))
         assertTrue(importLosesSomething(plan))
     }
 
@@ -149,7 +149,7 @@ class ImportPlanTest {
         assertEquals(0, plan.miguResolved)
         // 本地没找到
         assertEquals(1, plan.lists.single().skipped[SkipReason.LocalNotFound])
-        assertTrue(importSkippedText(plan).contains("1 首没换到"))
+        assertTrue(importSkippedText(plan).contains("1 not matched"))
         assertTrue(importLosesSomething(plan))
     }
 
@@ -158,7 +158,7 @@ class ImportPlanTest {
         // 只有「咪咕 N 首已在线换取」：标题不能写「导不了的」
         val plan = lxPlan("part_v2.json")
         val resolved = plan.copy(lists = plan.lists.map { it.copy(skipped = emptyMap(), miguResolved = it.migu) })
-        assertEquals("咪咕 1 首已在线换取。", importSkippedText(resolved))
+        assertEquals("Migu: 1 tracks matched online.", importSkippedText(resolved))
         assertFalse(importLosesSomething(resolved))
     }
 

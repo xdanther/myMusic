@@ -57,7 +57,7 @@ class WebDavSyncProvider(
             if (error.kind != WebDavErrorKind.NotFound) throw error
             throw SyncException(
                 SyncFailureKind.NotFound,
-                "WebDAV 目录里找不到 $fileName，可能被删了。重新连接会按本机数据重建。",
+                "$fileName isn't in the WebDAV directory; it may have been deleted. Reconnecting rebuilds it from this device.",
             )
         }
         RemoteFile(
@@ -99,7 +99,7 @@ class WebDavSyncProvider(
 
     private suspend fun <T> call(token: String, block: suspend (WebDavClient, WebDavAccount) -> T): T {
         val account = WebDavAccount.decode(token)
-            ?: throw SyncException(SyncFailureKind.Auth, "WebDAV 账号信息不完整，请重新连接。")
+            ?: throw SyncException(SyncFailureKind.Auth, "The WebDAV account details are incomplete; please reconnect.")
         val client = try {
             client(account)
         } catch (error: WebDavException) {
@@ -116,7 +116,7 @@ class WebDavSyncProvider(
         } catch (error: Exception) {
             throw SyncException(
                 SyncFailureKind.Unknown,
-                error.message?.takeIf { it.isNotBlank() } ?: "同步失败（${error.javaClass.simpleName}）",
+                error.message?.takeIf { it.isNotBlank() } ?: "Sync failed (${error.javaClass.simpleName})",
             )
         }
     }

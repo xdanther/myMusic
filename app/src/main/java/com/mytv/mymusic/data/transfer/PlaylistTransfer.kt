@@ -85,7 +85,7 @@ class PlaylistTransfer(
             else -> false
         }
         val local = if (needsLocal) {
-            progress("正在本地音乐里找同名歌曲…")
+            progress("Looking for same-named songs in local music…")
             LocalMatchIndex(localSongs())
         } else {
             null
@@ -96,8 +96,8 @@ class PlaylistTransfer(
             .distinct()
         val resolved = if (miguIds.isEmpty()) emptyMap() else {
             val batches = (miguIds.size + 99) / 100
-            progress("正在换取咪咕歌曲 0/$batches 批")
-            migu(miguIds) { done, total -> progress("正在换取咪咕歌曲 $done/$total 批") }
+            progress("Matching Migu tracks: batch 0/$batches")
+            migu(miguIds) { done, total -> progress("Matching Migu tracks: batch $done/$total") }
         }
         return buildImportPlan(content, fileName, existing, local, resolved, knownProvider, fromPhone)
     }
@@ -144,7 +144,7 @@ class PlaylistTransfer(
                         val target = plan.sameName[list.sourceId]?.takeIf { !it.bound }
                             ?.let { library.playlistOnce(it.playlistId) }
                             ?.takeIf { it.deletedAt == null && !it.bound }
-                            ?: throw IllegalStateException("本机的同名歌单不见了或已绑定平台歌单")
+                            ?: throw IllegalStateException("The same-named playlist here is gone or already bound to a platform playlist")
                         val entries = library.entriesOnce(target.id)
                         val have = entries.mapTo(HashSet()) { entry -> decode(entry.payload)?.let(::importKey) ?: entry.songKey }
                         val fresh = songs.filter { importKey(it) !in have }
@@ -280,7 +280,7 @@ internal fun buildImportPlan(
                 )
             }
         }
-        else -> throw IllegalArgumentException("不是歌单文件")
+        else -> throw IllegalArgumentException("Not a playlist file")
     }
     val sameNames = lists.filter { it.fixed != LxFixed.Love }
         .mapNotNull { list -> sameName(list.name)?.let { list.sourceId to it } }

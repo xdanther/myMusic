@@ -61,7 +61,7 @@ class FileTransferServerTest {
         now.set(61_000)
         get(base, "api/status").use { response ->
             assertEquals(410, response.code)
-            assertTrue(response.body.string().contains("过期"))
+            assertTrue(response.body.string().contains("expired"))
         }
         upload(base, lxBytes()).use { assertEquals(410, it.code) }
         assertTrue(uploads.isEmpty())
@@ -114,7 +114,7 @@ class FileTransferServerTest {
         val base = start()
         upload(base, "<html>hello</html>".toByteArray()).use { response ->
             assertEquals(415, response.code)
-            assertTrue(response.body.string().contains("不是歌单文件"))
+            assertTrue(response.body.string().contains("Not a playlist file"))
         }
         assertTrue(uploads.isEmpty())
     }
@@ -135,7 +135,7 @@ class FileTransferServerTest {
         // 一个会话只收一个文件
         upload(base, lxBytes()).use { response ->
             assertEquals(409, response.code)
-            assertTrue(response.body.string().contains("已经收到"))
+            assertTrue(response.body.string().contains("The TV received the file"))
         }
         assertEquals(1, uploads.size)
     }
@@ -229,8 +229,8 @@ class FileTransferServerTest {
     fun fileNameHeaderIsDecodedAndCleaned() {
         assertEquals("跑步.lxmc", FileTransferServer.decodeFileName(URLEncoder.encode("跑步.lxmc", "UTF-8").replace("+", "%20")))
         assertEquals("ab.json", FileTransferServer.decodeFileName("a%2Fb.json"))
-        assertEquals("手机传来的文件", FileTransferServer.decodeFileName(null))
-        assertEquals("手机传来的文件", FileTransferServer.decodeFileName("%ZZ"))
+        assertEquals("Files from your phone", FileTransferServer.decodeFileName(null))
+        assertEquals("Files from your phone", FileTransferServer.decodeFileName("%ZZ"))
         assertEquals(150, FileTransferServer.decodeFileName("a".repeat(400)).length)
     }
 

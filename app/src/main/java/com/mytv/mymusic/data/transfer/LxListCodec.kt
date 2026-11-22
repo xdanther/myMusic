@@ -62,13 +62,13 @@ data class LxSong(
 object LxListCodec {
     /** 结构不对（data 不是数组之类）抛 [IllegalArgumentException]；单首坏了只丢那一首。 */
     fun parse(root: JsonObject): LxListFile {
-        val kind = LxKind.of(root.str("type")) ?: throw IllegalArgumentException("不是洛雪的歌单文件")
+        val kind = LxKind.of(root.str("type")) ?: throw IllegalArgumentException("Not an LX playlist file")
         val lists = listsOf(kind, root).map { obj ->
             val id = obj.str("id").orEmpty()
             val fixed = fixedOf(id)
             val rawName = obj.str("name").orEmpty().trim()
             val name = when {
-                rawName.isBlank() || rawName.startsWith("list__name_") -> fixed?.label ?: "未命名歌单"
+                rawName.isBlank() || rawName.startsWith("list__name_") -> fixed?.label ?: "Untitled playlist"
                 else -> rawName
             }.take(MAX_LIST_NAME)
             val rawSongs = obj["list"] as? JsonArray ?: JsonArray(emptyList())
@@ -116,7 +116,7 @@ object LxListCodec {
         return array.mapNotNull { it as? JsonObject }
     }
 
-    private fun structure(): Nothing = throw IllegalArgumentException("洛雪文件结构不对")
+    private fun structure(): Nothing = throw IllegalArgumentException("The LX file is malformed")
 
     /** 新版歌曲：meta 不是对象、source 空 → null。 */
     internal fun songV2(obj: JsonObject): LxSong? {
@@ -207,7 +207,7 @@ object LxListCodec {
 
     internal fun fixedOf(id: String): LxFixed? = LxFixed.entries.firstOrNull { it.id == id }
 
-    /** meta 里的标量拍平：数字原样转字符串（"123" 而不是 "123.0"），null、对象、数组不要。 */
+    /** meta 里的标量拍平：数字原样转字符串（"123" instead of "123.0"），null、对象、数组不要。 */
     private fun flatten(meta: JsonObject): Map<String, String> {
         val out = LinkedHashMap<String, String>()
         for ((key, value) in meta) {

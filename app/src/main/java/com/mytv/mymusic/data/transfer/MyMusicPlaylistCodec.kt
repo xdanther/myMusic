@@ -38,7 +38,7 @@ object MyMusicPlaylistCodec {
     fun decode(root: JsonObject): DecodedPlaylists? {
         if (root.string("type") != PLAYLIST_FILE_TYPE) return null
         val version = (root["version"] as? JsonPrimitive)?.intOrNull ?: PLAYLIST_FILE_VERSION
-        val rawLists = root["playlists"] as? JsonArray ?: throw IllegalArgumentException("歌单文件结构不对")
+        val rawLists = root["playlists"] as? JsonArray ?: throw IllegalArgumentException("The playlist file is malformed")
         val playlists = mutableListOf<PortablePlaylist>()
         val dropped = mutableListOf<Int>()
         for (element in rawLists) {
@@ -55,7 +55,7 @@ object MyMusicPlaylistCodec {
             }
             val source = (obj["source"] as? JsonObject)?.let { runCatching { json.decodeFromJsonElement<PortableSource>(it) }.getOrNull() }
             playlists += PortablePlaylist(
-                name = obj.string("name").orEmpty().trim().ifBlank { "未命名歌单" }.take(MAX_NAME_LENGTH),
+                name = obj.string("name").orEmpty().trim().ifBlank { "Untitled playlist" }.take(MAX_NAME_LENGTH),
                 kind = obj.string("kind")?.takeIf { it == KIND_FAVORITES } ?: KIND_PLAYLIST,
                 createdAt = obj.string("createdAt"),
                 source = source?.takeIf { it.provider.isNotBlank() && it.id.isNotBlank() },
@@ -88,10 +88,10 @@ object PlaylistExport {
     /** 单个歌单 `<名字>.mymusic.json`，多个 `myMusic 歌单 <N> 个.mymusic.json`。 */
     fun fileName(lists: List<ExportList>): String =
         if (lists.size == 1) safeFileName(lists.first().name) + PLAYLIST_FILE_SUFFIX
-        else "myMusic 歌单 ${lists.size} 个$PLAYLIST_FILE_SUFFIX"
+        else "myMusic playlists (${lists.size})$PLAYLIST_FILE_SUFFIX"
 
     fun title(lists: List<ExportList>): String =
-        if (lists.size == 1) lists.first().name else "${lists.size} 个歌单"
+        if (lists.size == 1) lists.first().name else "${lists.size} playlists"
 
     /** 同一个歌单里按平台 + id 去重（导出、计数都按它）。 */
     fun distinctSongs(list: ExportList) = list.songs.distinctBy { "${it.source}\u0000${it.id}" }
@@ -145,7 +145,7 @@ private val forbiddenFileChars = Regex("""[\\/:*?#"<>|\p{Cntrl}]""")
 /** 文件名里去掉 `\ / : * ? # " < > |` 和控制字符，首尾空白去掉，最长 150 字符，空了用'歌单'。 */
 internal fun safeFileName(name: String): String {
     val cleaned = name.replace(forbiddenFileChars, "").trim().trimEnd('.').trim()
-    return cleaned.take(MAX_FILE_NAME_LENGTH).trim().ifBlank { "歌单" }
+    return cleaned.take(MAX_FILE_NAME_LENGTH).trim().ifBlank { "Playlists" }
 }
 
 /** 和洛雪 filterFileName 一样的上限。 */

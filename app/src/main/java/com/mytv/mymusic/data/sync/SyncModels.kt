@@ -215,12 +215,12 @@ object SyncJson {
 
     fun decode(raw: String): SyncSnapshot {
         val snapshot = runCatching { format.decodeFromString<SyncSnapshot>(raw) }
-            .getOrElse { throw SyncException(SyncFailureKind.Corrupt, "同步文件无法读取，本机数据没有改动。") }
+            .getOrElse { throw SyncException(SyncFailureKind.Corrupt, "The sync file couldn't be read; this device's data is unchanged.") }
         if (snapshot.schema != SCHEMA) {
-            throw SyncException(SyncFailureKind.Corrupt, "同步文件格式不受支持：${snapshot.schema}")
+            throw SyncException(SyncFailureKind.Corrupt, "Unsupported sync file format: ${snapshot.schema}")
         }
         if (snapshot.version > SCHEMA_VERSION) {
-            throw SyncException(SyncFailureKind.Corrupt, "同步文件版本高于当前应用，请先更新应用。")
+            throw SyncException(SyncFailureKind.Corrupt, "The sync file is newer than this app; update the app first.")
         }
         // v2 文件没有绑定这一项：标成“不知道”，免得 link=null 被当成“另一台设备解除了绑定”
         if (snapshot.version < LINK_SCHEMA_VERSION) {

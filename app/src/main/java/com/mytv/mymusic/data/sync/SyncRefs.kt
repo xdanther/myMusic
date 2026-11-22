@@ -168,7 +168,7 @@ object SyncSizeBudget {
     fun warning(bytes: Int): String {
         if (bytes <= WARN_BYTES) return ""
         val mb = String.format(Locale.ROOT, "%.1f", bytes / 1024.0 / 1024.0)
-        return "同步文件有 $mb MB，已经超过 1 MB。同步照常进行，内容没有删减；整理掉不用的歌单可以让它小一些。"
+        return "The sync file is $mb MB, over 1 MB. Syncing continues and nothing is trimmed; removing unused playlists will shrink it."
     }
 }
 

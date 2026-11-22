@@ -125,7 +125,7 @@ internal class FileTransferServer(
             when (runCatching { onUpload(bytes, name) }.getOrDefault(UploadResult.Busy)) {
                 UploadResult.Accepted -> {
                     received = true
-                    setStatus(TransferPhase.Received, "在电视上勾选要导入的歌单，再按'导入'")
+                    setStatus(TransferPhase.Received, "Select the playlists to import on the TV, then tap Import")
                 }
                 UploadResult.Busy -> return errorResponse(Response.Status.CONFLICT, "The TV is handling another file; try again shortly")
                 UploadResult.Rejected -> return errorResponse(Response.Status.UNSUPPORTED_MEDIA_TYPE, "Not a playlist file")

@@ -165,7 +165,7 @@ class GistSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Play
         } catch (error: SyncException) {
             throw error
         } catch (error: IOException) {
-            throw SyncException(SyncFailureKind.Network, "Network unreachable: ${error.message ?: "请检查连接"}")
+            throw SyncException(SyncFailureKind.Network, "Network unreachable: ${error.message ?: "check the connection"}")
         }
     }
 }
@@ -271,7 +271,7 @@ class GiteeSyncProvider(private val http: OkHttpClient = syncHttpClient()) : Pla
         } catch (error: SyncException) {
             throw error
         } catch (error: IOException) {
-            throw SyncException(SyncFailureKind.Network, "Network unreachable: ${error.message ?: "请检查连接"}")
+            throw SyncException(SyncFailureKind.Network, "Network unreachable: ${error.message ?: "check the connection"}")
         }
     }
 }
